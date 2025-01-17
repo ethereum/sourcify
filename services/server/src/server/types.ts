@@ -19,6 +19,7 @@ export interface VerifiedContractMinimal {
   chainId: string;
   address: string;
   verifiedAt: string;
+  matchId: string;
 }
 
 /**

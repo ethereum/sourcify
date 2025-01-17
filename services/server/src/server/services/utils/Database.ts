@@ -203,7 +203,7 @@ ${
     runtime_match,
     creation_match,
     metadata,
-  }: Omit<Tables.SourcifyMatch, "created_at">) {
+  }: Omit<Tables.SourcifyMatch, "created_at" | "id">) {
     await this.pool.query(
       `INSERT INTO ${this.schema}.sourcify_matches (
         verified_contract_id,
@@ -224,7 +224,7 @@ ${
       runtime_match,
       creation_match,
       metadata,
-    }: Omit<Tables.SourcifyMatch, "created_at">,
+    }: Omit<Tables.SourcifyMatch, "created_at" | "id">,
     oldVerifiedContractId: number,
   ) {
     await this.pool.query(
@@ -271,17 +271,27 @@ ${
 
   async getSourcifyMatchesByChain(
     chain: number,
-    page: number,
-    paginationSize: number,
-    descending: boolean = false,
+    limit: number,
+    descending: boolean,
+    afterId?: string,
   ): Promise<QueryResult<GetSourcifyMatchesByChainResult>> {
+    const values: Array<number | string> = [chain, limit];
     const orderBy = descending
-      ? "ORDER BY verified_contracts.id DESC"
-      : "ORDER BY verified_contracts.id ASC";
+      ? "ORDER BY sourcify_matches.id DESC"
+      : "ORDER BY sourcify_matches.id ASC";
+
+    let queryWhere = "";
+    if (afterId) {
+      queryWhere = descending
+        ? "WHERE sourcify_matches.id < $3"
+        : "WHERE sourcify_matches.id > $3";
+      values.push(afterId);
+    }
 
     return await this.pool.query(
       `
     SELECT
+      sourcify_matches.id,
       sourcify_matches.creation_match,
       sourcify_matches.runtime_match,
       concat('0x',encode(contract_deployments.address, 'hex')) as address,
@@ -291,10 +301,11 @@ ${
     JOIN ${this.schema}.contract_deployments ON 
         contract_deployments.id = verified_contracts.deployment_id
         AND contract_deployments.chain_id = $1
+    ${queryWhere}
     ${orderBy}
-    OFFSET $2 LIMIT $3
+    LIMIT $2
     `,
-      [chain, page * paginationSize, paginationSize],
+      values,
     );
   }
 

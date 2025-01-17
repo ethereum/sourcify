@@ -100,6 +100,7 @@ export namespace Tables {
   }
 
   export interface SourcifyMatch {
+    id: string;
     verified_contract_id: number;
     runtime_match: Status | null;
     creation_match: Status | null;
@@ -162,7 +163,7 @@ export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
 
 export type GetSourcifyMatchesByChainResult = Pick<
   Tables.SourcifyMatch,
-  "creation_match" | "runtime_match" | "created_at"
+  "id" | "creation_match" | "runtime_match" | "created_at"
 > & { address: string };
 
 // Function overloads

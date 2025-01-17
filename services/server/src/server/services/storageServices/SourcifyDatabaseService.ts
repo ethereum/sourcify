@@ -259,19 +259,19 @@ export class SourcifyDatabaseService
     return { pagination, results };
   };
 
-  getPaginatedContracts = async (
+  getContractsByChainId = async (
     chainId: string,
-    page: number,
     limit: number,
-    descending: boolean = false,
-  ): Promise<PaginatedData<VerifiedContractMinimal>> => {
+    descending: boolean,
+    afterMatchId?: string,
+  ): Promise<{ results: VerifiedContractMinimal[] }> => {
     await this.init();
 
     const sourcifyMatchesResult = await this.database.getSourcifyMatchesByChain(
       parseInt(chainId),
-      page,
       limit,
       descending,
+      afterMatchId,
     );
 
     const results: VerifiedContractMinimal[] = sourcifyMatchesResult.rows.map(
@@ -285,18 +285,11 @@ export class SourcifyDatabaseService
         chainId,
         address: getAddress(row.address),
         verifiedAt: row.created_at.toISOString(),
+        matchId: row.id,
       }),
     );
 
-    const pagination = await this.getPaginationForContracts(
-      chainId,
-      "any_match",
-      page,
-      limit,
-      sourcifyMatchesResult?.rowCount ?? 0,
-    );
-
-    return { pagination, results };
+    return { results };
   };
 
   /**

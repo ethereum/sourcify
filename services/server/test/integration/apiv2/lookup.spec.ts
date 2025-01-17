@@ -30,6 +30,7 @@ describe("API v2 lookup endpoints", function () {
       runtimeMatch: "match",
       chainId: chainFixture.chainId,
       address,
+      matchId: "1",
     });
     chai.expect(res.body.results[0]).to.have.property("verifiedAt");
   });
@@ -54,6 +55,7 @@ describe("API v2 lookup endpoints", function () {
       runtimeMatch: "exact_match",
       chainId: chainFixture.chainId,
       address,
+      matchId: "1",
     });
     chai.expect(res.body.results[0]).to.have.property("verifiedAt");
   });
@@ -71,31 +73,31 @@ describe("API v2 lookup endpoints", function () {
       contractAddresses.push(address);
     }
 
-    // Test pagination
+    // Test limit
     const res0 = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}?page=1&limit=2`);
-    chai.expect(res0.body.pagination).to.deep.equal({
-      currentPage: 1,
-      hasNextPage: true,
-      hasPreviousPage: true,
-      resultsCurrentPage: 2,
-      resultsPerPage: 2,
-      totalPages: 3,
-      totalResults: 5,
-    });
+      .get(`/v2/contracts/${chainFixture.chainId}?limit=3`);
+    chai.expect(res0.body.results).to.be.an.instanceOf(Array);
+    chai.expect(res0.body.results.length).to.equal(3);
+    chai.expect(res0.body.results[0].matchId).to.equal("5");
+    chai.expect(res0.body.results[1].matchId).to.equal("4");
+    chai.expect(res0.body.results[2].matchId).to.equal("3");
+
+    // Test afterMatchId with desc
     const res1 = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}?limit=5`);
-    chai.expect(res1.body.pagination).to.deep.equal({
-      currentPage: 0,
-      hasNextPage: false,
-      hasPreviousPage: false,
-      resultsCurrentPage: 5,
-      resultsPerPage: 5,
-      totalPages: 1,
-      totalResults: 5,
-    });
+      .get(`/v2/contracts/${chainFixture.chainId}?limit=2&afterMatchId=4`);
+    chai.expect(res1.body.results[0].matchId).to.equal("3");
+    chai.expect(res1.body.results[1].matchId).to.equal("2");
+
+    // Test afterMatchId with asc
+    const res2 = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contracts/${chainFixture.chainId}?limit=2&afterMatchId=1&sort=asc`,
+      );
+    chai.expect(res2.body.results[0].matchId).to.equal("2");
+    chai.expect(res2.body.results[1].matchId).to.equal("3");
 
     // Test ascending order
     const oldestContractsFirst = contractAddresses;
@@ -114,6 +116,7 @@ describe("API v2 lookup endpoints", function () {
         runtimeMatch: "match",
         chainId: chainFixture.chainId,
         address: oldestContractsFirst[i],
+        matchId: (i + 1).toString(),
       });
     }
 
@@ -134,6 +137,7 @@ describe("API v2 lookup endpoints", function () {
         runtimeMatch: "match",
         chainId: chainFixture.chainId,
         address: newestContractsFirst[i],
+        matchId: (newestContractsFirst.length - i).toString(),
       });
     }
   });

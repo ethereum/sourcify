@@ -243,6 +243,10 @@ export async function resetDatabase(sourcifyDatabase: Pool) {
   }
   await sourcifyDatabase.query("DELETE FROM sourcify_sync");
   await sourcifyDatabase.query("DELETE FROM sourcify_matches");
+  // Needed for matchId to be deterministic in tests
+  await sourcifyDatabase.query(
+    "ALTER SEQUENCE sourcify_matches_id_seq RESTART WITH 1",
+  );
   await sourcifyDatabase.query("DELETE FROM verified_contracts");
   await sourcifyDatabase.query("DELETE FROM contract_deployments");
   await sourcifyDatabase.query("DELETE FROM compiled_contracts_sources");

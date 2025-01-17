@@ -73,14 +73,14 @@ export interface RWStorageService extends WStorageService {
     limit: number,
     descending: boolean,
   ): Promise<PaginatedData<string>>;
-  getPaginatedContracts?(
-    chainId: string,
-    page: number,
-    limit: number,
-    descending: boolean,
-  ): Promise<PaginatedData<VerifiedContractMinimal>>;
   checkByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
   checkAllByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
+  getContractsByChainId?(
+    chainId: string,
+    limit: number,
+    descending: boolean,
+    afterMatchId?: string,
+  ): Promise<{ results: VerifiedContractMinimal[] }>;
 }
 
 export interface EnabledServices {
