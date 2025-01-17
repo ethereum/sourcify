@@ -734,7 +734,8 @@
     "sourcifyName": "Moonbase",
     "supported": true,
     "etherscanApi": {
-      "apiURL": "https://api-moonbase.moonscan.io"
+      "apiURL": "https://api-moonbase.moonscan.io",
+      "apiKeyEnvName": "MOONSCAN_MOONBEAM_API_KEY"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -2081,7 +2082,8 @@
       "etherscanApi": true
     },
     "etherscanApi": {
-      "apiURL": "https://api-sepolia.basescan.org/"
+      "apiURL": "https://api-sepolia.basescan.org/",
+      "apiKeyEnvName": "BASESCAN_API_KEY"
     },
     "rpc": [
       "https://sepolia.base.org",
@@ -2175,7 +2177,7 @@
     "supported": true,
     "etherscanApi": {
       "apiURL": "https://api-cardona-zkevm.polygonscan.com",
-      "apiKeyEnvName": "POLYGONSCAN_API_KEY"
+      "apiKeyEnvName": "ZKEVM_POLYGONSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
