@@ -18,8 +18,8 @@ import {
   FileObject,
   FilesInfo,
   Mandatory,
-  MatchLevel,
-  MatchLevelWithoutAny,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
   MethodArgs,
   MethodNames,
   MethodReturnType,
@@ -52,23 +52,23 @@ export interface RWStorageService extends WStorageService {
   getFile(
     chainId: string,
     address: string,
-    match: MatchLevelWithoutAny,
+    match: V1MatchLevelWithoutAny,
     path: string,
   ): Promise<string | false>;
   getTree(
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<string[]>>;
   getContent(
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>>;
   getContracts(chainId: string): Promise<ContractData>;
   getPaginatedContractAddresses?(
     chainId: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
     page: number,
     limit: number,
     descending: boolean,

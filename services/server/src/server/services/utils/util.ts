@@ -1,6 +1,6 @@
 import Path from "path";
 import fs from "fs";
-import { MatchLevelWithoutAny, MatchQuality, V2MatchLevel } from "../../types";
+import { V1MatchLevelWithoutAny, MatchQuality, MatchLevel } from "../../types";
 import { getAddress } from "ethers";
 import { Match, Status } from "@ethereum-sourcify/lib-sourcify";
 
@@ -34,7 +34,7 @@ export async function exists(path: string): Promise<boolean> {
 
 export async function readFile(
   repositoryPath: string,
-  matchType: MatchLevelWithoutAny,
+  matchType: V1MatchLevelWithoutAny,
   chainId: string,
   address: string,
   path: string,
@@ -97,7 +97,7 @@ export function isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
   return false;
 }
 
-export function toV2MatchLevel(status: Status): V2MatchLevel {
+export function toMatchLevel(status: Status): MatchLevel {
   switch (status) {
     case "perfect":
       return "exact_match";
@@ -111,7 +111,7 @@ export function toV2MatchLevel(status: Status): V2MatchLevel {
 export function getTotalMatchLevel(
   creationStatus: Status,
   runtimeStatus: Status,
-): V2MatchLevel {
+): MatchLevel {
   if (creationStatus === "perfect" || runtimeStatus === "perfect") {
     return "exact_match";
   }

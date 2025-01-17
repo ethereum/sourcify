@@ -2,20 +2,20 @@ import { Response } from "express";
 
 // Types used internally by the server.
 
-export type MatchLevelWithoutAny = "full_match" | "partial_match";
+export type V1MatchLevelWithoutAny = "full_match" | "partial_match";
 
 /**
  * A type for specfifying the strictness level of querying (only full, partial or any kind of matches)
  */
-export type MatchLevel = MatchLevelWithoutAny | "any_match";
+export type V1MatchLevel = V1MatchLevelWithoutAny | "any_match";
 
 // New naming for matches in API v2
-export type V2MatchLevel = "match" | "exact_match" | null;
+export type MatchLevel = "match" | "exact_match" | null;
 
 export interface VerifiedContractMinimal {
-  match: V2MatchLevel;
-  creationMatch: V2MatchLevel;
-  runtimeMatch: V2MatchLevel;
+  match: MatchLevel;
+  creationMatch: MatchLevel;
+  runtimeMatch: MatchLevel;
   chainId: string;
   address: string;
   verifiedAt: string;

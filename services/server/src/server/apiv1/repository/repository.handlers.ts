@@ -3,8 +3,8 @@ import { StatusCodes } from "http-status-codes";
 import {
   ContractData,
   FilesInfo,
-  MatchLevel,
-  MatchLevelWithoutAny,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
   PaginatedData,
 } from "../../types";
 import { NotFoundError } from "../../../common/errors";
@@ -22,7 +22,7 @@ type RetrieveMethod = (
   services: Services,
   chain: string,
   address: string,
-  match: MatchLevel,
+  match: V1MatchLevel,
 ) => Promise<FilesInfo<any>>;
 type ConractRetrieveMethod = (
   services: Services,
@@ -31,7 +31,7 @@ type ConractRetrieveMethod = (
 type PaginatedConractRetrieveMethod = (
   services: Services,
   chain: string,
-  match: MatchLevel,
+  match: V1MatchLevel,
   page: number,
   limit: number,
   descending: boolean,
@@ -39,7 +39,7 @@ type PaginatedConractRetrieveMethod = (
 
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
-  match: MatchLevel,
+  match: V1MatchLevel,
   reportMatchStatus = false,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -82,7 +82,7 @@ export function createContractEndpoint(
 
 export function createPaginatedContractEndpoint(
   paginatedContractRetrieveMethod: PaginatedConractRetrieveMethod,
-  match: MatchLevel,
+  match: V1MatchLevel,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const services = req.app.get("services") as Services;
@@ -243,7 +243,7 @@ export async function getFileEndpoint(
   const file = await services.storage.performServiceOperation("getFile", [
     chain,
     address,
-    match as MatchLevelWithoutAny,
+    match as V1MatchLevelWithoutAny,
     req.params[0],
   ]);
   if (file === false) {

@@ -14,8 +14,8 @@ import {
   FilesInfo,
   FilesRaw,
   FilesRawValue,
-  MatchLevel,
-  MatchLevelWithoutAny,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
   PaginatedData,
   Pagination,
   VerifiedContractMinimal,
@@ -24,7 +24,7 @@ import Path from "path";
 import {
   getFileRelativePath,
   getTotalMatchLevel,
-  toV2MatchLevel,
+  toMatchLevel,
 } from "../utils/util";
 import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
@@ -174,7 +174,7 @@ export class SourcifyDatabaseService
 
   getPaginationForContracts = async (
     chainId: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
     page: number,
     limit: number,
     currentPageCount: number,
@@ -205,7 +205,7 @@ export class SourcifyDatabaseService
     const partialTotal = matchAddressesCountResult.rows[0].partial_total;
 
     const anyTotal = fullTotal + partialTotal;
-    const matchTotals: Record<MatchLevel, number> = {
+    const matchTotals: Record<V1MatchLevel, number> = {
       full_match: fullTotal,
       partial_match: partialTotal,
       any_match: anyTotal,
@@ -232,7 +232,7 @@ export class SourcifyDatabaseService
 
   getPaginatedContractAddresses = async (
     chainId: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
     page: number,
     limit: number,
     descending: boolean = false,
@@ -281,8 +281,8 @@ export class SourcifyDatabaseService
     const results: VerifiedContractMinimal[] = sourcifyMatchesResult.rows.map(
       (row) => ({
         match: getTotalMatchLevel(row.creation_match, row.runtime_match),
-        creationMatch: toV2MatchLevel(row.creation_match),
-        runtimeMatch: toV2MatchLevel(row.runtime_match),
+        creationMatch: toMatchLevel(row.creation_match),
+        runtimeMatch: toMatchLevel(row.runtime_match),
         chainId,
         address: getAddress(row.address),
         verifiedAt: row.created_at.toISOString(),
@@ -391,7 +391,7 @@ export class SourcifyDatabaseService
   getFile = async (
     chainId: string,
     address: string,
-    match: MatchLevelWithoutAny,
+    match: V1MatchLevelWithoutAny,
     path: string,
   ): Promise<string | false> => {
     // this.getFiles queries sourcify_match, it extract always one and only one match
@@ -432,7 +432,7 @@ export class SourcifyDatabaseService
   getTree = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<string[]>> => {
     const {
       status: contractStatus,
@@ -491,7 +491,7 @@ export class SourcifyDatabaseService
   getContent = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>> => {
     const {
       status: contractStatus,
