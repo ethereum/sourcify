@@ -2252,5 +2252,37 @@
   "26100": {
     "sourcifyName": "Quantum Portal Network",
     "supported": true
+  },
+  "7200": {
+    "sourcifyName": "exSat Mainnet",  
+    "supported": true,  
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": false,  
+      "blockscoutApi": {
+        "url": "https://scan.exsat.network/"
+      },
+      "blockscoutScrape": {
+        "url": "https://scan.exsat.network/"
+      }
+    },
+    "rpc": [
+      "https://evm.exsat.network"
+    ]
+  },
+  "839999": {
+    "sourcifyName": "exSat Testnet",  
+    "supported": true,  
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": false,  
+      "blockscoutApi": {
+        "url": "https://scan-testnet.exsat.network/"
+      },
+      "blockscoutScrape": {
+        "url": "https://scan-testnet.exsat.network/"
+      }
+    },
+    "rpc": [
+      "https://evm-tst3.exsat.network"
+    ]
   }
 }

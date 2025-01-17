@@ -65,6 +65,20 @@ describe("Test Supported Chains", function () {
       );
     }
   });
+  // exSat Mainnet
+  verifyContract(
+    "0xb0A32eBb9CD221d2FD91149195d87bE97552A90c",
+    "7200",
+    "exSat Mainnet",
+    "shared/",
+  );
+  // exSat Testnet
+  verifyContract(
+    "0xb0A32eBb9CD221d2FD91149195d87bE97552A90c",
+    "839999",
+    "exSat Testnet",
+    "shared/",
+  );
   // Taraxa Mainnet
   verifyContract(
     "0xDDb119FaD25d6320c62A205A8d74ae9895E822EA",
