@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { verifyFromEtherscan } from "./etherscan.stateless.handlers";
-import { checkPerfectMatch, safeHandler } from "../../../controllers.common";
-
+import { checkPerfectMatch } from "../../../controllers.common";
+import { safeHandler } from "../../../../common";
 const router: Router = Router();
 
 router

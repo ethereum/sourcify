@@ -100,6 +100,7 @@ export namespace Tables {
   }
 
   export interface SourcifyMatch {
+    id: string;
     verified_contract_id: number;
     runtime_match: Status | null;
     creation_match: Status | null;
@@ -159,6 +160,11 @@ export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
   Pick<Tables.ContractDeployment, "transaction_hash"> & {
     onchain_runtime_code: string;
   };
+
+export type GetSourcifyMatchesByChainResult = Pick<
+  Tables.SourcifyMatch,
+  "id" | "creation_match" | "runtime_match" | "created_at"
+> & { address: string };
 
 // Function overloads
 export function bytesFromString<T extends BytesTypes>(str: string): T;

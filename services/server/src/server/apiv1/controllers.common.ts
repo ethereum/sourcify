@@ -6,23 +6,6 @@ import { isContractAlreadyPerfect } from "./verification/verification.common";
 import { getResponseMatchFromMatch } from "../common";
 import { Services } from "../services/services";
 
-export const safeHandler = <T extends Request = Request>(
-  requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>,
-) => {
-  return async (req: T, res: Response, next: NextFunction) => {
-    try {
-      return await requestHandler(req, res as any, next);
-    } catch (err: any) {
-      logger.info("safeHandler", {
-        errorMessage: err.message,
-        errorStack: err.stack,
-      });
-      return next(
-        typeof err === "object" ? err : new InternalServerError(err.message),
-      );
-    }
-  };
-};
 export function validateAddress(
   req: Request,
   res: Response,

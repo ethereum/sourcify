@@ -607,7 +607,6 @@ describe("Verify repository endpoints", function () {
             (endpointMatchType === "any" && Math.random() > 0.5);
 
           const address = await deployAndVerifyContract(
-            chai,
             chainFixture,
             serverFixtureWithDatabase,
             shouldDeployPartial,

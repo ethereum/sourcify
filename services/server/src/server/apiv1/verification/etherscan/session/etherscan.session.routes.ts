@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { sessionVerifyFromEtherscan } from "./etherscan.session.handlers";
-import { safeHandler } from "../../../controllers.common";
+import { safeHandler } from "../../../../common";
 
 const router: Router = Router();
 
