@@ -2,7 +2,6 @@
 // conflict between prettier and eslint
 import dotenv from "dotenv";
 import pg from "pg";
-import { InsertData } from "./DuneDataClient";
 import {
   PgCode,
   PgCompiledContract,
@@ -69,17 +68,17 @@ async function fetchWithQuery(table: string, customQuery?: string) {
 }
 
 export async function fetchCode(
-  page: number,
+  code_hash: Buffer = Buffer.from("00", "hex"),
   pageSize: number,
 ): Promise<PgCode[] | null> {
   return fetchWithQuery(
     "code",
-    `SELECT * FROM code ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+    `SELECT * FROM code WHERE code_hash > decode('${code_hash.toString("hex")}', 'hex') ORDER BY code_hash ASC LIMIT ${pageSize}`,
   );
 }
 
 export async function fetchCompiledContracts(
-  page: number,
+  id: string = "00000000-0000-0000-0000-000000000000",
   pageSize: number,
 ): Promise<PgCompiledContract[] | null> {
   // exclude compiled_contracts.sources
@@ -102,70 +101,70 @@ export async function fetchCompiledContracts(
         runtime_code_hash,
         runtime_code_artifacts
       FROM compiled_contracts
-      ORDER BY created_at ASC
-      OFFSET ${page}
+      WHERE id > '${id}'
+      ORDER BY id ASC
       LIMIT ${pageSize}
     `;
   return fetchWithQuery("compiled_contracts", query);
 }
 
 export async function fetchCompiledContractsSources(
-  page: number,
+  id: string = "00000000-0000-0000-0000-000000000000",
   pageSize: number,
 ): Promise<PgCompiledContractsSource[] | null> {
   return fetchWithQuery(
     "compiled_contracts_sources",
-    `SELECT * FROM compiled_contracts_sources ORDER BY id ASC OFFSET ${page} LIMIT ${pageSize}`,
+    `SELECT * FROM compiled_contracts_sources WHERE id > '${id}' ORDER BY id ASC LIMIT ${pageSize}`,
   );
 }
 
 export async function fetchContractDeployments(
-  page: number,
+  id: string = "00000000-0000-0000-0000-000000000000",
   pageSize: number,
 ): Promise<PgContractDeployment[] | null> {
   return fetchWithQuery(
     "contract_deployments",
-    `SELECT * FROM contract_deployments ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+    `SELECT * FROM contract_deployments WHERE id > '${id}' ORDER BY id ASC LIMIT ${pageSize}`,
   );
 }
 
 export async function fetchContracts(
-  page: number,
+  id: string = "00000000-0000-0000-0000-000000000000",
   pageSize: number,
 ): Promise<PgContract[] | null> {
   return fetchWithQuery(
     "contracts",
-    `SELECT * FROM contracts ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+    `SELECT * FROM contracts WHERE id > '${id}' ORDER BY id ASC LIMIT ${pageSize}`,
   );
 }
 
 export async function fetchSources(
-  page: number,
+  source_hash: Buffer = Buffer.from("00", "hex"),
   pageSize: number,
 ): Promise<PgSource[] | null> {
   return fetchWithQuery(
     "sources",
-    `SELECT * FROM sources ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
-  );
-}
-
-export async function fetchSourcifyMatches(
-  page: number,
-  pageSize: number,
-): Promise<PgSourcifyMatch[] | null> {
-  return fetchWithQuery(
-    "sourcify_matches",
-    `SELECT * FROM sourcify_matches ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+    `SELECT * FROM sources WHERE source_hash > decode('${source_hash.toString("hex")}', 'hex') ORDER BY source_hash ASC LIMIT ${pageSize}`,
   );
 }
 
 export async function fetchVerifiedContracts(
-  page: number,
+  lastValue: number = 0,
   pageSize: number,
 ): Promise<PgVerifiedContract[] | null> {
   return fetchWithQuery(
     "verified_contracts",
-    `SELECT * FROM verified_contracts ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+    `SELECT * FROM verified_contracts WHERE id > ${lastValue} ORDER BY id ASC LIMIT ${pageSize}`,
+  );
+}
+
+export async function fetchSourcifyMatches(
+  lastValue: number = 0,
+  pageSize: number,
+): Promise<PgSourcifyMatch[] | null> {
+  return fetchWithQuery(
+    "sourcify_matches",
+    `SELECT * FROM sourcify_matches WHERE id > ${lastValue} ORDER BY id ASC LIMIT ${pageSize}`,
   );
 }
 

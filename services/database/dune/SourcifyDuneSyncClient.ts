@@ -35,15 +35,17 @@ export class SourcifyDuneSyncClient {
     createTableFunction: () => Promise<Response>;
     insertDataFunction: (data: any[]) => Promise<Response>;
     fetchDataFunction: (
-      page: number,
+      lastValue: any,
       pageSize: number,
     ) => Promise<any[] | null>;
     formatDataFunction: (data: any[]) => any[];
+    paginationField: string;
   } {
     let createTableFunction;
     let insertDataFunction;
     let fetchDataFunction;
     let formatDataFunction;
+    let paginationField;
 
     switch (tableName) {
       case "sourcify_matches":
@@ -56,6 +58,7 @@ export class SourcifyDuneSyncClient {
         );
         fetchDataFunction = fetchSourcifyMatches;
         formatDataFunction = formatSourcifyMatches;
+        paginationField = "id";
         break;
       case "verified_contracts":
         createTableFunction =
@@ -67,6 +70,7 @@ export class SourcifyDuneSyncClient {
         );
         fetchDataFunction = fetchVerifiedContracts;
         formatDataFunction = formatVerifiedContracts;
+        paginationField = "id";
         break;
       case "compiled_contracts":
         createTableFunction =
@@ -78,6 +82,7 @@ export class SourcifyDuneSyncClient {
         );
         fetchDataFunction = fetchCompiledContracts;
         formatDataFunction = formatCompiledContracts;
+        paginationField = "id";
         break;
       case "compiled_contracts_sources":
         createTableFunction =
@@ -90,6 +95,7 @@ export class SourcifyDuneSyncClient {
           );
         fetchDataFunction = fetchCompiledContractsSources;
         formatDataFunction = formatCompiledContractsSources;
+        paginationField = "id";
         break;
       case "sources":
         createTableFunction = this.duneTableClient.createSourcesTable.bind(
@@ -100,6 +106,7 @@ export class SourcifyDuneSyncClient {
         );
         fetchDataFunction = fetchSources;
         formatDataFunction = formatSources;
+        paginationField = "source_hash";
         break;
       case "contracts":
         createTableFunction = this.duneTableClient.createContractsTable.bind(
@@ -110,6 +117,7 @@ export class SourcifyDuneSyncClient {
         );
         fetchDataFunction = fetchContracts;
         formatDataFunction = formatContracts;
+        paginationField = "id";
         break;
       case "contract_deployments":
         createTableFunction =
@@ -121,6 +129,7 @@ export class SourcifyDuneSyncClient {
         );
         fetchDataFunction = fetchContractDeployments;
         formatDataFunction = formatContractDeployments;
+        paginationField = "id";
         break;
       case "code":
         createTableFunction = this.duneTableClient.createCodeTable.bind(
@@ -131,6 +140,7 @@ export class SourcifyDuneSyncClient {
         );
         fetchDataFunction = fetchCode;
         formatDataFunction = formatCode;
+        paginationField = "code_hash";
         break;
       default:
         throw new Error(`Unknown table: ${tableName}`);
@@ -141,6 +151,7 @@ export class SourcifyDuneSyncClient {
       insertDataFunction,
       fetchDataFunction,
       formatDataFunction,
+      paginationField,
     };
   }
 
@@ -150,6 +161,7 @@ export class SourcifyDuneSyncClient {
       insertDataFunction,
       fetchDataFunction,
       formatDataFunction,
+      paginationField,
     } = this.getTableFunctions(tableName);
 
     console.log(`[${tableName}] Creating table`);
@@ -163,19 +175,28 @@ export class SourcifyDuneSyncClient {
     }
 
     const totalRows = await countTotalRows(tableName);
+    if (!totalRows || totalRows === 0) {
+      console.error(`[${tableName}] No rows found`);
+      return;
+    }
     console.log(`[${tableName}] Total rows to insert: ${totalRows}`);
 
     const pageSize = 250;
-    let currentPage = 0;
+    let syncedResults = 0;
     let resultsCount = pageSize;
+    let lastValue = undefined;
 
     while (resultsCount === pageSize) {
-      const data = await fetchDataFunction(currentPage, pageSize);
+      const data = await fetchDataFunction(lastValue, pageSize);
       if (!data) {
         console.error(`[${tableName}] No data found`);
         return;
       }
+
       resultsCount = data.length;
+      syncedResults += resultsCount;
+      lastValue = data[data.length - 1][paginationField];
+
       const formattedData = formatDataFunction(data);
 
       const dataResponse = await insertDataFunction(formattedData);
@@ -208,11 +229,10 @@ export class SourcifyDuneSyncClient {
         `[${tableName}] Inserted on Dune: ${insertResponse.rows_written} rows.`,
       );
 
-      const percentage = ((currentPage * pageSize) / totalRows!) * 100;
+      const percentage = (syncedResults / totalRows) * 100;
       console.log(
-        `[${tableName}] Progress: ${currentPage * pageSize + pageSize}/${totalRows} (${percentage.toFixed(2)}%)`,
+        `[${tableName}] Progress: ${syncedResults}/${totalRows} (${percentage.toFixed(2)}%)`,
       );
-      currentPage += 1;
     }
   }
 
