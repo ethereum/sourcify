@@ -3,9 +3,9 @@ import { StatusCodes } from "http-status-codes";
 import {
   ContractData,
   FilesInfo,
-  MatchLevel,
-  MatchLevelWithoutAny,
-  PaginatedContractData,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
+  PaginatedData,
 } from "../../types";
 import { NotFoundError } from "../../../common/errors";
 import { Match } from "@ethereum-sourcify/lib-sourcify";
@@ -22,7 +22,7 @@ type RetrieveMethod = (
   services: Services,
   chain: string,
   address: string,
-  match: MatchLevel,
+  match: V1MatchLevel,
 ) => Promise<FilesInfo<any>>;
 type ConractRetrieveMethod = (
   services: Services,
@@ -31,15 +31,15 @@ type ConractRetrieveMethod = (
 type PaginatedConractRetrieveMethod = (
   services: Services,
   chain: string,
-  match: MatchLevel,
+  match: V1MatchLevel,
   page: number,
   limit: number,
   descending: boolean,
-) => Promise<PaginatedContractData>;
+) => Promise<PaginatedData<string>>;
 
 export function createEndpoint(
   retrieveMethod: RetrieveMethod,
-  match: MatchLevel,
+  match: V1MatchLevel,
   reportMatchStatus = false,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
@@ -82,11 +82,11 @@ export function createContractEndpoint(
 
 export function createPaginatedContractEndpoint(
   paginatedContractRetrieveMethod: PaginatedConractRetrieveMethod,
-  match: MatchLevel,
+  match: V1MatchLevel,
 ) {
   return async (req: Request, res: Response, next: NextFunction) => {
     const services = req.app.get("services") as Services;
-    let retrieved: PaginatedContractData;
+    let retrieved: PaginatedData<string>;
     try {
       retrieved = await paginatedContractRetrieveMethod(
         services,
@@ -243,7 +243,7 @@ export async function getFileEndpoint(
   const file = await services.storage.performServiceOperation("getFile", [
     chain,
     address,
-    match as MatchLevelWithoutAny,
+    match as V1MatchLevelWithoutAny,
     req.params[0],
   ]);
   if (file === false) {

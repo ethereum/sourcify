@@ -14,12 +14,18 @@ import {
   FilesInfo,
   FilesRaw,
   FilesRawValue,
-  MatchLevel,
-  MatchLevelWithoutAny,
-  PaginatedContractData,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
+  PaginatedData,
+  Pagination,
+  VerifiedContractMinimal,
 } from "../../types";
 import Path from "path";
-import { getFileRelativePath } from "../utils/util";
+import {
+  getFileRelativePath,
+  getTotalMatchLevel,
+  toMatchLevel,
+} from "../utils/util";
 import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
 import { RWStorageIdentifiers } from "./identifiers";
@@ -166,27 +172,24 @@ export class SourcifyDatabaseService
     return res;
   };
 
-  getPaginatedContracts = async (
+  getPaginationForContracts = async (
     chainId: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
     page: number,
     limit: number,
-    descending: boolean = false,
-  ): Promise<PaginatedContractData> => {
+    currentPageCount: number,
+  ): Promise<Pagination> => {
     await this.init();
 
     // Initialize empty result
-    const res: PaginatedContractData = {
-      results: [],
-      pagination: {
-        currentPage: page,
-        resultsPerPage: limit,
-        resultsCurrentPage: 0,
-        totalResults: 0,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      },
+    const pagination: Pagination = {
+      currentPage: page,
+      resultsPerPage: limit,
+      resultsCurrentPage: currentPageCount,
+      totalResults: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
     };
 
     // Count perfect and partial matches
@@ -194,7 +197,7 @@ export class SourcifyDatabaseService
       await this.database.countSourcifyMatchAddresses(parseInt(chainId));
 
     if (matchAddressesCountResult.rowCount === 0) {
-      return res;
+      return pagination;
     }
 
     // Calculate totalResults, return empty res if there are no contracts
@@ -202,23 +205,40 @@ export class SourcifyDatabaseService
     const partialTotal = matchAddressesCountResult.rows[0].partial_total;
 
     const anyTotal = fullTotal + partialTotal;
-    const matchTotals: Record<MatchLevel, number> = {
+    const matchTotals: Record<V1MatchLevel, number> = {
       full_match: fullTotal,
       partial_match: partialTotal,
       any_match: anyTotal,
     };
-
     // return empty res if requested `match` total is zero
     if (matchTotals[match] === 0) {
-      return res;
+      return pagination;
     }
-    res.pagination.totalResults = matchTotals[match];
+    pagination.totalResults = matchTotals[match];
 
-    res.pagination.totalPages = Math.ceil(
-      res.pagination.totalResults / res.pagination.resultsPerPage,
+    pagination.totalPages = Math.ceil(
+      pagination.totalResults / pagination.resultsPerPage,
     );
 
-    // Now make the real query for addresses
+    if (currentPageCount > 0) {
+      pagination.hasNextPage =
+        pagination.currentPage * pagination.resultsPerPage + currentPageCount <
+        pagination.totalResults;
+      pagination.hasPreviousPage = pagination.currentPage === 0 ? false : true;
+    }
+
+    return pagination;
+  };
+
+  getPaginatedContractAddresses = async (
+    chainId: string,
+    match: V1MatchLevel,
+    page: number,
+    limit: number,
+    descending: boolean = false,
+  ): Promise<PaginatedData<string>> => {
+    await this.init();
+
     const matchAddressesResult =
       await this.database.getSourcifyMatchAddressesByChainAndMatch(
         parseInt(chainId),
@@ -228,20 +248,49 @@ export class SourcifyDatabaseService
         descending,
       );
 
-    if (matchAddressesResult.rowCount && matchAddressesResult.rowCount > 0) {
-      res.pagination.resultsCurrentPage = matchAddressesResult.rowCount;
-      res.pagination.hasNextPage =
-        res.pagination.currentPage * res.pagination.resultsPerPage +
-          matchAddressesResult.rowCount <
-        res.pagination.totalResults;
-      res.pagination.hasPreviousPage =
-        res.pagination.currentPage === 0 ? false : true;
-      res.results = matchAddressesResult.rows.map((row) =>
-        getAddress(row.address),
-      );
-    }
+    const results = matchAddressesResult.rows.map((row) =>
+      getAddress(row.address),
+    );
 
-    return res;
+    const pagination = await this.getPaginationForContracts(
+      chainId,
+      match,
+      page,
+      limit,
+      matchAddressesResult?.rowCount ?? 0,
+    );
+
+    return { pagination, results };
+  };
+
+  getContractsByChainId = async (
+    chainId: string,
+    limit: number,
+    descending: boolean,
+    afterMatchId?: string,
+  ): Promise<{ results: VerifiedContractMinimal[] }> => {
+    await this.init();
+
+    const sourcifyMatchesResult = await this.database.getSourcifyMatchesByChain(
+      parseInt(chainId),
+      limit,
+      descending,
+      afterMatchId,
+    );
+
+    const results: VerifiedContractMinimal[] = sourcifyMatchesResult.rows.map(
+      (row) => ({
+        match: getTotalMatchLevel(row.creation_match, row.runtime_match),
+        creationMatch: toMatchLevel(row.creation_match),
+        runtimeMatch: toMatchLevel(row.runtime_match),
+        chainId,
+        address: getAddress(row.address),
+        verifiedAt: row.created_at.toISOString(),
+        matchId: row.id,
+      }),
+    );
+
+    return { results };
   };
 
   /**
@@ -342,7 +391,7 @@ export class SourcifyDatabaseService
   getFile = async (
     chainId: string,
     address: string,
-    match: MatchLevelWithoutAny,
+    match: V1MatchLevelWithoutAny,
     path: string,
   ): Promise<string | false> => {
     // this.getFiles queries sourcify_match, it extract always one and only one match
@@ -383,7 +432,7 @@ export class SourcifyDatabaseService
   getTree = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<string[]>> => {
     const {
       status: contractStatus,
@@ -442,7 +491,7 @@ export class SourcifyDatabaseService
   getContent = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>> => {
     const {
       status: contractStatus,

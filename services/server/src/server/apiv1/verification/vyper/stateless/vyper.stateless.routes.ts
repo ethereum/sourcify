@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { verifyVyper } from "./vyper.stateless.handlers";
-import { checkPerfectMatch, safeHandler } from "../../../controllers.common";
+import { checkPerfectMatch } from "../../../controllers.common";
+import { safeHandler } from "../../../../common";
 
 const router: Router = Router();
 
