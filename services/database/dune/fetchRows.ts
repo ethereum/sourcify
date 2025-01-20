@@ -59,7 +59,6 @@ async function fetchWithQuery(table: string, customQuery?: string) {
       return null;
     }
 
-    console.log(`Found ${result.rows.length} ${table}`);
     return result.rows;
   } catch (error) {
     console.error(`Error fetching ${table}:`, error);
@@ -69,13 +68,20 @@ async function fetchWithQuery(table: string, customQuery?: string) {
   }
 }
 
-export async function fetchCode(): Promise<PgCode[] | null> {
-  return fetchWithQuery("code");
+export async function fetchCode(
+  page: number,
+  pageSize: number,
+): Promise<PgCode[] | null> {
+  return fetchWithQuery(
+    "code",
+    `SELECT * FROM code ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+  );
 }
 
-export async function fetchCompiledContracts(): Promise<
-  PgCompiledContract[] | null
-> {
+export async function fetchCompiledContracts(
+  page: number,
+  pageSize: number,
+): Promise<PgCompiledContract[] | null> {
   // exclude compiled_contracts.sources
   const query = `
       SELECT
@@ -96,73 +102,85 @@ export async function fetchCompiledContracts(): Promise<
         runtime_code_hash,
         runtime_code_artifacts
       FROM compiled_contracts
-      LIMIT 1
+      ORDER BY created_at ASC
+      OFFSET ${page}
+      LIMIT ${pageSize}
     `;
   return fetchWithQuery("compiled_contracts", query);
 }
 
-export async function fetchCompiledContractsSources(): Promise<
-  PgCompiledContractsSource[] | null
-> {
-  return fetchWithQuery("compiled_contracts_sources");
+export async function fetchCompiledContractsSources(
+  page: number,
+  pageSize: number,
+): Promise<PgCompiledContractsSource[] | null> {
+  return fetchWithQuery(
+    "compiled_contracts_sources",
+    `SELECT * FROM compiled_contracts_sources ORDER BY id ASC OFFSET ${page} LIMIT ${pageSize}`,
+  );
 }
 
-export async function fetchContractDeployments(): Promise<
-  PgContractDeployment[] | null
-> {
-  return fetchWithQuery("contract_deployments");
+export async function fetchContractDeployments(
+  page: number,
+  pageSize: number,
+): Promise<PgContractDeployment[] | null> {
+  return fetchWithQuery(
+    "contract_deployments",
+    `SELECT * FROM contract_deployments ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+  );
 }
 
-export async function fetchContracts(): Promise<PgContract[] | null> {
-  return fetchWithQuery("contracts");
+export async function fetchContracts(
+  page: number,
+  pageSize: number,
+): Promise<PgContract[] | null> {
+  return fetchWithQuery(
+    "contracts",
+    `SELECT * FROM contracts ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+  );
 }
 
-export async function fetchSources(): Promise<PgSource[] | null> {
-  return fetchWithQuery("sources");
+export async function fetchSources(
+  page: number,
+  pageSize: number,
+): Promise<PgSource[] | null> {
+  return fetchWithQuery(
+    "sources",
+    `SELECT * FROM sources ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+  );
 }
 
-export async function fetchSourcifyMatches(): Promise<
-  PgSourcifyMatch[] | null
-> {
-  return fetchWithQuery("sourcify_matches");
+export async function fetchSourcifyMatches(
+  page: number,
+  pageSize: number,
+): Promise<PgSourcifyMatch[] | null> {
+  return fetchWithQuery(
+    "sourcify_matches",
+    `SELECT * FROM sourcify_matches ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+  );
 }
 
-export async function fetchVerifiedContracts(): Promise<
-  PgVerifiedContract[] | null
-> {
-  return fetchWithQuery("verified_contracts");
+export async function fetchVerifiedContracts(
+  page: number,
+  pageSize: number,
+): Promise<PgVerifiedContract[] | null> {
+  return fetchWithQuery(
+    "verified_contracts",
+    `SELECT * FROM verified_contracts ORDER BY created_at ASC OFFSET ${page} LIMIT ${pageSize}`,
+  );
 }
 
-// Helper function to fetch all data
-export async function fetchAllData() {
-  const [
-    code,
-    compiledContracts,
-    compiledContractsSources,
-    contractDeployments,
-    contracts,
-    sources,
-    sourcifyMatches,
-    verifiedContracts,
-  ] = await Promise.all([
-    fetchCode(),
-    fetchCompiledContracts(),
-    fetchCompiledContractsSources(),
-    fetchContractDeployments(),
-    fetchContracts(),
-    fetchSources(),
-    fetchSourcifyMatches(),
-    fetchVerifiedContracts(),
-  ]);
-
-  return {
-    code: code || undefined,
-    compiled_contracts: compiledContracts || undefined,
-    compiled_contracts_sources: compiledContractsSources || undefined,
-    contract_deployments: contractDeployments || undefined,
-    contracts: contracts || undefined,
-    sources: sources || undefined,
-    sourcify_matches: sourcifyMatches || undefined,
-    verified_contracts: verifiedContracts || undefined,
-  };
+/**
+ * Count the total number of rows in a table
+ * @param table - The name of the table to count the rows of
+ * @returns The total number of rows in the table, or null if there is an error
+ */
+export async function countTotalRows(table: string): Promise<number | null> {
+  const result = await fetchWithQuery(
+    `counting ${table}`,
+    `SELECT COUNT(*) FROM ${table}`,
+  );
+  if (!result) {
+    return null;
+  }
+  return result[0].count;
 }
