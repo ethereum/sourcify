@@ -181,7 +181,7 @@ export class SourcifyDuneSyncClient {
     }
     console.log(`[${tableName}] Total rows to insert: ${totalRows}`);
 
-    const pageSize = 250;
+    const pageSize = 350;
     let syncedResults = 0;
     let resultsCount = pageSize;
     let lastValue = undefined;
