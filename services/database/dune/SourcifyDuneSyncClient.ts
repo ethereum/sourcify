@@ -181,12 +181,14 @@ export class SourcifyDuneSyncClient {
     }
     console.log(`[${tableName}] Total rows to insert: ${totalRows}`);
 
-    const pageSize = 350;
+    const pageSize = 250;
     let syncedResults = 0;
     let resultsCount = pageSize;
     let lastValue = undefined;
 
     while (resultsCount === pageSize) {
+      await new Promise((resolve) => setTimeout(resolve, 500));
+
       const data = await fetchDataFunction(lastValue, pageSize);
       if (!data) {
         console.error(`[${tableName}] No data found`);
