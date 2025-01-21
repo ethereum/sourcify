@@ -222,12 +222,13 @@ export class SourcifyDuneSyncClient {
               )}`,
             );
         }
-      }
+      } else {
+        const insertResponse = await dataResponse.json();
 
-      const insertResponse = await dataResponse.json();
-      console.log(
-        `[${tableName}] Inserted on Dune: ${insertResponse.rows_written} rows.`,
-      );
+        console.log(
+          `[${tableName}] Inserted on Dune: ${insertResponse.rows_written} rows.`,
+        );
+      }
 
       const percentage = (syncedResults / totalRows) * 100;
       console.log(
