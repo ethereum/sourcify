@@ -78,17 +78,12 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   };
 }
 
-export async function deployAndVerifyContract(
-  chainFixture: LocalChainFixture,
+export async function verifyContract(
   serverFixture: ServerFixture,
+  chainFixture: LocalChainFixture,
+  contractAddress: string,
   partial: boolean = false,
 ) {
-  const contractAddress = await deployFromAbiAndBytecode(
-    chainFixture.localSigner,
-    chainFixture.defaultContractArtifact.abi,
-    chainFixture.defaultContractArtifact.bytecode,
-    [],
-  );
   await chai
     .request(serverFixture.server.app)
     .post("/")
@@ -107,6 +102,20 @@ export async function deployAndVerifyContract(
         ? chainFixture.defaultContractModifiedSource
         : chainFixture.defaultContractSource,
     );
+}
+
+export async function deployAndVerifyContract(
+  chainFixture: LocalChainFixture,
+  serverFixture: ServerFixture,
+  partial: boolean = false,
+) {
+  const contractAddress = await deployFromAbiAndBytecode(
+    chainFixture.localSigner,
+    chainFixture.defaultContractArtifact.abi,
+    chainFixture.defaultContractArtifact.bytecode,
+    [],
+  );
+  await verifyContract(serverFixture, chainFixture, contractAddress, partial);
   return contractAddress;
 }
 

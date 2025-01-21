@@ -46,6 +46,7 @@ export class LocalChainFixture {
   defaultContractMetadata = Buffer.from(
     JSON.stringify(storageContractMetadata),
   );
+  defaultContractMetadataObject = storageContractMetadata;
   defaultContractModifiedMetadata = Buffer.from(
     JSON.stringify(storageContractMetadataModified),
   );
