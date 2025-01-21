@@ -27,7 +27,6 @@ export default class DuneTableClient {
   }
 
   private async createTable(request: CreateTableRequest): Promise<Response> {
-    console.log(`Creating ${request.table_name} table...`);
     const response = await fetch(`${this.baseUrl}/create`, {
       method: "POST",
       headers: this.headers,
