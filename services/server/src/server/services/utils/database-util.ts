@@ -9,6 +9,7 @@ import {
   TransformationValues,
   CompiledContractCborAuxdata,
   AbstractCheckedContract,
+  LinkReferences,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Abi } from "abitype";
 import {
@@ -61,12 +62,12 @@ export namespace Tables {
     runtime_code_hash: BytesSha;
     creation_code_artifacts: {
       sourceMap: Nullable<string>;
-      linkReferences: Nullable<{}>;
+      linkReferences: Nullable<LinkReferences>;
       cborAuxdata: Nullable<CompiledContractCborAuxdata>;
     };
     runtime_code_artifacts: {
       sourceMap: Nullable<string>;
-      linkReferences: Nullable<{}>;
+      linkReferences: Nullable<LinkReferences>;
       immutableReferences: Nullable<ImmutableReferences>;
       cborAuxdata: Nullable<CompiledContractCborAuxdata>;
     };

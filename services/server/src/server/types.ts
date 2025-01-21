@@ -1,4 +1,22 @@
+import {
+  CompiledContractCborAuxdata,
+  Devdoc,
+  ImmutableReferences,
+  JsonInput,
+  Language,
+  LinkReferences,
+  Metadata,
+  SolidityOutput,
+  StorageLayout,
+  Transformation,
+  TransformationValues,
+  Userdoc,
+  VyperJsonInput,
+  VyperOutput,
+} from "@ethereum-sourcify/lib-sourcify";
 import { Response } from "express";
+import { Abi } from "abitype";
+import { ProxyDetectionResult } from "./services/utils/proxy-contract-util";
 
 // Types used internally by the server.
 
@@ -12,6 +30,7 @@ export type V1MatchLevel = V1MatchLevelWithoutAny | "any_match";
 // New naming for matches in API v2
 export type MatchLevel = "match" | "exact_match" | null;
 
+// For displaying contracts in API v2
 export interface VerifiedContractMinimal {
   match: MatchLevel;
   creationMatch: MatchLevel;
@@ -20,6 +39,54 @@ export interface VerifiedContractMinimal {
   address: string;
   verifiedAt: string;
   matchId: string;
+}
+
+// For displaying contracts in API v2
+export interface VerifiedContract extends VerifiedContractMinimal {
+  creationBytecode?: {
+    onchainBytecode: Nullable<string>;
+    recompiledBytecode: string;
+    sourceMap: Nullable<string>;
+    linkReferences: Nullable<LinkReferences>;
+    cborAuxdata: Nullable<CompiledContractCborAuxdata>;
+    transformations: Nullable<Transformation[]>;
+    transformationValues: Nullable<TransformationValues>;
+  };
+  runtimeBytecode?: {
+    onchainBytecode: string;
+    recompiledBytecode: string;
+    sourceMap: Nullable<string>;
+    linkReferences: Nullable<LinkReferences>;
+    cborAuxdata: Nullable<CompiledContractCborAuxdata>;
+    immutableReferences: Nullable<ImmutableReferences>;
+    transformations: Nullable<Transformation[]>;
+    transformationValues: Nullable<TransformationValues>;
+  };
+  deployment?: {
+    transactionHash: Nullable<string>;
+    blockNumber: Nullable<number>;
+    txIndex: Nullable<number>;
+    deployer: Nullable<string>;
+  };
+  sources?: {
+    [path: string]: { content: string };
+  };
+  compilation?: {
+    language: Language;
+    compiler: string;
+    compilerVersion: string;
+    compilerSettings: Object;
+    name: string;
+    fullyQualifiedName: string;
+  };
+  abi?: Nullable<Abi>;
+  metadata?: Nullable<Metadata>;
+  storageLayout?: Nullable<StorageLayout>;
+  userDoc?: Nullable<Userdoc>;
+  devDoc?: Nullable<Devdoc>;
+  stdJsonInput?: JsonInput | VyperJsonInput;
+  stdJsonOutput?: SolidityOutput | VyperOutput;
+  proxyResolution?: ProxyDetectionResult;
 }
 
 /**
