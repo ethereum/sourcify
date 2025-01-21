@@ -470,10 +470,6 @@ components:
                         type: string
                         examples:
                           - 'contracts/MyContract.sol:MyContract'
-                  implementations:
-                    type: array
-                    items:
-                      type: object
                   abi:
                     type: array
                     items:
@@ -707,19 +703,56 @@ components:
                       }
                 compilation:
                   language: Solidity
+                  compiler: solc
                   compilerVersion: v0.8.12+commit.f00d7308
                   compilerSettings: {}
                   name: MyContract
                   fullyQualifiedName: 'contracts/MyContract.sol:MyContract'
-                isProxy: true
-                implementations:
-                  - {}
                 abi:
                   - {}
                 userDoc: {}
                 devDoc: {}
                 storageLayout: {}
                 metadata: {}
+                stdJsonInput:
+                  language: Solidity
+                  sources:
+                    contracts/Storage.sol:
+                      content: |
+                        // SPDX-License-Identifier: MIT
+                        pragma solidity ^0.8.0;
+
+                        contract Storage {
+                            uint256 number;
+
+                            function setNumber(uint256 newNumber) public {
+                                number = newNumber;
+                            }
+
+                            function getNumber() public view returns (uint256) {
+                                return number;
+                            }
+                        }
+                    contracts/Owner.sol:
+                      content: |
+                        // SPDX-License-Identifier: MIT
+                        pragma solidity ^0.8.0;
+
+                        contract Owner {
+                            address public owner;
+
+                            constructor() {
+                                owner = msg.sender;
+                            }
+                        }
+                  settings: {}
+                stdJsonOutput:
+                  sources: {}
+                  contracts: {}
+                proxyResolution:
+                  isProxy: false
+                  proxyType: null
+                  implementations: []
             Minimal Response:
               value:
                 match: exact_match
