@@ -172,7 +172,10 @@ export class VyperCompilation extends AbstractCompilation {
       );
 
       // Vyper 0.3.10 and higher does not have the auxdata in the runtime bytecode
-      if (this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10) {
+      if (
+        this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10 ||
+        this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_5
+      ) {
         this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
           this.getRuntimeBytecode(),
           runtimeAuxdataCbor,
@@ -225,5 +228,13 @@ export class VyperCompilation extends AbstractCompilation {
         value: `0x${auxdataFromRawBytecode}`,
       },
     };
+  }
+
+  // Override the bytecodes' getter methods to return the string without the 0x prefix
+  getCreationBytecode() {
+    return this.getCompilationTarget().evm.bytecode.object;
+  }
+  getRuntimeBytecode() {
+    return this.getCompilationTarget().evm.deployedBytecode.object;
   }
 }

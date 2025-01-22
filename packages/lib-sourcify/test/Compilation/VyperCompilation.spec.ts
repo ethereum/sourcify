@@ -5,7 +5,7 @@ import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { vyperCompiler } from '../utils';
 
-describe('VyperCompilation', () => {
+describe.only('VyperCompilation', () => {
   it('should compile a simple Vyper contract', async () => {
     const contractPath = path.join(
       __dirname,
@@ -44,8 +44,12 @@ describe('VyperCompilation', () => {
     );
 
     await compilation.compile();
-    expect(compilation.getCreationBytecode()).to.not.be.undefined;
-    expect(compilation.getRuntimeBytecode()).to.not.be.undefined;
+    expect(compilation.getCreationBytecode()).to.equal(
+      '0x61008f61000f60003961008f6000f360003560e01c63c605f76c8118610084573461008a57602080608052600c6040527f48656c6c6f20576f726c6421000000000000000000000000000000000000000060605260408160800181518152602082015160208201528051806020830101601f82600003163682375050601f19601f8251602001011690509050810190506080f35b60006000fd5b600080fd84188f8000a16576797065728300030a0012',
+    );
+    expect(compilation.getRuntimeBytecode()).to.equal(
+      '0x60003560e01c63c605f76c8118610084573461008a57602080608052600c6040527f48656c6c6f20576f726c6421000000000000000000000000000000000000000060605260408160800181518152602082015160208201528051806020830101601f82600003163682375050601f19601f8251602001011690509050810190506080f35b60006000fd5b600080fd',
+    );
   });
 
   it('should handle immutable references correctly', async () => {
@@ -86,7 +90,9 @@ describe('VyperCompilation', () => {
     );
 
     await compilation.compile();
-    expect(compilation.getImmutableReferences()).to.not.be.empty;
+    expect(compilation.getImmutableReferences()).to.deep.equal({
+      '0': [{ length: 96, start: 167 }],
+    });
   });
 
   it('should generate correct CBOR auxdata positions', async () => {
@@ -129,50 +135,9 @@ describe('VyperCompilation', () => {
     await compilation.compile();
     const success = await compilation.generateCborAuxdataPositions();
     expect(success).to.be.true;
-    expect(compilation.creationBytecodeCborAuxdata).to.not.be.empty;
-  });
-
-  it('should handle vyper versions lower than 0.3.5', async () => {
-    const contractPath = path.join(
-      __dirname,
-      '..',
-      'sources',
-      'Vyper',
-      'testcontract',
-    );
-    const contractFileName = 'test.vy';
-    const contractContent = fs.readFileSync(
-      path.join(contractPath, contractFileName),
-      'utf8',
-    );
-
-    const compilation = new VyperCompilation(
-      vyperCompiler,
-      '0.3.4+commit.f31f0ec4',
-      {
-        language: 'Vyper',
-        sources: {
-          [contractFileName]: {
-            content: contractContent,
-          },
-        },
-        settings: {
-          evmVersion: 'istanbul',
-          outputSelection: {
-            '*': ['evm.bytecode'],
-          },
-        },
-      },
-      {
-        name: contractFileName.split('.')[0],
-        path: contractFileName,
-      },
-    );
-
-    await compilation.compile();
-    await compilation.generateCborAuxdataPositions();
-    expect(compilation.getCreationBytecode()).to.not.be.undefined;
-    expect(compilation.getRuntimeBytecode()).to.not.be.undefined;
+    expect(compilation.creationBytecodeCborAuxdata).to.deep.equal({
+      '1': { offset: 158, value: '0x84188f8000a16576797065728300030a0012' },
+    });
   });
 
   it('should handle compilation errors gracefully', async () => {
@@ -333,7 +298,7 @@ describe('VyperCompilation', () => {
     expect(success).to.be.false;
   });
 
-  it('should handle beta versions of Vyper', async () => {
+  it('should handle beta versions of Vyper, transforming the version to a valid semver', async () => {
     const contractPath = path.join(
       __dirname,
       '..',
@@ -348,7 +313,7 @@ describe('VyperCompilation', () => {
       'utf8',
     );
 
-    // Mock vyperCompiler to return output without metadata
+    // We don't actually need to compile here, we just need to test the version transformation
     const mockCompiler = {
       compile: async () => ({
         contracts: {
@@ -376,7 +341,7 @@ describe('VyperCompilation', () => {
           },
         },
         settings: {
-          evmVersion: 'istanbul',
+          evmVersion: 'london',
           outputSelection: {
             '*': ['evm.bytecode'],
           },
@@ -498,7 +463,60 @@ describe('VyperCompilation', () => {
     expect(immutableRefs).to.be.empty;
   });
 
-  it('should handle runtime bytecode CBOR auxdata based on Vyper version', async () => {
+  it('should handle vyper versions lower than 0.3.5', async () => {
+    const contractPath = path.join(
+      __dirname,
+      '..',
+      'sources',
+      'Vyper',
+      'testcontract',
+    );
+    const contractFileName = 'test.vy';
+    const contractContent = fs.readFileSync(
+      path.join(contractPath, contractFileName),
+      'utf8',
+    );
+
+    const compilation = new VyperCompilation(
+      vyperCompiler,
+      '0.3.4+commit.f31f0ec4',
+      {
+        language: 'Vyper',
+        sources: {
+          [contractFileName]: {
+            content: contractContent,
+          },
+        },
+        settings: {
+          evmVersion: 'istanbul',
+          outputSelection: {
+            '*': ['evm.bytecode'],
+          },
+        },
+      },
+      {
+        name: contractFileName.split('.')[0],
+        path: contractFileName,
+      },
+    );
+
+    await compilation.compile();
+    await compilation.generateCborAuxdataPositions();
+    expect(compilation.getCreationBytecode()).to.equal(
+      '0x6100b761000f6000396100b76000f36003361161000c576100a1565b60003560e01c346100a75763c605f76c811861009f57600436186100a757602080608052600c6040527f48656c6c6f20576f726c6421000000000000000000000000000000000000000060605260408160800181518082526020830160208301815181525050508051806020830101601f82600003163682375050601f19601f8251602001011690509050810190506080f35b505b60006000fd5b600080fda165767970657283000304',
+    );
+    expect(compilation.getRuntimeBytecode()).to.equal(
+      '0x6003361161000c576100a1565b60003560e01c346100a75763c605f76c811861009f57600436186100a757602080608052600c6040527f48656c6c6f20576f726c6421000000000000000000000000000000000000000060605260408160800181518082526020830160208301815181525050508051806020830101601f82600003163682375050601f19601f8251602001011690509050810190506080f35b505b60006000fd5b600080fda165767970657283000304',
+    );
+    expect(compilation.creationBytecodeCborAuxdata).to.deep.equal({
+      '1': { offset: 187, value: '0xa165767970657283000304' },
+    });
+    expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({
+      '1': { offset: 172, value: '0xa165767970657283000304' },
+    });
+  });
+
+  it('should handle vyper versions lower than 0.3.10', async () => {
     const contractPath = path.join(
       __dirname,
       '..',
@@ -538,6 +556,17 @@ describe('VyperCompilation', () => {
 
     await compilation.compile();
     await compilation.generateCborAuxdataPositions();
-    expect(compilation.runtimeBytecodeCborAuxdata).to.not.be.empty;
+    expect(compilation.getCreationBytecode()).to.equal(
+      '0x6100b961000f6000396100b96000f36003361161000c576100a1565b60003560e01c346100a75763c605f76c811861009f57600436106100a757602080608052600c6040527f48656c6c6f20576f726c6421000000000000000000000000000000000000000060605260408160800181518082526020830160208301815181525050508051806020830101601f82600003163682375050601f19601f8251602001011690509050810190506080f35b505b60006000fd5b600080fda165767970657283000307000b',
+    );
+    expect(compilation.getRuntimeBytecode()).to.equal(
+      '0x6003361161000c576100a1565b60003560e01c346100a75763c605f76c811861009f57600436106100a757602080608052600c6040527f48656c6c6f20576f726c6421000000000000000000000000000000000000000060605260408160800181518082526020830160208301815181525050508051806020830101601f82600003163682375050601f19601f8251602001011690509050810190506080f35b505b60006000fd5b600080fda165767970657283000307000b',
+    );
+    expect(compilation.creationBytecodeCborAuxdata).to.deep.equal({
+      '1': { offset: 187, value: '0xa165767970657283000307000b' },
+    });
+    expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({
+      '1': { offset: 172, value: '0xa165767970657283000307000b' },
+    });
   });
 });
