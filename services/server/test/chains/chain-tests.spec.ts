@@ -65,6 +65,20 @@ describe("Test Supported Chains", function () {
       );
     }
   });
+  // exSat Mainnet
+  verifyContract(
+    "0xb0A32eBb9CD221d2FD91149195d87bE97552A90c",
+    "7200",
+    "exSat Mainnet",
+    "shared/",
+  );
+  // exSat Testnet
+  verifyContract(
+    "0xb0A32eBb9CD221d2FD91149195d87bE97552A90c",
+    "839999",
+    "exSat Testnet",
+    "shared/",
+  );
   // Taraxa Mainnet
   verifyContract(
     "0xDDb119FaD25d6320c62A205A8d74ae9895E822EA",
@@ -1218,6 +1232,13 @@ describe("Test Supported Chains", function () {
     "0xbF33D2dA0F875D826ce1bA250F66b2785d48C113",
     "54211",
     "Haqq Testnet",
+    "shared/",
+  );
+
+  verifyContract(
+    "0xbC3559436348f1D96029b2Ccc16d2bBDE8016865",
+    "1114",
+    "Core Blockchain Testnet2",
     "shared/",
   );
 
