@@ -175,17 +175,4 @@ export default class DuneClient {
       body: data.map((row: any) => JSON.stringify(row)).join("\n"), // Must send as newline delimited json (NDJSON)
     };
   }
-
-  // async insertData(data: InsertData): Promise<void> {
-  //   await Promise.all([
-  //     this.insertCode(data.code),
-  //     this.insertCompiledContracts(data.compiled_contracts),
-  //     this.insertCompiledContractsSources(data.compiled_contracts_sources),
-  //     this.insertContractDeployments(data.contract_deployments),
-  //     this.insertContracts(data.contracts),
-  //     this.insertSources(data.sources),
-  //     this.insertSourcifyMatches(data.sourcify_matches),
-  //     this.insertVerifiedContracts(data.verified_contracts),
-  //   ]);
-  // }
 }
