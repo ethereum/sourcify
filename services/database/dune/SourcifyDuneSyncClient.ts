@@ -174,6 +174,11 @@ export class SourcifyDuneSyncClient {
       console.log(`[${tableName}] Table created`);
     }
 
+    console.log(
+      `[${tableName}] Sleeping for 60 seconds (to avoid Dune cache errors)...`,
+    );
+    await new Promise((resolve) => setTimeout(resolve, 60000));
+
     const totalRows = await countTotalRows(tableName);
     if (!totalRows || totalRows === 0) {
       console.error(`[${tableName}] No rows found`);
@@ -181,14 +186,12 @@ export class SourcifyDuneSyncClient {
     }
     console.log(`[${tableName}] Total rows to insert: ${totalRows}`);
 
-    const pageSize = 250;
+    const pageSize = 300;
     let syncedResults = 0;
     let resultsCount = pageSize;
     let lastValue = undefined;
 
     while (resultsCount === pageSize) {
-      await new Promise((resolve) => setTimeout(resolve, 500));
-
       const data = await fetchDataFunction(lastValue, pageSize);
       if (!data) {
         console.error(`[${tableName}] No data found`);
