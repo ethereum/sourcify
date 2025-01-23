@@ -57,8 +57,12 @@ describe('SolidityCompilation', () => {
     );
 
     await compilation.compile();
-    expect(compilation.getCreationBytecode()).to.not.be.undefined;
-    expect(compilation.getRuntimeBytecode()).to.not.be.undefined;
+    expect(compilation.getCreationBytecode()).to.equal(
+      '0x608060405234801561001057600080fd5b5061012f806100206000396000f3fe6080604052348015600f57600080fd5b506004361060325760003560e01c80632e64cec11460375780636057361d146051575b600080fd5b603d6069565b6040516048919060c2565b60405180910390f35b6067600480360381019060639190608f565b6072565b005b60008054905090565b8060008190555050565b60008135905060898160e5565b92915050565b60006020828403121560a057600080fd5b600060ac84828501607c565b91505092915050565b60bc8160db565b82525050565b600060208201905060d5600083018460b5565b92915050565b6000819050919050565b60ec8160db565b811460f657600080fd5b5056fea264697066735822122005183dd5df276b396683ae62d0c96c3a406d6f9dad1ad0923daf492c531124b164736f6c63430008040033',
+    );
+    expect(compilation.getRuntimeBytecode()).to.equal(
+      '0x6080604052348015600f57600080fd5b506004361060325760003560e01c80632e64cec11460375780636057361d146051575b600080fd5b603d6069565b6040516048919060c2565b60405180910390f35b6067600480360381019060639190608f565b6072565b005b60008054905090565b8060008190555050565b60008135905060898160e5565b92915050565b60006020828403121560a057600080fd5b600060ac84828501607c565b91505092915050565b60bc8160db565b82525050565b600060208201905060d5600083018460b5565b92915050565b6000819050919050565b60ec8160db565b811460f657600080fd5b5056fea264697066735822122005183dd5df276b396683ae62d0c96c3a406d6f9dad1ad0923daf492c531124b164736f6c63430008040033',
+    );
   });
 
   it('should generate correct CBOR auxdata positions', async () => {
@@ -89,7 +93,20 @@ describe('SolidityCompilation', () => {
     await compilation.compile();
     const success = await compilation.generateCborAuxdataPositions();
     expect(success).to.be.true;
-    expect(compilation.runtimeBytecodeCborAuxdata).to.not.be.empty;
+    expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({
+      '1': {
+        offset: 250,
+        value:
+          '0xa264697066735822122005183dd5df276b396683ae62d0c96c3a406d6f9dad1ad0923daf492c531124b164736f6c63430008040033',
+      },
+    });
+    expect(compilation.creationBytecodeCborAuxdata).to.deep.equal({
+      '1': {
+        offset: 282,
+        value:
+          '0xa264697066735822122005183dd5df276b396683ae62d0c96c3a406d6f9dad1ad0923daf492c531124b164736f6c63430008040033',
+      },
+    });
   });
 
   it('should handle multiple auxdatas correctly', async () => {
@@ -130,17 +147,40 @@ describe('SolidityCompilation', () => {
     await compilation.compile();
     const success = await compilation.generateCborAuxdataPositions();
     expect(success).to.be.true;
-
-    console.log(compilation.runtimeBytecodeCborAuxdata);
-    console.log(compilation.creationBytecodeCborAuxdata);
-    expect(compilation.runtimeBytecodeCborAuxdata).to.not.be.undefined;
-    expect(compilation.creationBytecodeCborAuxdata).to.not.be.undefined;
-    expect(
-      Object.keys(compilation.runtimeBytecodeCborAuxdata!).length,
-    ).to.be.greaterThan(1);
-    expect(
-      Object.keys(compilation.creationBytecodeCborAuxdata!).length,
-    ).to.be.greaterThan(1);
+    expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({
+      '1': {
+        offset: 4116,
+        value:
+          '0xa26469706673582212203f80215daaa57bc563fda2c3949f4197328f188fccab68874ea57b874c93bd4f64736f6c63430008090033',
+      },
+      '2': {
+        offset: 2743,
+        value:
+          '0xa264697066735822122062aefa28f677414dcac37f95b9b8ce7fcf373fd22d1bae136401de85504508e764736f6c63430008090033',
+      },
+      '3': {
+        offset: 4063,
+        value:
+          '0xa2646970667358221220eb4312065a8c0fb940ef11ef5853554a447a5325095ee0f8fbbbbfc43dbb1b7464736f6c63430008090033',
+      },
+    });
+    expect(compilation.creationBytecodeCborAuxdata).to.deep.equal({
+      '1': {
+        offset: 4148,
+        value:
+          '0xa26469706673582212203f80215daaa57bc563fda2c3949f4197328f188fccab68874ea57b874c93bd4f64736f6c63430008090033',
+      },
+      '2': {
+        offset: 2775,
+        value:
+          '0xa264697066735822122062aefa28f677414dcac37f95b9b8ce7fcf373fd22d1bae136401de85504508e764736f6c63430008090033',
+      },
+      '3': {
+        offset: 4095,
+        value:
+          '0xa2646970667358221220eb4312065a8c0fb940ef11ef5853554a447a5325095ee0f8fbbbbfc43dbb1b7464736f6c63430008090033',
+      },
+    });
   });
 
   it('should handle case with no auxdata when metadata is disabled', async () => {
@@ -188,52 +228,6 @@ describe('SolidityCompilation', () => {
     expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({});
   });
 
-  it('should handle case with single auxdata using Storage contract', async () => {
-    const contractPath = path.join(__dirname, '..', 'sources', 'Storage');
-    const metadata = JSON.parse(
-      fs.readFileSync(path.join(contractPath, 'metadata.json'), 'utf8'),
-    );
-    const sources = {
-      'project:/contracts/Storage.sol': {
-        content: fs.readFileSync(
-          path.join(contractPath, 'sources', 'Storage.sol'),
-          'utf8',
-        ),
-      },
-    };
-
-    const compilation = new SolidityCompilation(
-      solc,
-      metadata.compiler.version,
-      {
-        language: 'Solidity',
-        sources,
-        settings: getSolcSettingsFromMetadata(metadata),
-      },
-      getCompilationTargetFromMetadata(metadata),
-    );
-
-    await compilation.compile();
-
-    const result = await compilation.generateCborAuxdataPositions();
-
-    expect(result).to.be.true;
-    expect(compilation.runtimeBytecodeCborAuxdata).to.have.property('1');
-    expect(compilation.runtimeBytecodeCborAuxdata!['1']).to.have.property(
-      'offset',
-    );
-    expect(compilation.runtimeBytecodeCborAuxdata!['1']).to.have.property(
-      'value',
-    );
-    expect(compilation.creationBytecodeCborAuxdata).to.have.property('1');
-    expect(compilation.creationBytecodeCborAuxdata!['1']).to.have.property(
-      'offset',
-    );
-    expect(compilation.creationBytecodeCborAuxdata!['1']).to.have.property(
-      'value',
-    );
-  });
-
   it('should throw when compilation target is invalid', async () => {
     const contractPath = path.join(__dirname, '..', 'sources', 'Storage');
     const metadata = JSON.parse(
@@ -262,5 +256,75 @@ describe('SolidityCompilation', () => {
     await expect(compilation.compile()).to.be.eventually.rejectedWith(
       'Contract not found in compiler output',
     );
+  });
+
+  it('should return empty object when no immutable references exist', async () => {
+    const contractPath = path.join(
+      __dirname,
+      '..',
+      'sources',
+      'NoImmutableField',
+    );
+    const metadata = JSON.parse(
+      fs.readFileSync(path.join(contractPath, 'metadata.json'), 'utf8'),
+    );
+    const sources = {
+      'NoImmutable.sol': {
+        content: fs.readFileSync(
+          path.join(contractPath, 'sources', 'NoImmutable.sol'),
+          'utf8',
+        ),
+      },
+    };
+
+    const compilation = new SolidityCompilation(
+      solc,
+      metadata.compiler.version,
+      {
+        language: 'Solidity',
+        sources,
+        settings: getSolcSettingsFromMetadata(metadata),
+      },
+      getCompilationTargetFromMetadata(metadata),
+    );
+
+    await compilation.compile();
+    const immutableRefs = compilation.getImmutableReferences();
+    expect(immutableRefs).to.deep.equal({});
+  });
+
+  it('should return immutable references when they exist', async () => {
+    const contractPath = path.join(
+      __dirname,
+      '..',
+      'sources',
+      'WithImmutables',
+    );
+    const metadata = JSON.parse(
+      fs.readFileSync(path.join(contractPath, 'metadata.json'), 'utf8'),
+    );
+    const sources = {
+      'contracts/WithImmutables.sol': {
+        content: fs.readFileSync(
+          path.join(contractPath, 'sources', 'WithImmutables.sol'),
+          'utf8',
+        ),
+      },
+    };
+
+    const compilation = new SolidityCompilation(
+      solc,
+      metadata.compiler.version,
+      {
+        language: 'Solidity',
+        sources,
+        settings: getSolcSettingsFromMetadata(metadata),
+      },
+      getCompilationTargetFromMetadata(metadata),
+    );
+
+    await compilation.compile();
+    const immutableRefs = compilation.getImmutableReferences();
+    expect(immutableRefs).to.deep.equal({ '3': [{ length: 32, start: 608 }] });
   });
 });
