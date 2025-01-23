@@ -1,5 +1,4 @@
 import { AuxdataStyle, splitAuxdata } from '@ethereum-sourcify/bytecode-utils';
-import { logWarn } from '../lib/logger';
 import { AbstractCompilation } from './AbstractCompilation';
 import {
   ImmutableReferences,
@@ -112,17 +111,6 @@ export class SolidityCompilation extends AbstractCompilation {
 
       const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
 
-      // For some reason the auxdata from raw bytecode differs from the legacyAssembly's auxdata
-      if (auxdatasFromCompilerOutput[0] !== auxdataFromRawRuntimeBytecode) {
-        logWarn(
-          "The auxdata from raw bytecode differs from the legacyAssembly's auxdata",
-          {
-            name: this.compilationTarget.name,
-          },
-        );
-        return false;
-      }
-
       // we divide by 2 because we store the length in bytes (without 0x)
       this.runtimeBytecodeCborAuxdata = {
         '1': {
@@ -143,24 +131,17 @@ export class SolidityCompilation extends AbstractCompilation {
       // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
       if (creationAuxdataCbor) {
         const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
-        if (auxdatasFromCompilerOutput[0] === auxdataFromRawCreationBytecode) {
-          // we divide by 2 because we store the length in bytes (without 0x)
-          this.creationBytecodeCborAuxdata = {
-            '1': {
-              offset:
-                this.getCreationBytecode().substring(2).length / 2 -
-                parseInt(creationCborLengthHex, 16) -
-                2, // bytecode has 2 bytes of cbor length prefix at the end
-              value: `0x${auxdataFromRawCreationBytecode}`,
-            },
-          };
-          return true;
-        } else {
-          logWarn(
-            "The creation auxdata from raw bytecode differs from the legacyAssembly's auxdata",
-            { name: this.compilationTarget.name },
-          );
-        }
+        // we divide by 2 because we store the length in bytes (without 0x)
+        this.creationBytecodeCborAuxdata = {
+          '1': {
+            offset:
+              this.getCreationBytecode().substring(2).length / 2 -
+              parseInt(creationCborLengthHex, 16) -
+              2, // bytecode has 2 bytes of cbor length prefix at the end
+            value: `0x${auxdataFromRawCreationBytecode}`,
+          },
+        };
+        return true;
       }
     }
 
@@ -172,7 +153,7 @@ export class SolidityCompilation extends AbstractCompilation {
       forceEmscripten,
     });
     const editedContract =
-      editedContractCompilerOutput?.contracts[this.compilationTarget.path][
+      editedContractCompilerOutput.contracts[this.compilationTarget.path][
         this.compilationTarget.name
       ];
 
@@ -184,7 +165,7 @@ export class SolidityCompilation extends AbstractCompilation {
     if (this.runtimeBytecodeCborAuxdata === undefined) {
       this.runtimeBytecodeCborAuxdata = findAuxdataPositions(
         this.getRuntimeBytecode(),
-        `0x${editedContract?.evm?.deployedBytecode?.object}`,
+        `0x${editedContract.evm.deployedBytecode.object}`,
         auxdatasFromCompilerOutput,
         editedContractAuxdatasFromCompilerOutput,
       );
@@ -192,7 +173,7 @@ export class SolidityCompilation extends AbstractCompilation {
 
     this.creationBytecodeCborAuxdata = findAuxdataPositions(
       this.getCreationBytecode(),
-      `0x${editedContract?.evm.bytecode.object}`,
+      `0x${editedContract.evm.bytecode.object}`,
       auxdatasFromCompilerOutput,
       editedContractAuxdatasFromCompilerOutput,
     );
@@ -207,8 +188,7 @@ export class SolidityCompilation extends AbstractCompilation {
   }
 
   getImmutableReferences(): ImmutableReferences {
-    return (
-      this.getCompilationTarget().evm.deployedBytecode.immutableReferences || {}
-    );
+    const compilationTarget = this.getCompilationTarget();
+    return compilationTarget.evm.deployedBytecode.immutableReferences || {};
   }
 }
