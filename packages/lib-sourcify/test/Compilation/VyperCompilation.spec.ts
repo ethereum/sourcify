@@ -140,7 +140,7 @@ describe('VyperCompilation', () => {
     });
   });
 
-  it('should handle compilation errors gracefully', async () => {
+  it('should throw compilation errors', async () => {
     const invalidContent = 'invalid vyper code @123';
     const contractFileName = 'invalid.vy';
 
