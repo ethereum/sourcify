@@ -230,7 +230,7 @@ export class VyperCompilation extends AbstractCompilation {
     };
   }
 
-  // Override the bytecodes' getter methods to return the string without the 0x prefix
+  // Override the bytecodes' getter methods to not duplicate the 0x prefix
   getCreationBytecode() {
     return this.getCompilationTarget().evm.bytecode.object;
   }
