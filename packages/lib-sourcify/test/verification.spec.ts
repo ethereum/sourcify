@@ -1203,6 +1203,44 @@ describe('lib-sourcify tests', () => {
       expect(match.creationMatch).to.equal('perfect');
     });
 
+    it('should not find a perfect match for a contract for which no cborAuxdataPositions could be generated', async () => {
+      // This mocks the case where no cborAuxdataPositions could be generated
+      const generateCreationCborAuxdataPositions = async () => {
+        return {};
+      };
+
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CBORInTheMiddleFactory',
+      );
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, [
+          UNUSED_ADDRESS,
+        ]);
+      const checkedContracts =
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
+      const recompiled = await checkedContracts[0].recompile();
+      const match: Match = {
+        address: contractAddress,
+        chainId: sourcifyChainHardhat.chainId.toString(),
+        runtimeMatch: null,
+        creationMatch: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainHardhat,
+        contractAddress,
+        creatorTxHash,
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
+      );
+      expect(match.creationMatch).to.equal('partial');
+    });
+
     it('find a partial match for a contract with multiple auxdatas and one of the "subcontract" was modified', async () => {
       const contractFolderPath = path.join(
         __dirname,
