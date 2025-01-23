@@ -126,7 +126,7 @@ This CHANGELOG will contain monorepo related changes such as CI configs, shared 
 - Change CircleCI config:
   - Always run all images instead of only the changed ones
   - Add a new tagged_build_and_publish that gets triggered on new tags
-  - build_and_publish_docker_images accroding to the new container and versioning setup
+  - build_and_publish_docker_images according to the new container and versioning setup
 - Remove `environments` folder
 - Remove unused env vars from `.vscode/launch.json`
 - Move Typescript to root `package.json` and remove it from all subpackages
