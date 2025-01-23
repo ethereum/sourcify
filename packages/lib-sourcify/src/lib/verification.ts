@@ -614,16 +614,16 @@ export async function matchWithCreationTx(
     } else {
       // CBOR auxdata could be somewhere else in the bytecode
       const cborAuxdataPositions = await generateCborAuxdataPositions();
-      const allCborAuxdataHaveMetadataHash = Object.values(
-        cborAuxdataPositions,
-      ).every(({ offset, value }) => {
-        const cborAuxdataExtracted = recompiledCreationBytecode.slice(
-          offset * 2,
-          offset * 2 + value.length,
-        );
-        // REMEMBER! CBORAuxdata !== metadata hash. We need the metadata hash. endsWithMetadataHash checks the metadata hash
-        return endsWithMetadataHash(cborAuxdataExtracted);
-      });
+      const allCborAuxdataHaveMetadataHash =
+        Object.keys(cborAuxdataPositions).length > 0 &&
+        Object.values(cborAuxdataPositions).every(({ offset, value }) => {
+          const cborAuxdataExtracted = recompiledCreationBytecode.slice(
+            offset * 2,
+            offset * 2 + value.length,
+          );
+          // REMEMBER! CBORAuxdata !== metadata hash. We need the metadata hash. endsWithMetadataHash checks the metadata hash
+          return endsWithMetadataHash(cborAuxdataExtracted);
+        });
       match.creationMatch = allCborAuxdataHaveMetadataHash
         ? 'perfect'
         : 'partial';
