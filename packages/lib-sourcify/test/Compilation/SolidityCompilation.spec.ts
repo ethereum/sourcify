@@ -147,8 +147,6 @@ describe('SolidityCompilation', () => {
     await compilation.compile();
     const success = await compilation.generateCborAuxdataPositions();
     expect(success).to.be.true;
-
-    expect(success).to.be.true;
     expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({
       '1': {
         offset: 4116,
