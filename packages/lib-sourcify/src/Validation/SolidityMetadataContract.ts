@@ -81,26 +81,22 @@ export class SolidityMetadataContract {
     this.providedSourcesByHash = this.storeByHash(providedSources);
     this.assembleContract();
     if (this.isCompilable()) {
-      this.#createJsonInputFromMetadata();
+      this.createJsonInputFromMetadata();
     }
   }
 
   async createCompilation(compiler: ISolidityCompiler) {
-    if (!this.solcJsonInput) {
-      throw new Error(
-        `No JsonInput found, cannot create compilation for SolidityMetadataContract: ${this.path}:${this.name}`,
-      );
-    }
-
     if (Object.keys(this.missingSources).length > 0) {
       await this.fetchMissing();
     }
+
+    this.createJsonInputFromMetadata();
 
     this.compilation = new Compilation(
       compiler,
       this.metadata.compiler.version,
       this.path + ':' + this.name,
-      this.solcJsonInput,
+      this.solcJsonInput!,
     );
 
     return this.compilation;
@@ -249,7 +245,7 @@ export class SolidityMetadataContract {
       throw error;
     }
 
-    this.#createJsonInputFromMetadata();
+    this.createJsonInputFromMetadata();
   }
 
   private generateVariations(pathContent: PathContent): PathContent[] {
@@ -286,7 +282,7 @@ export class SolidityMetadataContract {
     });
   }
 
-  #createJsonInputFromMetadata() {
+  createJsonInputFromMetadata() {
     if (
       Object.keys(this.missingSources).length > 0 ||
       Object.keys(this.invalidSources).length > 0
@@ -310,15 +306,15 @@ export class SolidityMetadataContract {
       Object.keys(this.metadata.settings.compilationTarget).length != 1
     ) {
       throw new Error(
-        `Can't create JsonInput from metadata: Invalid compilationTarget in metadata: ${
-          this.metadata?.settings?.compilationTarget
-        }`,
+        `Can't create JsonInput from metadata: Invalid compilationTarget in metadata: ${Object.keys(
+          this.metadata.settings.compilationTarget,
+        ).join(',')}`,
       );
     }
 
     this.handleInlinerBug();
     // Standard JSON does not have compilationTarget, only in metadata.json
-    delete this.solcJsonInput?.settings?.compilationTarget;
+    delete this.solcJsonInput.settings.compilationTarget;
 
     this.solcJsonInput.sources = {};
     for (const source in this.metadata.sources) {
@@ -332,9 +328,9 @@ export class SolidityMetadataContract {
     // Convert the libraries from the metadata format to the compiler_settings format
     // metadata format: "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     // settings format: "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
-    const metadataLibraries = this.metadata.settings?.libraries || {};
+    const metadataLibraries = this.metadata.settings.libraries || {};
     this.solcJsonInput.settings.libraries = Object.keys(
-      metadataLibraries || {},
+      metadataLibraries,
     ).reduce((libraries, libraryKey) => {
       // Before Solidity v0.7.5: { "ERC20": "0x..."}
       if (!libraryKey.includes(':')) {
