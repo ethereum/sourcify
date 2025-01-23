@@ -1,19 +1,20 @@
 import {
   InvalidSources,
-  ISolidityCompiler,
-  IVyperCompiler,
   Metadata,
   MissingSources,
   PathContent,
   StringMap,
-  VyperJsonInput,
-  JsonInput,
   Settings,
   Libraries,
 } from '..';
 import { id as keccak256str } from 'ethers';
 import semver from 'semver';
 import { getIpfsGateway, performFetch } from './fetchUtils';
+import { SolidityCompilation } from '../Compilation/SolidityCompilation';
+import {
+  ISolidityCompiler,
+  SolidityJsonInput,
+} from '../Compilation/SolidityTypes';
 
 const CONTENT_VARIATORS = [
   (content: string) => content.replace(/\r?\n/g, '\r\n'),
@@ -28,25 +29,6 @@ const ENDING_VARIATORS = [
   (content: string) => content + '\r\n',
 ];
 
-// Dummy Compilation class
-class Compilation {
-  compiler: ISolidityCompiler | IVyperCompiler;
-  compilerVersion: string;
-  compilationTarget: string;
-  jsonInput: JsonInput | VyperJsonInput;
-  constructor(
-    compiler: ISolidityCompiler | IVyperCompiler,
-    compilerVersion: string,
-    compilationTarget: string,
-    jsonInput: JsonInput | VyperJsonInput,
-  ) {
-    this.compiler = compiler;
-    this.compilerVersion = compilerVersion;
-    this.compilationTarget = compilationTarget;
-    this.jsonInput = jsonInput;
-  }
-}
-
 export class SolidityMetadataContract {
   metadata: Metadata;
   name: string;
@@ -58,8 +40,8 @@ export class SolidityMetadataContract {
   invalidSources: InvalidSources;
   unusedSourceFiles: string[];
   metadataPathToProvidedFilePath: StringMap; // maps the file path as in metadata.sources to the path of the provided by the user. E.g. metadata can have "contracts/1_Storage.sol" but the user provided "/Users/user/project/contracts/1_Storage.sol"
-  compilation: Compilation | null;
-  solcJsonInput: JsonInput | null;
+  compilation: SolidityCompilation | null;
+  solcJsonInput: SolidityJsonInput | null;
 
   constructor(metadata: Metadata, providedSources: PathContent[]) {
     this.metadata = metadata;
@@ -92,11 +74,14 @@ export class SolidityMetadataContract {
 
     this.createJsonInputFromMetadata();
 
-    this.compilation = new Compilation(
+    this.compilation = new SolidityCompilation(
       compiler,
       this.metadata.compiler.version,
-      this.path + ':' + this.name,
       this.solcJsonInput!,
+      {
+        path: this.path,
+        name: this.name,
+      },
     );
 
     return this.compilation;
@@ -294,7 +279,7 @@ export class SolidityMetadataContract {
       );
     }
 
-    this.solcJsonInput = {} as JsonInput;
+    this.solcJsonInput = {} as SolidityJsonInput;
     // Clone the settings object to avoid mutating the original metadata
     this.solcJsonInput.settings = JSON.parse(
       JSON.stringify(this.metadata.settings),
