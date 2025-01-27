@@ -11,10 +11,12 @@ describe('SolidityMetadataContract', () => {
   let validSourceContent: string;
   let validSourcePath: string;
   let validSources: PathContent[];
+  let validName: string;
 
   beforeEach(() => {
     // Setup sample source content and calculate its hash
     validSourcePath = 'contracts/Storage.sol';
+    validName = 'Storage';
     validSourceContent = `
       // SPDX-License-Identifier: MIT
       pragma solidity ^0.8.0;
@@ -53,7 +55,7 @@ describe('SolidityMetadataContract', () => {
       },
       settings: {
         compilationTarget: {
-          [validSourcePath]: 'Storage',
+          [validSourcePath]: validName,
         },
         evmVersion: 'london',
         libraries: {},
@@ -83,18 +85,48 @@ describe('SolidityMetadataContract', () => {
   });
 
   describe('constructor', () => {
-    it('should correctly initialize with valid metadata and sources', () => {
+    it('should correctly initialize all properties with valid metadata and sources', () => {
       const contract = new SolidityMetadataContract(
         validMetadata,
         validSources,
       );
-      expect(contract.name).to.equal('Storage');
+
+      expect(contract.metadata).to.deep.equal(validMetadata);
+      expect(contract.name).to.equal(validName);
       expect(contract.path).to.equal(validSourcePath);
-      expect(contract.foundSources[validSourcePath]).to.equal(
-        validSourceContent,
+      expect(contract.providedSources).to.deep.equal(validSources);
+      expect(contract.providedSourcesByHash).to.be.instanceOf(Map);
+      expect(contract.providedSourcesByHash.size).to.equal(1);
+      const sourceHash = keccak256str(validSourceContent);
+      expect(contract.providedSourcesByHash.get(sourceHash)).to.deep.equal(
+        validSources[0],
       );
+      expect(contract.foundSources).to.deep.equal({
+        [validSourcePath]: validSourceContent,
+      });
       expect(Object.keys(contract.missingSources)).to.be.empty;
       expect(Object.keys(contract.invalidSources)).to.be.empty;
+      expect(contract.unusedSourceFiles).to.deep.equal([]);
+      expect(contract.metadataPathToProvidedFilePath).to.deep.equal({
+        [validSourcePath]: validSourcePath,
+      });
+      expect(contract.compilation).to.be.null;
+      expect(contract.solcJsonInput).to.exist;
+      expect(contract.solcJsonInput?.language).to.equal('Solidity');
+      expect(contract.solcJsonInput?.sources).to.deep.equal({
+        [validSourcePath]: {
+          content: validSourceContent,
+        },
+      });
+      expect(contract.solcJsonInput?.settings).to.not.have.property(
+        'compilationTarget',
+      );
+      expect(contract.solcJsonInput?.settings.evmVersion).to.equal(
+        validMetadata.settings.evmVersion,
+      );
+      expect(contract.solcJsonInput?.settings.optimizer).to.deep.equal(
+        validMetadata.settings.optimizer,
+      );
     });
 
     it('should handle missing sources', () => {
@@ -103,7 +135,7 @@ describe('SolidityMetadataContract', () => {
       expect(contract.missingSources[validSourcePath]).to.exist;
     });
 
-    it('should handle invalid sources', () => {
+    it('should mark sources with non-matching hashes as missing', () => {
       const invalidContent = 'invalid content';
       const invalidSources = [
         {
@@ -122,12 +154,22 @@ describe('SolidityMetadataContract', () => {
 
     it('should handle invalid source content in metadata', () => {
       const invalidMetadata = { ...validMetadata };
-      invalidMetadata.sources[validSourcePath].content = 'invalid content';
+      const invalidContent = 'invalid content';
+      const expectedHash = keccak256str(validSourceContent);
+      const calculatedHash = keccak256str(invalidContent);
+      invalidMetadata.sources[validSourcePath].content = invalidContent;
+
       const contract = new SolidityMetadataContract(invalidMetadata, []);
       expect(Object.keys(contract.invalidSources)).to.have.lengthOf(1);
       expect(contract.invalidSources[validSourcePath]).to.exist;
       expect(contract.invalidSources[validSourcePath].msg).to.include(
         "don't match",
+      );
+      expect(contract.invalidSources[validSourcePath].expectedHash).to.equal(
+        expectedHash,
+      );
+      expect(contract.invalidSources[validSourcePath].calculatedHash).to.equal(
+        calculatedHash,
       );
     });
   });
@@ -217,6 +259,9 @@ describe('SolidityMetadataContract', () => {
 
       const variations = Array.from(contract.providedSourcesByHash.values());
       expect(variations.length).to.be.greaterThan(1);
+      variations.forEach((variation) => {
+        expect(variation.path).to.equal(validSourcePath);
+      });
     });
   });
 
@@ -267,11 +312,11 @@ describe('SolidityMetadataContract', () => {
     it('should throw error when there are missing sources', () => {
       const contract = new SolidityMetadataContract(validMetadata, []);
       expect(() => contract.createJsonInputFromMetadata()).to.throw(
-        /Can't create JsonInput from metadata: Missing or invalid sources in metadata/,
+        "Can't create JsonInput from metadata: Missing or invalid sources in metadata",
       );
     });
 
-    it('should throw error when there are invalid sources', () => {
+    it('should throw error when there are missing sources', () => {
       const invalidSources = [
         {
           path: validSourcePath,
@@ -283,12 +328,16 @@ describe('SolidityMetadataContract', () => {
         invalidSources,
       );
       expect(() => contract.createJsonInputFromMetadata()).to.throw(
-        /Can't create JsonInput from metadata: Missing or invalid sources in metadata/,
+        "Can't create JsonInput from metadata: Missing or invalid sources in metadata",
       );
     });
   });
 
   describe('createCompilation', () => {
+    afterEach(() => {
+      nock.cleanAll();
+    });
+
     it('should create compilation when sources are available', async () => {
       const contract = new SolidityMetadataContract(
         validMetadata,
@@ -308,7 +357,7 @@ describe('SolidityMetadataContract', () => {
         validMetadata.compiler.version,
       );
       expect(compilation.compilationTarget).to.deep.equal({
-        name: 'Storage',
+        name: validName,
         path: validSourcePath,
       });
     });
@@ -353,10 +402,6 @@ describe('SolidityMetadataContract', () => {
   });
 
   describe('fetchMissing', () => {
-    beforeEach(() => {
-      nock.cleanAll();
-    });
-
     afterEach(() => {
       nock.cleanAll();
     });
