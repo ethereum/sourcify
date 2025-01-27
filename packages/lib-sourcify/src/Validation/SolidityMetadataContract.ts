@@ -1,19 +1,20 @@
 import {
   InvalidSources,
-  ISolidityCompiler,
-  IVyperCompiler,
   Metadata,
   MissingSources,
   PathContent,
   StringMap,
-  VyperJsonInput,
-  JsonInput,
   Settings,
   Libraries,
 } from '..';
 import { id as keccak256str } from 'ethers';
 import semver from 'semver';
 import { getIpfsGateway, performFetch } from './fetchUtils';
+import { SolidityCompilation } from '../Compilation/SolidityCompilation';
+import {
+  ISolidityCompiler,
+  SolidityJsonInput,
+} from '../Compilation/SolidityTypes';
 
 const CONTENT_VARIATORS = [
   (content: string) => content.replace(/\r?\n/g, '\r\n'),
@@ -28,25 +29,6 @@ const ENDING_VARIATORS = [
   (content: string) => content + '\r\n',
 ];
 
-// Dummy Compilation class
-class Compilation {
-  compiler: ISolidityCompiler | IVyperCompiler;
-  compilerVersion: string;
-  compilationTarget: string;
-  jsonInput: JsonInput | VyperJsonInput;
-  constructor(
-    compiler: ISolidityCompiler | IVyperCompiler,
-    compilerVersion: string,
-    compilationTarget: string,
-    jsonInput: JsonInput | VyperJsonInput,
-  ) {
-    this.compiler = compiler;
-    this.compilerVersion = compilerVersion;
-    this.compilationTarget = compilationTarget;
-    this.jsonInput = jsonInput;
-  }
-}
-
 export class SolidityMetadataContract {
   metadata: Metadata;
   name: string;
@@ -58,8 +40,8 @@ export class SolidityMetadataContract {
   invalidSources: InvalidSources;
   unusedSourceFiles: string[];
   metadataPathToProvidedFilePath: StringMap; // maps the file path as in metadata.sources to the path of the provided by the user. E.g. metadata can have "contracts/1_Storage.sol" but the user provided "/Users/user/project/contracts/1_Storage.sol"
-  compilation: Compilation | null;
-  solcJsonInput: JsonInput | null;
+  compilation: SolidityCompilation | null;
+  solcJsonInput: SolidityJsonInput | null;
 
   constructor(metadata: Metadata, providedSources: PathContent[]) {
     this.metadata = metadata;
@@ -81,26 +63,25 @@ export class SolidityMetadataContract {
     this.providedSourcesByHash = this.storeByHash(providedSources);
     this.assembleContract();
     if (this.isCompilable()) {
-      this.#createJsonInputFromMetadata();
+      this.createJsonInputFromMetadata();
     }
   }
 
   async createCompilation(compiler: ISolidityCompiler) {
-    if (!this.solcJsonInput) {
-      throw new Error(
-        `No JsonInput found, cannot create compilation for SolidityMetadataContract: ${this.path}:${this.name}`,
-      );
-    }
-
     if (Object.keys(this.missingSources).length > 0) {
       await this.fetchMissing();
     }
 
-    this.compilation = new Compilation(
+    this.createJsonInputFromMetadata();
+
+    this.compilation = new SolidityCompilation(
       compiler,
       this.metadata.compiler.version,
-      this.path + ':' + this.name,
-      this.solcJsonInput,
+      this.solcJsonInput!,
+      {
+        path: this.path,
+        name: this.name,
+      },
     );
 
     return this.compilation;
@@ -249,7 +230,7 @@ export class SolidityMetadataContract {
       throw error;
     }
 
-    this.#createJsonInputFromMetadata();
+    this.createJsonInputFromMetadata();
   }
 
   private generateVariations(pathContent: PathContent): PathContent[] {
@@ -286,7 +267,7 @@ export class SolidityMetadataContract {
     });
   }
 
-  #createJsonInputFromMetadata() {
+  createJsonInputFromMetadata() {
     if (
       Object.keys(this.missingSources).length > 0 ||
       Object.keys(this.invalidSources).length > 0
@@ -298,7 +279,7 @@ export class SolidityMetadataContract {
       );
     }
 
-    this.solcJsonInput = {} as JsonInput;
+    this.solcJsonInput = {} as SolidityJsonInput;
     // Clone the settings object to avoid mutating the original metadata
     this.solcJsonInput.settings = JSON.parse(
       JSON.stringify(this.metadata.settings),
@@ -310,15 +291,15 @@ export class SolidityMetadataContract {
       Object.keys(this.metadata.settings.compilationTarget).length != 1
     ) {
       throw new Error(
-        `Can't create JsonInput from metadata: Invalid compilationTarget in metadata: ${
-          this.metadata?.settings?.compilationTarget
-        }`,
+        `Can't create JsonInput from metadata: Invalid compilationTarget in metadata: ${Object.keys(
+          this.metadata.settings.compilationTarget,
+        ).join(',')}`,
       );
     }
 
     this.handleInlinerBug();
     // Standard JSON does not have compilationTarget, only in metadata.json
-    delete this.solcJsonInput?.settings?.compilationTarget;
+    delete this.solcJsonInput.settings.compilationTarget;
 
     this.solcJsonInput.sources = {};
     for (const source in this.metadata.sources) {
@@ -332,9 +313,9 @@ export class SolidityMetadataContract {
     // Convert the libraries from the metadata format to the compiler_settings format
     // metadata format: "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     // settings format: "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
-    const metadataLibraries = this.metadata.settings?.libraries || {};
+    const metadataLibraries = this.metadata.settings.libraries || {};
     this.solcJsonInput.settings.libraries = Object.keys(
-      metadataLibraries || {},
+      metadataLibraries,
     ).reduce((libraries, libraryKey) => {
       // Before Solidity v0.7.5: { "ERC20": "0x..."}
       if (!libraryKey.includes(':')) {
