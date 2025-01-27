@@ -3,9 +3,12 @@ import { Bytes } from "../../types";
 import {
   bytesFromString,
   GetSourcifyMatchByChainAddressResult,
+  GetSourcifyMatchByChainAddressWithPropertiesResult,
   GetSourcifyMatchesByChainResult,
   GetVerifiedContractByChainAndAddressResult,
   SourceInformation,
+  SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS,
+  SourcifyMatchDbProperties,
   Tables,
 } from "./database-util";
 import { createHash } from "crypto";
@@ -158,6 +161,55 @@ ${
     );
   }
 
+  async getSourcifyMatchByChainAddressWithProperties(
+    chain: number,
+    address: Bytes,
+    properties: SourcifyMatchDbProperties[],
+  ): Promise<QueryResult<GetSourcifyMatchByChainAddressWithPropertiesResult>> {
+    if (properties.length === 0) {
+      throw new Error("No properties specified");
+    }
+
+    const selectors = properties.map(
+      (property) => SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS[property],
+    );
+
+    return await this.pool.query(
+      `
+        SELECT
+          ${selectors.join(", ")}
+        FROM ${this.schema}.sourcify_matches
+        JOIN ${this.schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+        JOIN ${this.schema}.compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
+        JOIN ${this.schema}.contract_deployments ON 
+          contract_deployments.id = verified_contracts.deployment_id 
+          AND contract_deployments.chain_id = $1 
+          AND contract_deployments.address = $2
+        JOIN ${this.schema}.contracts ON contracts.id = contract_deployments.contract_id
+        JOIN ${this.schema}.code as onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
+        JOIN ${this.schema}.code as onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
+        JOIN ${this.schema}.code as recompiled_runtime_code ON recompiled_runtime_code.code_hash = compiled_contracts.runtime_code_hash
+        JOIN ${this.schema}.code as recompiled_creation_code ON recompiled_creation_code.code_hash = compiled_contracts.creation_code_hash
+${
+  properties.includes("sources") || properties.includes("std_json_input")
+    ? `JOIN ${this.schema}.compiled_contracts_sources ON compiled_contracts_sources.compilation_id = compiled_contracts.id
+      LEFT JOIN ${this.schema}.sources ON sources.source_hash = compiled_contracts_sources.source_hash
+      GROUP BY sourcify_matches.id, 
+        verified_contracts.id, 
+        compiled_contracts.id, 
+        contract_deployments.id,
+        contracts.id, 
+        onchain_runtime_code.code_hash, 
+        onchain_creation_code.code_hash,
+        recompiled_runtime_code.code_hash,
+        recompiled_creation_code.code_hash`
+    : ""
+}
+        `,
+      [chain, address],
+    );
+  }
+
   async getCompiledContractSources(
     compilation_id: string,
   ): Promise<
@@ -288,14 +340,17 @@ ${
       values.push(afterId);
     }
 
+    const selectors = [
+      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["id"],
+      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["creation_match"],
+      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["runtime_match"],
+      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["address"],
+      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["verified_at"],
+    ];
     return await this.pool.query(
       `
     SELECT
-      sourcify_matches.id,
-      sourcify_matches.creation_match,
-      sourcify_matches.runtime_match,
-      concat('0x',encode(contract_deployments.address, 'hex')) as address,
-      sourcify_matches.created_at
+      ${selectors.join(", ")}
     FROM ${this.schema}.sourcify_matches
     JOIN ${this.schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
     JOIN ${this.schema}.contract_deployments ON 
@@ -414,7 +469,7 @@ ${
       transaction_hash,
       contract_id,
       block_number,
-      txindex,
+      transaction_index,
       deployer,
     }: Omit<Tables.ContractDeployment, "id">,
   ): Promise<QueryResult<Pick<Tables.ContractDeployment, "id">>> {
@@ -435,7 +490,7 @@ ${
         transaction_hash,
         contract_id,
         block_number,
-        txindex,
+        transaction_index,
         deployer,
       ],
     );
@@ -691,7 +746,7 @@ ${
       id,
       transaction_hash,
       block_number,
-      txindex,
+      transaction_index,
       deployer,
       contract_id,
     }: Omit<Tables.ContractDeployment, "chain_id" | "address">,
@@ -705,7 +760,14 @@ ${
          deployer = $5,
          contract_id = $6
        WHERE id = $1`,
-      [id, transaction_hash, block_number, txindex, deployer, contract_id],
+      [
+        id,
+        transaction_hash,
+        block_number,
+        transaction_index,
+        deployer,
+        contract_id,
+      ],
     );
   }
 }

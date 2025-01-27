@@ -37,8 +37,8 @@ export interface VerifiedContractMinimal {
   runtimeMatch: MatchLevel;
   chainId: string;
   address: string;
-  verifiedAt: string;
-  matchId: string;
+  verifiedAt?: string;
+  matchId?: string;
 }
 
 // For displaying contracts in API v2
@@ -64,8 +64,8 @@ export interface VerifiedContract extends VerifiedContractMinimal {
   };
   deployment?: {
     transactionHash: Nullable<string>;
-    blockNumber: Nullable<number>;
-    txIndex: Nullable<number>;
+    blockNumber: Nullable<string>;
+    transactionIndex: Nullable<string>;
     deployer: Nullable<string>;
   };
   sources?: {
@@ -82,8 +82,8 @@ export interface VerifiedContract extends VerifiedContractMinimal {
   abi?: Nullable<Abi>;
   metadata?: Nullable<Metadata>;
   storageLayout?: Nullable<StorageLayout>;
-  userDoc?: Nullable<Userdoc>;
-  devDoc?: Nullable<Devdoc>;
+  userdoc?: Nullable<Userdoc>;
+  devdoc?: Nullable<Devdoc>;
   stdJsonInput?: JsonInput | VyperJsonInput;
   stdJsonOutput?: SolidityOutput | VyperOutput;
   proxyResolution?: ProxyDetectionResult;

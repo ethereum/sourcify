@@ -10,9 +10,14 @@ import {
   CompiledContractCborAuxdata,
   AbstractCheckedContract,
   LinkReferences,
+  VyperJsonInput,
+  JsonInput,
+  SolidityOutput,
+  VyperOutput,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Abi } from "abitype";
 import {
+  VerifiedContract as VerifiedContractApiObject,
   Bytes,
   BytesSha,
   BytesKeccak,
@@ -39,7 +44,7 @@ export namespace Tables {
     transaction_hash?: Bytes;
     contract_id: string;
     block_number?: number;
-    txindex?: number;
+    transaction_index?: number;
     deployer?: Bytes;
   }
 
@@ -164,8 +169,209 @@ export type GetSourcifyMatchByChainAddressResult = Tables.SourcifyMatch &
 
 export type GetSourcifyMatchesByChainResult = Pick<
   Tables.SourcifyMatch,
-  "id" | "creation_match" | "runtime_match" | "created_at"
-> & { address: string };
+  "id" | "creation_match" | "runtime_match"
+> & { address: string; verified_at: string };
+
+export type GetSourcifyMatchByChainAddressWithPropertiesResult = Partial<
+  Pick<
+    Tables.SourcifyMatch,
+    "id" | "creation_match" | "runtime_match" | "metadata"
+  > &
+    Pick<
+      Tables.CompiledContract,
+      | "language"
+      | "compiler"
+      | "version"
+      | "compiler_settings"
+      | "name"
+      | "fully_qualified_name"
+    > &
+    Pick<
+      Tables.CompiledContract["compilation_artifacts"],
+      "abi" | "userdoc" | "devdoc"
+    > &
+    Pick<
+      Tables.VerifiedContract,
+      | "creation_transformations"
+      | "creation_values"
+      | "runtime_transformations"
+      | "runtime_values"
+    > &
+    Pick<Tables.ContractDeployment, "block_number" | "transaction_index"> & {
+      verified_at: string;
+      address: string;
+      onchain_creation_code: string;
+      recompiled_creation_code: string;
+      creation_source_map: Tables.CompiledContract["creation_code_artifacts"]["sourceMap"];
+      creation_link_references: Tables.CompiledContract["creation_code_artifacts"]["linkReferences"];
+      creation_cbor_auxdata: Tables.CompiledContract["creation_code_artifacts"]["cborAuxdata"];
+      onchain_runtime_code: string;
+      recompiled_runtime_code: string;
+      runtime_source_map: Tables.CompiledContract["runtime_code_artifacts"]["sourceMap"];
+      runtime_link_references: Tables.CompiledContract["runtime_code_artifacts"]["linkReferences"];
+      runtime_cbor_auxdata: Tables.CompiledContract["runtime_code_artifacts"]["cborAuxdata"];
+      runtime_immutable_references: Tables.CompiledContract["runtime_code_artifacts"]["immutableReferences"];
+      transaction_hash: string;
+      deployer: string;
+      sources: { [path: string]: { content: string } };
+      storage_layout: Tables.CompiledContract["compilation_artifacts"]["storageLayout"];
+      std_json_input: JsonInput | VyperJsonInput;
+      std_json_output: SolidityOutput | VyperOutput;
+    }
+>;
+
+const sourcesAggregation =
+  "json_object_agg(compiled_contracts_sources.path, json_build_object('content', sources.content))";
+
+export const SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS = {
+  id: "sourcify_matches.id",
+  creation_match: "sourcify_matches.creation_match",
+  runtime_match: "sourcify_matches.runtime_match",
+  verified_at:
+    'to_char(sourcify_matches.created_at, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as verified_at',
+  address:
+    "concat('0x',encode(contract_deployments.address, 'hex')) as address",
+  onchain_creation_code:
+    "concat('0x', encode(onchain_creation_code.code, 'hex')) as onchain_creation_code",
+  recompiled_creation_code:
+    "concat('0x', encode(recompiled_creation_code.code, 'hex')) as recompiled_creation_code",
+  creation_source_map:
+    "compiled_contracts.creation_code_artifacts->'sourceMap' as creation_source_map",
+  creation_link_references:
+    "compiled_contracts.creation_code_artifacts->'linkReferences' as creation_link_references",
+  creation_cbor_auxdata:
+    "compiled_contracts.creation_code_artifacts->'cborAuxdata' as creation_cbor_auxdata",
+  creation_transformations: "verified_contracts.creation_transformations",
+  creation_values: "verified_contracts.creation_values",
+  onchain_runtime_code:
+    "concat('0x', encode(onchain_runtime_code.code, 'hex')) as onchain_runtime_code",
+  recompiled_runtime_code:
+    "concat('0x', encode(recompiled_runtime_code.code, 'hex')) as recompiled_runtime_code",
+  runtime_source_map:
+    "compiled_contracts.runtime_code_artifacts->'sourceMap' as runtime_source_map",
+  runtime_link_references:
+    "compiled_contracts.runtime_code_artifacts->'linkReferences' as runtime_link_references",
+  runtime_cbor_auxdata:
+    "compiled_contracts.runtime_code_artifacts->'cborAuxdata' as runtime_cbor_auxdata",
+  runtime_immutable_references:
+    "compiled_contracts.runtime_code_artifacts->'immutableReferences' as runtime_immutable_references",
+  runtime_transformations: "verified_contracts.runtime_transformations",
+  runtime_values: "verified_contracts.runtime_values",
+  transaction_hash:
+    "concat('0x', encode(contract_deployments.transaction_hash, 'hex')) as transaction_hash",
+  block_number: "contract_deployments.block_number",
+  transaction_index: "contract_deployments.transaction_index",
+  deployer:
+    "concat('0x', encode(contract_deployments.deployer, 'hex')) as deployer",
+  sources: `${sourcesAggregation} as sources`,
+  language: "INITCAP(compiled_contracts.language) as language",
+  compiler: "compiled_contracts.compiler",
+  version: "compiled_contracts.version as version",
+  compiler_settings: "compiled_contracts.compiler_settings",
+  name: "compiled_contracts.name",
+  fully_qualified_name: "compiled_contracts.fully_qualified_name",
+  abi: "compiled_contracts.compilation_artifacts->'abi' as abi",
+  metadata: "sourcify_matches.metadata",
+  storage_layout:
+    "compiled_contracts.compilation_artifacts->'storageLayout' as storage_layout",
+  userdoc: "compiled_contracts.compilation_artifacts->'userdoc' as userdoc",
+  devdoc: "compiled_contracts.compilation_artifacts->'devdoc' as devdoc",
+  std_json_input: `json_build_object(
+    'language', INITCAP(compiled_contracts.language), 
+    'sources', ${sourcesAggregation},
+    'settings', compiled_contracts.compiler_settings
+  ) as std_json_input`,
+  std_json_output: `json_build_object(
+    'sources', compiled_contracts.compilation_artifacts->'sources',
+    'contracts', json_build_object(
+      substring(
+        compiled_contracts.fully_qualified_name, 
+        1, 
+        length(compiled_contracts.fully_qualified_name) - length(split_part(compiled_contracts.fully_qualified_name, ':', -1)) - 1
+      ), 
+      json_build_object(
+        split_part(compiled_contracts.fully_qualified_name, ':', -1), json_build_object(
+          'abi', compiled_contracts.compilation_artifacts->'abi',
+          'metadata', cast(sourcify_matches.metadata as text),
+          'userdoc', compiled_contracts.compilation_artifacts->'userdoc',
+          'devdoc', compiled_contracts.compilation_artifacts->'devdoc',
+          'storageLayout', compiled_contracts.compilation_artifacts->'storageLayout',
+          'evm', json_build_object(
+            'bytecode', json_build_object(
+              'object', concat('0x', encode(recompiled_creation_code.code, 'hex')),
+              'sourceMap', compiled_contracts.creation_code_artifacts->'sourceMap',
+              'linkReferences', compiled_contracts.creation_code_artifacts->'linkReferences'
+            ),
+            'deployedBytecode', json_build_object(
+              'object', concat('0x', encode(recompiled_runtime_code.code, 'hex')),
+              'sourceMap', compiled_contracts.runtime_code_artifacts->'sourceMap',
+              'linkReferences', compiled_contracts.runtime_code_artifacts->'linkReferences',
+              'immutableReferences', compiled_contracts.runtime_code_artifacts->'immutableReferences'
+            )
+          )
+        )
+      )
+    )
+  ) as std_json_output`,
+};
+
+export type SourcifyMatchDbProperties =
+  keyof typeof SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS;
+
+// used for API v2 GET contract endpoint
+export const FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES: Record<
+  keyof Omit<
+    VerifiedContractApiObject,
+    "proxyResolution" | "chainId" | "address" | "match"
+  >,
+  string | Record<string, string>
+> = {
+  matchId: "id",
+  creationMatch: "creation_match",
+  runtimeMatch: "runtime_match",
+  verifiedAt: "verified_at",
+  creationBytecode: {
+    onchainBytecode: "onchain_creation_code",
+    recompiledBytecode: "recompiled_creation_code",
+    sourceMap: "creation_source_map",
+    linkReferences: "creation_link_references",
+    cborAuxdata: "creation_cbor_auxdata",
+    transformations: "creation_transformations",
+    transformationValues: "creation_values",
+  },
+  runtimeBytecode: {
+    onchainBytecode: "onchain_runtime_code",
+    recompiledBytecode: "recompiled_runtime_code",
+    sourceMap: "runtime_source_map",
+    linkReferences: "runtime_link_references",
+    cborAuxdata: "runtime_cbor_auxdata",
+    immutableReferences: "runtime_immutable_references",
+    transformations: "runtime_transformations",
+    transformationValues: "runtime_values",
+  },
+  deployment: {
+    transactionHash: "transaction_hash",
+    blockNumber: "block_number",
+    transactionIndex: "transaction_index",
+    deployer: "deployer",
+  },
+  sources: "sources",
+  compilation: {
+    language: "language",
+    compiler: "compiler",
+    compilerVersion: "version",
+    compilerSettings: "compiler_settings",
+    name: "name",
+    fullyQualifiedName: "fully_qualified_name",
+  },
+  abi: "abi",
+  metadata: "metadata",
+  storageLayout: "storage_layout",
+  userdoc: "userdoc",
+  devdoc: "devdoc",
+  stdJsonInput: "std_json_input",
+  stdJsonOutput: "std_json_output",
+};
 
 // Function overloads
 export function bytesFromString<T extends BytesTypes>(str: string): T;

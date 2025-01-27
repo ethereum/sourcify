@@ -2,7 +2,11 @@ import { StatusCodes } from "http-status-codes";
 import { Services } from "../../services/services";
 import logger from "../../../common/logger";
 import { Request } from "express";
-import { TypedResponse, VerifiedContractMinimal } from "../../types";
+import {
+  TypedResponse,
+  VerifiedContract,
+  VerifiedContractMinimal,
+} from "../../types";
 
 interface ListContractsRequest extends Request {
   params: {
@@ -42,4 +46,42 @@ export async function listContractsEndpoint(
   );
 
   return res.status(StatusCodes.OK).json(contracts);
+}
+
+interface GetContractRequest extends Request {
+  params: {
+    chainId: string;
+    address: string;
+  };
+  query: {
+    fields?: string;
+    omit?: string;
+  };
+}
+
+type GetContractResponse = TypedResponse<VerifiedContract>;
+
+export async function getContractEndpoint(
+  req: GetContractRequest,
+  res: GetContractResponse,
+): Promise<GetContractResponse> {
+  logger.debug("getContractEndpoint", {
+    chainId: req.params.chainId,
+    address: req.params.address,
+    fields: req.query.fields,
+    omit: req.query.omit,
+  });
+  const services = req.app.get("services") as Services;
+
+  const fields = req.query.fields?.split(",");
+  const omit = req.query.omit?.split(",");
+
+  const contract = await services.storage.performServiceOperation(
+    "getContract",
+    [req.params.chainId, req.params.address, fields, omit],
+  );
+
+  return res
+    .status(contract.match ? StatusCodes.OK : StatusCodes.NOT_FOUND)
+    .json(contract);
 }

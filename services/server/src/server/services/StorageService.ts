@@ -25,6 +25,7 @@ import {
   MethodReturnType,
   PaginatedData,
   VerifiedContractMinimal,
+  VerifiedContract,
 } from "../types";
 import {
   RWStorageIdentifiers,
@@ -81,6 +82,12 @@ export interface RWStorageService extends WStorageService {
     descending: boolean,
     afterMatchId?: string,
   ): Promise<{ results: VerifiedContractMinimal[] }>;
+  getContract?(
+    chainId: string,
+    address: string,
+    fields?: string[],
+    omit?: string[],
+  ): Promise<VerifiedContract>;
 }
 
 export interface EnabledServices {

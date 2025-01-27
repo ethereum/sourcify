@@ -11,6 +11,7 @@ import { ServerFixture } from "../../helpers/ServerFixture";
 import type { Response } from "superagent";
 import path from "path";
 import fs from "fs";
+import { getAddress } from "ethers";
 
 chai.use(chaiHttp);
 
@@ -185,8 +186,8 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     "abi",
     "metadata",
     "storageLayout",
-    "userDoc",
-    "devDoc",
+    "userdoc",
+    "devdoc",
     "stdJsonInput",
     "stdJsonOutput",
     "proxyResolution",
@@ -226,6 +227,11 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     const contractPath = Object.keys(
       chainFixture.defaultContractMetadataObject.settings.compilationTarget,
     )[0];
+    const compilerSettings = {
+      ...chainFixture.defaultContractMetadataObject.settings,
+    } as Partial<typeof chainFixture.defaultContractMetadataObject.settings>;
+    delete compilerSettings.compilationTarget;
+
     for (const field of requestedFields) {
       const splitField = field.split(".");
       if (splitField.length > 2) {
@@ -234,7 +240,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
         );
       }
       const [primaryField, subField] = splitField;
-      let objectToExpect;
+      let objectToExpect: any;
       switch (primaryField) {
         case "creationBytecode":
           objectToExpect = {
@@ -266,17 +272,17 @@ describe("GET /v2/contracts/:chainId/:address", function () {
           break;
         case "deployment":
           if (
-            !deploymentInfo.txHash ||
-            !deploymentInfo.blockNumber ||
-            !deploymentInfo.txIndex
+            deploymentInfo.txHash === undefined ||
+            deploymentInfo.blockNumber === undefined ||
+            deploymentInfo.txIndex === undefined
           ) {
             throw new Error("Malformed test. Deployment info is missing.");
           }
           objectToExpect = {
             transactionHash: deploymentInfo.txHash,
-            blockNumber: deploymentInfo.blockNumber,
-            txIndex: deploymentInfo.txIndex,
-            deployer: chainFixture.localSigner.address,
+            blockNumber: deploymentInfo.blockNumber.toString(),
+            transactionIndex: deploymentInfo.txIndex.toString(),
+            deployer: getAddress(chainFixture.localSigner.address),
           };
           break;
         case "sources":
@@ -296,9 +302,8 @@ describe("GET /v2/contracts/:chainId/:address", function () {
             language: chainFixture.defaultContractMetadataObject.language,
             compiler: chainFixture.defaultContractArtifact.compiler.name,
             compilerVersion:
-              chainFixture.defaultContractArtifact.compiler.version,
-            compilerSettings:
-              chainFixture.defaultContractMetadataObject.settings,
+              chainFixture.defaultContractMetadataObject.compiler.version,
+            compilerSettings,
             name: chainFixture.defaultContractArtifact.contractName,
             fullyQualifiedName: `${contractPath}:${chainFixture.defaultContractArtifact.contractName}`,
           };
@@ -307,7 +312,8 @@ describe("GET /v2/contracts/:chainId/:address", function () {
           if (subField) {
             throw new Error("Malformed test. ABI should not have subfields.");
           }
-          objectToExpect = chainFixture.defaultContractArtifact.abi;
+          objectToExpect =
+            chainFixture.defaultContractMetadataObject.output.abi;
           break;
         case "metadata":
           if (subField) {
@@ -325,18 +331,18 @@ describe("GET /v2/contracts/:chainId/:address", function () {
           }
           objectToExpect = chainFixture.defaultContractArtifact.storageLayout;
           break;
-        case "userDoc":
+        case "userdoc":
           if (subField) {
             throw new Error(
-              "Malformed test. UserDoc should not have subfields.",
+              "Malformed test. Userdoc should not have subfields.",
             );
           }
           objectToExpect = chainFixture.defaultContractArtifact.userdoc;
           break;
-        case "devDoc":
+        case "devdoc":
           if (subField) {
             throw new Error(
-              "Malformed test. DevDoc should not have subfields.",
+              "Malformed test. Devdoc should not have subfields.",
             );
           }
           objectToExpect = chainFixture.defaultContractArtifact.devdoc;
@@ -354,7 +360,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
                 content: chainFixture.defaultContractSource.toString(),
               },
             },
-            settings: chainFixture.defaultContractMetadataObject.settings,
+            settings: compilerSettings,
           };
           break;
         case "stdJsonOutput":
@@ -366,29 +372,24 @@ describe("GET /v2/contracts/:chainId/:address", function () {
           objectToExpect = {
             sources: {
               [contractPath]: {
-                id: 1,
-                ast: chainFixture.defaultContractArtifact.ast,
+                id: 0,
               },
             },
             contracts: {
               [contractPath]: {
                 [chainFixture.defaultContractArtifact.contractName]: {
-                  abi: chainFixture.defaultContractArtifact.abi,
+                  abi: chainFixture.defaultContractMetadataObject.output.abi,
                   metadata: chainFixture.defaultContractArtifact.metadata,
                   userdoc: chainFixture.defaultContractArtifact.userdoc,
                   devdoc: chainFixture.defaultContractArtifact.devdoc,
                   storageLayout:
                     chainFixture.defaultContractArtifact.storageLayout,
                   evm: {
-                    legacyAssembly:
-                      chainFixture.defaultContractArtifact.legacyAssembly,
                     bytecode: {
                       object: chainFixture.defaultContractArtifact.bytecode,
                       sourceMap: chainFixture.defaultContractArtifact.sourceMap,
                       linkReferences:
                         chainFixture.defaultContractArtifact.linkReferences,
-                      generatedSources:
-                        chainFixture.defaultContractArtifact.generatedSources,
                     },
                     deployedBytecode: {
                       object:
@@ -420,11 +421,13 @@ describe("GET /v2/contracts/:chainId/:address", function () {
             implementations: [],
           };
           break;
+        default:
+          throw new Error("Malformed test. Unknown field.");
       }
       if (subField) {
         chai
           .expect(res.body)
-          .to.have.deep.nested.property(field, objectToExpect);
+          .to.have.deep.nested.property(field, objectToExpect[subField]);
       } else {
         chai
           .expect(res.body)
@@ -573,7 +576,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     assertGetContractResponse(res, { contractAddress }, ["storageLayout"]);
   });
 
-  it("should return userDoc information when requested", async function () {
+  it("should return userdoc information when requested", async function () {
     const contractAddress = await deployAndVerifyContract(
       chainFixture,
       serverFixture,
@@ -582,13 +585,13 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=userDoc`,
+        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=userdoc`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["userDoc"]);
+    assertGetContractResponse(res, { contractAddress }, ["userdoc"]);
   });
 
-  it("should return devDoc information when requested", async function () {
+  it("should return devdoc information when requested", async function () {
     const contractAddress = await deployAndVerifyContract(
       chainFixture,
       serverFixture,
@@ -597,10 +600,10 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=devDoc`,
+        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=devdoc`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["devDoc"]);
+    assertGetContractResponse(res, { contractAddress }, ["devdoc"]);
   });
 
   it("should return stdJsonInput information when requested", async function () {
@@ -753,7 +756,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?field=creationBytecode.sourceMap,creationBytecode.onchainBytecode`,
+        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=creationBytecode.sourceMap,creationBytecode.onchainBytecode`,
       );
 
     assertGetContractResponse(res, { contractAddress }, [
@@ -786,11 +789,11 @@ describe("GET /v2/contracts/:chainId/:address", function () {
       deploymentInfo,
       optionalFields
         .filter((field) => field !== "deployment")
-        .concat(["deployment.txIndex", "deployment.deployer"]),
+        .concat(["deployment.transactionIndex", "deployment.deployer"]),
     );
   });
 
-  it("should ignore unknown fields", async function () {
+  it("should return a 400 when unknown fields are requested", async function () {
     const contractAddress = await deployAndVerifyContract(
       chainFixture,
       serverFixture,
@@ -802,7 +805,28 @@ describe("GET /v2/contracts/:chainId/:address", function () {
         `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=unknown`,
       );
 
-    assertGetContractResponse(res, { contractAddress });
+    chai.expect(res.status).to.equal(400);
+    chai.expect(res.body.customCode).to.equal("invalid_parameter");
+    chai.expect(res.body).to.have.property("errorId");
+    chai.expect(res.body).to.have.property("message");
+  });
+
+  it("should return a 400 when unknown fields should be omitted", async function () {
+    const contractAddress = await deployAndVerifyContract(
+      chainFixture,
+      serverFixture,
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?omit=unknown`,
+      );
+
+    chai.expect(res.status).to.equal(400);
+    chai.expect(res.body.customCode).to.equal("invalid_parameter");
+    chai.expect(res.body).to.have.property("errorId");
+    chai.expect(res.body).to.have.property("message");
   });
 
   it("should return a 400 when omit and fields parameters are provided at the same time", async function () {
@@ -814,7 +838,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?omit=userDoc&fields=creationBytecode`,
+        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?omit=userdoc&fields=creationBytecode`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -901,15 +925,18 @@ describe("GET /v2/contracts/:chainId/:address", function () {
   });
 
   it("should return a 404 when the contract is not verified", async function () {
+    const contractAddress = "0x0000000000000000000000000000000000000000";
     const res = await chai
       .request(serverFixture.server.app)
-      .get(
-        `/v2/contracts/${chainFixture.chainId}/0x0000000000000000000000000000000000000000`,
-      );
+      .get(`/v2/contracts/${chainFixture.chainId}/${contractAddress}`);
 
     chai.expect(res.status).to.equal(404);
-    chai.expect(res.body.customCode).to.equal("not_verified");
-    chai.expect(res.body).to.have.property("errorId");
-    chai.expect(res.body).to.have.property("message");
+    chai.expect(res.body).to.deep.equal({
+      match: null,
+      creationMatch: null,
+      runtimeMatch: null,
+      chainId: chainFixture.chainId,
+      address: contractAddress,
+    });
   });
 });
