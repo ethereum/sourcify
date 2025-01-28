@@ -15,7 +15,7 @@ router
   .get(validateChainId, safeHandler(listContractsEndpoint));
 
 router
-  .route("/contracts/:chainId/:address")
+  .route("/contract/:chainId/:address")
   .get(
     validateChainId,
     validateAddress,
