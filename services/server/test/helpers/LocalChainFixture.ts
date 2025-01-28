@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import {
   deployFromAbiAndBytecodeForCreatorTxHash,
+  DeploymentInfo,
   readFilesFromDirectory,
 } from "./helpers";
 import { JsonRpcProvider, JsonRpcSigner, Network } from "ethers";
@@ -91,6 +92,15 @@ export class LocalChainFixture {
     if (this._defaultContractTxIndex === undefined)
       throw new Error("defaultContractTxIndex not initialized!");
     return this._defaultContractTxIndex;
+  }
+
+  get defaultContractDeploymentInfo(): DeploymentInfo {
+    return {
+      contractAddress: this.defaultContractAddress,
+      txHash: this.defaultContractCreatorTx,
+      blockNumber: this.defaultContractBlockNumber,
+      txIndex: this.defaultContractTxIndex,
+    };
   }
 
   /**

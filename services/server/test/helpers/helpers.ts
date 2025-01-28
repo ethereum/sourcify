@@ -41,6 +41,13 @@ export async function deployFromAbiAndBytecode(
   return contractAddress;
 }
 
+export type DeploymentInfo = {
+  contractAddress: string;
+  txHash: string;
+  blockNumber: number;
+  txIndex: number;
+};
+
 /**
  * Creator tx hash is needed for tests. This function returns the tx hash in addition to the contract address.
  *
@@ -50,7 +57,7 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
   args?: any[],
-) {
+): Promise<DeploymentInfo> {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
   const deployment = await contractFactory.deploy(...(args || []));
@@ -81,15 +88,19 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
 export async function verifyContract(
   serverFixture: ServerFixture,
   chainFixture: LocalChainFixture,
-  contractAddress: string,
-  partial: boolean = false,
+  contractAddress?: string,
   creatorTxHash?: string,
+  partial: boolean = false,
 ) {
-  let request = chai
+  await chai
     .request(serverFixture.server.app)
     .post("/")
-    .field("address", contractAddress)
+    .field("address", contractAddress || chainFixture.defaultContractAddress)
     .field("chain", chainFixture.chainId)
+    .field(
+      "creatorTxHash",
+      creatorTxHash || chainFixture.defaultContractCreatorTx,
+    )
     .attach(
       "files",
       partial
@@ -103,12 +114,6 @@ export async function verifyContract(
         ? chainFixture.defaultContractModifiedSource
         : chainFixture.defaultContractSource,
     );
-
-  if (creatorTxHash) {
-    request = request.field("creatorTxHash", creatorTxHash);
-  }
-
-  await request;
 }
 
 export async function deployAndVerifyContract(
@@ -127,8 +132,8 @@ export async function deployAndVerifyContract(
     serverFixture,
     chainFixture,
     contractAddress,
-    partial,
     txHash,
+    partial,
   );
   return contractAddress;
 }

@@ -3,7 +3,7 @@ import chaiHttp from "chai-http";
 import {
   deployAndVerifyContract,
   deployFromAbiAndBytecode,
-  deployFromAbiAndBytecodeForCreatorTxHash,
+  DeploymentInfo,
   verifyContract,
 } from "../../helpers/helpers";
 import { LocalChainFixture } from "../../helpers/LocalChainFixture";
@@ -175,7 +175,7 @@ describe("GET /v2/contracts/:chainId", function () {
   });
 });
 
-describe("GET /v2/contracts/:chainId/:address", function () {
+describe("GET /v2/contract/:chainId/:address", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
   const sandbox = Sinon.createSandbox();
@@ -202,15 +202,9 @@ describe("GET /v2/contracts/:chainId/:address", function () {
 
   const assertGetContractResponse = (
     res: Response,
-    deploymentInfo: {
-      contractAddress: string;
-      txHash?: string;
-      blockNumber?: number;
-      txIndex?: number;
-    },
+    deploymentInfo: DeploymentInfo,
     requestedFields: string[] = [],
   ) => {
-    console.log(res.body);
     chai.expect(res.status).to.equal(200);
     chai.expect(res.body).to.include({
       match: "exact_match",
@@ -277,13 +271,6 @@ describe("GET /v2/contracts/:chainId/:address", function () {
           };
           break;
         case "deployment":
-          if (
-            deploymentInfo.txHash === undefined ||
-            deploymentInfo.blockNumber === undefined ||
-            deploymentInfo.txIndex === undefined
-          ) {
-            throw new Error("Malformed test. Deployment info is missing.");
-          }
           objectToExpect = {
             transactionHash: deploymentInfo.txHash,
             blockNumber: deploymentInfo.blockNumber.toString(),
@@ -443,218 +430,197 @@ describe("GET /v2/contracts/:chainId/:address", function () {
   };
 
   it("should return minimal information for a verified contract by default", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}/${contractAddress}`);
+      .get(
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      );
 
-    assertGetContractResponse(res, { contractAddress });
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo);
   });
 
   it("should return creationBytecode information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=creationBytecode`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=creationBytecode`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["creationBytecode"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "creationBytecode",
+    ]);
   });
 
   it("should return runtimeBytecode information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=runtimeBytecode`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=runtimeBytecode`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["runtimeBytecode"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "runtimeBytecode",
+    ]);
   });
 
   it("should return deployment information when requested", async function () {
-    const deploymentInfo = await deployFromAbiAndBytecodeForCreatorTxHash(
-      chainFixture.localSigner,
-      chainFixture.defaultContractArtifact.abi,
-      chainFixture.defaultContractArtifact.bytecode,
-      [],
-    );
-    await verifyContract(
-      serverFixture,
-      chainFixture,
-      deploymentInfo.contractAddress,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${deploymentInfo.contractAddress}?fields=deployment`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=deployment`,
       );
 
-    assertGetContractResponse(res, deploymentInfo, ["deployment"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "deployment",
+    ]);
   });
 
   it("should return sources information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=sources`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=sources`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["sources"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "sources",
+    ]);
   });
 
   it("should return compilation information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=compilation`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=compilation`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["compilation"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "compilation",
+    ]);
   });
 
   it("should return abi information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=abi`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=abi`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["abi"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "abi",
+    ]);
   });
 
   it("should return metadata information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=metadata`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=metadata`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["metadata"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "metadata",
+    ]);
   });
 
   it("should return storageLayout information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=storageLayout`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=storageLayout`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["storageLayout"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "storageLayout",
+    ]);
   });
 
   it("should return userdoc information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=userdoc`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=userdoc`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["userdoc"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "userdoc",
+    ]);
   });
 
   it("should return devdoc information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=devdoc`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=devdoc`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["devdoc"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "devdoc",
+    ]);
   });
 
   it("should return stdJsonInput information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=stdJsonInput`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=stdJsonInput`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["stdJsonInput"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "stdJsonInput",
+    ]);
   });
 
   it("should return stdJsonOutput information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=stdJsonOutput`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=stdJsonOutput`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["stdJsonOutput"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "stdJsonOutput",
+    ]);
   });
 
   it("should return proxyResolution information when requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=proxyResolution`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=proxyResolution`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, ["proxyResolution"]);
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "proxyResolution",
+    ]);
   });
 
   it("should correctly detect proxy contracts", async function () {
@@ -766,7 +732,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
       .expect(res.body.proxyResolution.proxyResolutionError.customCode)
       .to.equal("proxy_resolution_error");
     chai
-      .expect(res.body.proxyResolution.proxyResolutionError)
+      .expect(res.body.proxyResolution.proxyResolutionError.message)
       .to.equal(errorMessage);
     chai
       .expect(res.body.proxyResolution.proxyResolutionError)
@@ -779,88 +745,66 @@ describe("GET /v2/contracts/:chainId/:address", function () {
   });
 
   it("should return all fields when requested", async function () {
-    const deploymentInfo = await deployFromAbiAndBytecodeForCreatorTxHash(
-      chainFixture.localSigner,
-      chainFixture.defaultContractArtifact.abi,
-      chainFixture.defaultContractArtifact.bytecode,
-      [],
-    );
-    await verifyContract(
-      serverFixture,
-      chainFixture,
-      deploymentInfo.contractAddress,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${deploymentInfo.contractAddress}?fields=${optionalFields.join(",")}`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=${optionalFields.join(",")}`,
       );
 
-    assertGetContractResponse(res, deploymentInfo, optionalFields);
+    assertGetContractResponse(
+      res,
+      chainFixture.defaultContractDeploymentInfo,
+      optionalFields,
+    );
   });
 
   it("should return all fields but the omitted ones when requested", async function () {
     const omittedFields = ["proxyResolution", "deployment"];
 
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?omit=${omittedFields.join(",")}`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=${omittedFields.join(",")}`,
       );
 
     assertGetContractResponse(
       res,
-      { contractAddress },
+      chainFixture.defaultContractDeploymentInfo,
       optionalFields.filter((field) => !omittedFields.includes(field)),
     );
   });
 
   it("should allow for selecting subproperties of a field", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=creationBytecode.sourceMap,creationBytecode.onchainBytecode`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=creationBytecode.sourceMap,creationBytecode.onchainBytecode`,
       );
 
-    assertGetContractResponse(res, { contractAddress }, [
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
       "creationBytecode.sourceMap",
       "creationBytecode.onchainBytecode",
     ]);
   });
 
   it("should allow for deselecting subproperties of a field", async function () {
-    const deploymentInfo = await deployFromAbiAndBytecodeForCreatorTxHash(
-      chainFixture.localSigner,
-      chainFixture.defaultContractArtifact.abi,
-      chainFixture.defaultContractArtifact.bytecode,
-      [],
-    );
-    await verifyContract(
-      serverFixture,
-      chainFixture,
-      deploymentInfo.contractAddress,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${deploymentInfo.contractAddress}?omit=deployment.transactionHash,deployment.blockNumber`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=deployment.transactionHash,deployment.blockNumber`,
       );
 
     assertGetContractResponse(
       res,
-      deploymentInfo,
+      chainFixture.defaultContractDeploymentInfo,
       optionalFields
         .filter((field) => field !== "deployment")
         .concat(["deployment.transactionIndex", "deployment.deployer"]),
@@ -868,15 +812,12 @@ describe("GET /v2/contracts/:chainId/:address", function () {
   });
 
   it("should return a 400 when unknown fields are requested", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=unknown`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=unknown`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -886,15 +827,12 @@ describe("GET /v2/contracts/:chainId/:address", function () {
   });
 
   it("should return a 400 when unknown fields should be omitted", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?omit=unknown`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=unknown`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -904,15 +842,12 @@ describe("GET /v2/contracts/:chainId/:address", function () {
   });
 
   it("should return a 400 when omit and fields parameters are provided at the same time", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?omit=userdoc&fields=creationBytecode`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=userdoc&fields=creationBytecode`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -922,15 +857,12 @@ describe("GET /v2/contracts/:chainId/:address", function () {
   });
 
   it("should return a 400 when invalid subproperties for fields are selected", async function () {
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     let res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=abi.name`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=abi.name`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -941,7 +873,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?omit=sources.Storage`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=sources.Storage`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -952,7 +884,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=creationBytecode.onchainBytecode.linkReferences`,
+        `/v2/contracts/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=creationBytecode.onchainBytecode.linkReferences`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -969,14 +901,13 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     const chainToRestore = chainMap[unknownChainId];
     delete chainMap[unknownChainId];
 
-    const contractAddress = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-    );
+    await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contracts/${unknownChainId}/${contractAddress}`);
+      .get(
+        `/v2/contracts/${unknownChainId}/${chainFixture.defaultContractAddress}`,
+      );
 
     chai.expect(res.status).to.equal(404);
     chai.expect(res.body.customCode).to.equal("unsupported_chain");
