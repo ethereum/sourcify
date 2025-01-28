@@ -17,6 +17,7 @@ import {
 import { Response } from "express";
 import { Abi } from "abitype";
 import { ProxyDetectionResult } from "./services/utils/proxy-contract-util";
+import { GenericErrorResponse } from "./apiv2/errors";
 
 // Types used internally by the server.
 
@@ -86,8 +87,16 @@ export interface VerifiedContract extends VerifiedContractMinimal {
   devdoc?: Nullable<Devdoc>;
   stdJsonInput?: JsonInput | VyperJsonInput;
   stdJsonOutput?: SolidityOutput | VyperOutput;
-  proxyResolution?: ProxyDetectionResult;
+  proxyResolution?: ProxyResolution;
 }
+
+// TODO:
+// onchainRuntimeBytecode is a temporary solution for running the proxy detection inside the getContractEndpoint handler.
+// Remove onchainRuntimeBytecode, when proxy detection result is stored in database.
+export type ProxyResolution = Partial<ProxyDetectionResult> & {
+  onchainRuntimeBytecode?: string;
+  proxyResolutionError?: GenericErrorResponse;
+};
 
 /**
  * An array wrapper with info properties.

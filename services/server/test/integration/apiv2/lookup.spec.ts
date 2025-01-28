@@ -12,6 +12,8 @@ import type { Response } from "superagent";
 import path from "path";
 import fs from "fs";
 import { getAddress } from "ethers";
+import Sinon from "sinon";
+import * as proxyContractUtil from "../../../src/server/services/utils/proxy-contract-util";
 
 chai.use(chaiHttp);
 
@@ -176,6 +178,11 @@ describe("GET /v2/contracts/:chainId", function () {
 describe("GET /v2/contracts/:chainId/:address", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
+  const sandbox = Sinon.createSandbox();
+
+  afterEach(() => {
+    sandbox.restore();
+  });
 
   const optionalFields = [
     "creationBytecode",
@@ -203,6 +210,7 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     },
     requestedFields: string[] = [],
   ) => {
+    console.log(res.body);
     chai.expect(res.status).to.equal(200);
     chai.expect(res.body).to.include({
       match: "exact_match",
@@ -216,14 +224,12 @@ describe("GET /v2/contracts/:chainId/:address", function () {
     const requestedPrimaryFields = requestedFields.map(
       (field) => field.split(".")[0],
     );
-    chai
-      .expect(res.body)
-      .to.not.have.any.keys(
-        optionalFields.filter(
-          (field) => !requestedPrimaryFields.includes(field),
-        ),
-      );
-
+    const unexpectedFields = optionalFields.filter(
+      (field) => !requestedPrimaryFields.includes(field),
+    );
+    if (unexpectedFields.length > 0) {
+      chai.expect(res.body).to.not.have.any.keys(unexpectedFields);
+    }
     const contractPath = Object.keys(
       chainFixture.defaultContractMetadataObject.settings.compilationTarget,
     )[0];
@@ -663,7 +669,6 @@ describe("GET /v2/contracts/:chainId/:address", function () {
         __dirname,
         "..",
         "..",
-        "..",
         "testcontracts",
         "Proxy",
         "Proxy_flattened.sol",
@@ -702,6 +707,75 @@ describe("GET /v2/contracts/:chainId/:address", function () {
       proxyType: "EIP1967Proxy",
       implementations: [{ address: logicAddress }],
     });
+  });
+
+  it("should show an error if the proxy resolution fails", async () => {
+    const errorMessage = "Proxy resolution failed";
+    sandbox
+      .stub(proxyContractUtil, "detectAndResolveProxy")
+      .throws(new Error(errorMessage));
+
+    const proxyArtifact = (
+      await import("../../testcontracts/Proxy/Proxy_flattened.json")
+    ).default;
+    const proxyMetadata = (
+      await import("../../testcontracts/Proxy/metadata.json")
+    ).default;
+    const proxySource = fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "testcontracts",
+        "Proxy",
+        "Proxy_flattened.sol",
+      ),
+    );
+
+    const logicAddress = chainFixture.defaultContractAddress;
+
+    const contractAddress = await deployFromAbiAndBytecode(
+      chainFixture.localSigner,
+      proxyArtifact.abi,
+      proxyArtifact.bytecode,
+      [logicAddress, chainFixture.localSigner.address, "0x"],
+    );
+
+    let res = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", contractAddress)
+      .field("chain", chainFixture.chainId)
+      .attach(
+        "files",
+        Buffer.from(JSON.stringify(proxyMetadata)),
+        "metadata.json",
+      )
+      .attach("files", proxySource, "Proxy_flattened.sol");
+
+    chai.expect(res.status).to.equal(200);
+
+    res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contracts/${chainFixture.chainId}/${contractAddress}?fields=proxyResolution`,
+      );
+
+    chai.expect(res.status).to.equal(200);
+    chai
+      .expect(res.body.proxyResolution.proxyResolutionError.customCode)
+      .to.equal("proxy_resolution_error");
+    chai
+      .expect(res.body.proxyResolution.proxyResolutionError)
+      .to.equal(errorMessage);
+    chai
+      .expect(res.body.proxyResolution.proxyResolutionError)
+      .to.have.property("errorId");
+    chai
+      .expect(res.body.proxyResolution)
+      .to.not.have.property("implementations");
+    chai.expect(res.body.proxyResolution).to.not.have.property("isProxy");
+    chai.expect(res.body.proxyResolution).to.not.have.property("proxyType");
   });
 
   it("should return all fields when requested", async function () {

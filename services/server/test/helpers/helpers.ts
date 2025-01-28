@@ -83,8 +83,9 @@ export async function verifyContract(
   chainFixture: LocalChainFixture,
   contractAddress: string,
   partial: boolean = false,
+  creatorTxHash?: string,
 ) {
-  await chai
+  let request = chai
     .request(serverFixture.server.app)
     .post("/")
     .field("address", contractAddress)
@@ -102,6 +103,12 @@ export async function verifyContract(
         ? chainFixture.defaultContractModifiedSource
         : chainFixture.defaultContractSource,
     );
+
+  if (creatorTxHash) {
+    request = request.field("creatorTxHash", creatorTxHash);
+  }
+
+  await request;
 }
 
 export async function deployAndVerifyContract(
@@ -109,13 +116,20 @@ export async function deployAndVerifyContract(
   serverFixture: ServerFixture,
   partial: boolean = false,
 ) {
-  const contractAddress = await deployFromAbiAndBytecode(
-    chainFixture.localSigner,
-    chainFixture.defaultContractArtifact.abi,
-    chainFixture.defaultContractArtifact.bytecode,
-    [],
+  const { contractAddress, txHash } =
+    await deployFromAbiAndBytecodeForCreatorTxHash(
+      chainFixture.localSigner,
+      chainFixture.defaultContractArtifact.abi,
+      chainFixture.defaultContractArtifact.bytecode,
+      [],
+    );
+  await verifyContract(
+    serverFixture,
+    chainFixture,
+    contractAddress,
+    partial,
+    txHash,
   );
-  await verifyContract(serverFixture, chainFixture, contractAddress, partial);
   return contractAddress;
 }
 

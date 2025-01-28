@@ -18,7 +18,6 @@ export interface ProxyDetectionResult {
   isProxy: boolean;
   proxyType: ProxyType | null;
   implementations: Implementation[];
-  proxyResolutionError?: string;
 }
 
 export async function detectAndResolveProxy(

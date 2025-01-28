@@ -1,7 +1,10 @@
 import { BadRequestError, NotFoundError } from "../../common/errors";
 import { v4 as uuidv4 } from "uuid";
 
-export type ErrorCode = "unsupported_chain" | "invalid_parameter";
+export type ErrorCode =
+  | "unsupported_chain"
+  | "invalid_parameter"
+  | "proxy_resolution_error";
 
 export interface GenericErrorResponse {
   customCode: ErrorCode;

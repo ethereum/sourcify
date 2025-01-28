@@ -320,10 +320,7 @@ export type SourcifyMatchDbProperties =
 
 // used for API v2 GET contract endpoint
 export const FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES: Record<
-  keyof Omit<
-    VerifiedContractApiObject,
-    "proxyResolution" | "chainId" | "address" | "match"
-  >,
+  keyof Omit<VerifiedContractApiObject, "chainId" | "address" | "match">,
   string | Record<string, string>
 > = {
   matchId: "id",
@@ -371,6 +368,10 @@ export const FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES: Record<
   devdoc: "devdoc",
   stdJsonInput: "std_json_input",
   stdJsonOutput: "std_json_output",
+  proxyResolution: {
+    // TODO: remove onchainRuntimeBytecode, when proxy detection result is stored in database
+    onchainRuntimeBytecode: "onchain_runtime_code",
+  },
 };
 
 // Function overloads

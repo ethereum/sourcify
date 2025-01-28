@@ -138,7 +138,9 @@ export async function checkAllByChainAndAddressEndpoint(
           }
 
           // Proxy detection and resolution
-          let proxyStatus: Partial<ProxyDetectionResult> = {};
+          let proxyStatus: Partial<ProxyDetectionResult> & {
+            proxyResolutionError?: string;
+          } = {};
           if (
             req.query.resolveProxies === "true" &&
             found[0].onchainRuntimeBytecode
