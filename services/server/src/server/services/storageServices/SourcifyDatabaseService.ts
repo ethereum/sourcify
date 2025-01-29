@@ -9,8 +9,9 @@ import AbstractDatabaseService from "./AbstractDatabaseService";
 import { RWStorageService, StorageService } from "../StorageService";
 import {
   bytesFromString,
-  FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES,
-  SourcifyMatchDbProperties,
+  Field,
+  FIELDS_TO_STORED_PROPERTIES,
+  StoredProperties,
 } from "../utils/database-util";
 import {
   ContractData,
@@ -302,29 +303,29 @@ export class SourcifyDatabaseService
   getContract = async (
     chainId: string,
     address: string,
-    fields?: string[],
-    omit?: string[],
+    fields?: Field[],
+    omit?: Field[],
   ): Promise<VerifiedContract> => {
     if (fields && omit) {
       throw new Error("Cannot specify both fields and omit at the same time");
     }
 
     // Collect which fields are requested
-    const requestedFields = new Set<string>();
+    const requestedFields = new Set<Field>();
 
     if (fields) {
       fields.forEach((field) => requestedFields.add(field));
     }
 
     if (omit) {
-      for (const field of Object.keys(FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES)) {
+      for (const field of Object.keys(FIELDS_TO_STORED_PROPERTIES)) {
         if (typeof field === "string") {
-          if (!omit.includes(field)) {
-            requestedFields.add(field);
+          if (!omit.includes(field as Field)) {
+            requestedFields.add(field as Field);
           }
         } else {
           for (const subField of Object.keys(field)) {
-            const fullSubField = `${field}.${subField}`;
+            const fullSubField: Field = `${field}.${subField}`;
             if (!omit.includes(field) && !omit.includes(fullSubField)) {
               requestedFields.add(fullSubField);
             }
@@ -334,20 +335,24 @@ export class SourcifyDatabaseService
     }
 
     // Add default fields
-    ["matchId", "creationMatch", "runtimeMatch", "verifiedAt"].forEach(
-      (field) => requestedFields.add(field),
-    );
+    const defaultFields: Field[] = [
+      "matchId",
+      "creationMatch",
+      "runtimeMatch",
+      "verifiedAt",
+    ];
+    defaultFields.forEach((field) => requestedFields.add(field));
 
     // Get corresponding database properties
     const requestedProperties = Array.from(requestedFields).reduce(
       (properties, fullField) => {
         const property = reduceAccessorStringToProperty(
           fullField,
-          FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES,
+          FIELDS_TO_STORED_PROPERTIES,
         );
 
         if (typeof property === "string") {
-          properties.push(property as SourcifyMatchDbProperties);
+          properties.push(property as StoredProperties);
         } else {
           // The whole subobject is requested, e.g. the creationBytecode object
           for (const value of Object.values(property)) {
@@ -356,7 +361,7 @@ export class SourcifyDatabaseService
         }
         return properties;
       },
-      [] as SourcifyMatchDbProperties[],
+      [] as StoredProperties[],
     );
 
     // Retrieve database result
@@ -382,7 +387,7 @@ export class SourcifyDatabaseService
       (verifiedContract, fullField) => {
         const property = reduceAccessorStringToProperty(
           fullField,
-          FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES,
+          FIELDS_TO_STORED_PROPERTIES,
         );
 
         const addToContract = (field: string, subField: string, value: any) => {
@@ -401,7 +406,7 @@ export class SourcifyDatabaseService
           addToContract(
             field,
             subField,
-            sourcifyMatchResult.rows[0][property as SourcifyMatchDbProperties],
+            sourcifyMatchResult.rows[0][property as StoredProperties],
           );
         } else {
           // The whole subobject is requested, e.g. the creationBytecode object
@@ -409,9 +414,7 @@ export class SourcifyDatabaseService
             addToContract(
               fullField,
               subfield,
-              sourcifyMatchResult.rows[0][
-                subproperty as SourcifyMatchDbProperties
-              ],
+              sourcifyMatchResult.rows[0][subproperty as StoredProperties],
             );
           }
         }

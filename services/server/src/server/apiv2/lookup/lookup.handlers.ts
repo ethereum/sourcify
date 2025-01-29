@@ -15,6 +15,7 @@ import {
 } from "../../services/utils/proxy-contract-util";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { v4 as uuidv4 } from "uuid";
+import { Field } from "../../services/utils/database-util";
 
 interface ListContractsRequest extends Request {
   params: {
@@ -82,8 +83,8 @@ export async function getContractEndpoint(
   const services = req.app.get("services") as Services;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
-  const fields = req.query.fields?.split(",");
-  const omit = req.query.omit?.split(",");
+  const fields = req.query.fields?.split(",") as Field[];
+  const omit = req.query.omit?.split(",") as Field[];
 
   const contract = await services.storage.performServiceOperation(
     "getContract",
@@ -138,7 +139,8 @@ export async function getContractEndpoint(
       proxyResolution = {
         proxyResolutionError: {
           customCode: "proxy_resolution_error",
-          message: (error as Error)?.message,
+          message:
+            "Error while running proxy detection and implementation resolution",
           errorId: uuidv4(),
         },
       };

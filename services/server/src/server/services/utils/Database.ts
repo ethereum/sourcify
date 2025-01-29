@@ -7,8 +7,8 @@ import {
   GetSourcifyMatchesByChainResult,
   GetVerifiedContractByChainAndAddressResult,
   SourceInformation,
-  SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS,
-  SourcifyMatchDbProperties,
+  STORED_PROPERTIES_TO_SELECTORS,
+  StoredProperties,
   Tables,
 } from "./database-util";
 import { createHash } from "crypto";
@@ -164,14 +164,14 @@ ${
   async getSourcifyMatchByChainAddressWithProperties(
     chain: number,
     address: Bytes,
-    properties: SourcifyMatchDbProperties[],
+    properties: StoredProperties[],
   ): Promise<QueryResult<GetSourcifyMatchByChainAddressWithPropertiesResult>> {
     if (properties.length === 0) {
       throw new Error("No properties specified");
     }
 
     const selectors = properties.map(
-      (property) => SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS[property],
+      (property) => STORED_PROPERTIES_TO_SELECTORS[property],
     );
 
     return await this.pool.query(
@@ -341,11 +341,11 @@ ${
     }
 
     const selectors = [
-      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["id"],
-      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["creation_match"],
-      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["runtime_match"],
-      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["address"],
-      SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS["verified_at"],
+      STORED_PROPERTIES_TO_SELECTORS["id"],
+      STORED_PROPERTIES_TO_SELECTORS["creation_match"],
+      STORED_PROPERTIES_TO_SELECTORS["runtime_match"],
+      STORED_PROPERTIES_TO_SELECTORS["address"],
+      STORED_PROPERTIES_TO_SELECTORS["verified_at"],
     ];
     return await this.pool.query(
       `

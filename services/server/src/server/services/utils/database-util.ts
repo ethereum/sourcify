@@ -223,7 +223,7 @@ export type GetSourcifyMatchByChainAddressWithPropertiesResult = Partial<
 const sourcesAggregation =
   "json_object_agg(compiled_contracts_sources.path, json_build_object('content', sources.content))";
 
-export const SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS = {
+export const STORED_PROPERTIES_TO_SELECTORS = {
   id: "sourcify_matches.id",
   creation_match: "sourcify_matches.creation_match",
   runtime_match: "sourcify_matches.runtime_match",
@@ -315,14 +315,45 @@ export const SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS = {
   ) as std_json_output`,
 };
 
-export type SourcifyMatchDbProperties =
-  keyof typeof SOURCIFY_MATCH_DB_PROPERTIES_TO_SELECTORS;
+export type StoredProperties = keyof typeof STORED_PROPERTIES_TO_SELECTORS;
+
+type creationBytecodeSubfields = keyof NonNullable<
+  VerifiedContractApiObject["creationBytecode"]
+>;
+type runtimeBytecodeSubfields = keyof NonNullable<
+  VerifiedContractApiObject["runtimeBytecode"]
+>;
+type deploymentSubfields = keyof NonNullable<
+  VerifiedContractApiObject["deployment"]
+>;
+type compilationSubfields = keyof NonNullable<
+  VerifiedContractApiObject["compilation"]
+>;
+type proxyResolutionSubfields = keyof Partial<
+  VerifiedContractApiObject["proxyResolution"]
+>;
 
 // used for API v2 GET contract endpoint
-export const FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES: Record<
-  keyof Omit<VerifiedContractApiObject, "chainId" | "address" | "match">,
-  string | Record<string, string>
-> = {
+export const FIELDS_TO_STORED_PROPERTIES: Record<
+  keyof Omit<
+    VerifiedContractApiObject,
+    | "chainId"
+    | "address"
+    | "match"
+    | "creationBytecode"
+    | "runtimeBytecode"
+    | "deployment"
+    | "compilation"
+    | "proxyResolution"
+  >,
+  StoredProperties
+> & {
+  creationBytecode: Record<creationBytecodeSubfields, StoredProperties>;
+  runtimeBytecode: Record<runtimeBytecodeSubfields, StoredProperties>;
+  deployment: Record<deploymentSubfields, StoredProperties>;
+  compilation: Record<compilationSubfields, StoredProperties>;
+  proxyResolution: Record<proxyResolutionSubfields, StoredProperties>;
+} = {
   matchId: "id",
   creationMatch: "creation_match",
   runtimeMatch: "runtime_match",
@@ -373,6 +404,13 @@ export const FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES: Record<
     onchainRuntimeBytecode: "onchain_runtime_code",
   },
 };
+
+export type Field =
+  | keyof typeof FIELDS_TO_STORED_PROPERTIES
+  | `creationBytecode.${creationBytecodeSubfields}`
+  | `runtimeBytecode.${runtimeBytecodeSubfields}`
+  | `deployment.${deploymentSubfields}`
+  | `compilation.${compilationSubfields}`;
 
 // Function overloads
 export function bytesFromString<T extends BytesTypes>(str: string): T;

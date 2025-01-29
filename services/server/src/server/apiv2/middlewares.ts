@@ -7,7 +7,7 @@ import {
   InvalidParametersError,
 } from "./errors";
 import { getAddress } from "ethers";
-import { FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES } from "../services/utils/database-util";
+import { FIELDS_TO_STORED_PROPERTIES } from "../services/utils/database-util";
 import { reduceAccessorStringToProperty } from "../services/utils/util";
 
 export function validateChainId(
@@ -76,10 +76,7 @@ export function validateFieldsAndOmit(
     }
 
     try {
-      reduceAccessorStringToProperty(
-        fullField,
-        FIELDS_TO_SOURCIFY_MATCH_DB_PROPERTIES,
-      );
+      reduceAccessorStringToProperty(fullField, FIELDS_TO_STORED_PROPERTIES);
     } catch (error) {
       throw new InvalidParametersError(
         `Field selector ${fullField} is not a valid field`,

@@ -39,6 +39,7 @@ import {
   S3RepositoryServiceOptions,
 } from "./storageServices/S3RepositoryService";
 import { DatabaseOptions } from "./utils/Database";
+import { Field } from "./utils/database-util";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -85,8 +86,8 @@ export interface RWStorageService extends WStorageService {
   getContract?(
     chainId: string,
     address: string,
-    fields?: string[],
-    omit?: string[],
+    fields?: Field[],
+    omit?: Field[],
   ): Promise<VerifiedContract>;
 }
 

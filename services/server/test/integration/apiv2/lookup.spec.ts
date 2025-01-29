@@ -676,10 +676,9 @@ describe("GET /v2/contract/:chainId/:address", function () {
   });
 
   it("should show an error if the proxy resolution fails", async () => {
-    const errorMessage = "Proxy resolution failed";
     sandbox
       .stub(proxyContractUtil, "detectAndResolveProxy")
-      .throws(new Error(errorMessage));
+      .throws(new Error("Proxy resolution failed"));
 
     const proxyArtifact = (
       await import("../../testcontracts/Proxy/Proxy_flattened.json")
@@ -732,8 +731,8 @@ describe("GET /v2/contract/:chainId/:address", function () {
       .expect(res.body.proxyResolution.proxyResolutionError.customCode)
       .to.equal("proxy_resolution_error");
     chai
-      .expect(res.body.proxyResolution.proxyResolutionError.message)
-      .to.equal(errorMessage);
+      .expect(res.body.proxyResolution.proxyResolutionError)
+      .to.have.property("message");
     chai
       .expect(res.body.proxyResolution.proxyResolutionError)
       .to.have.property("errorId");
