@@ -148,7 +148,7 @@ paths:
           schema:
             type: string
             examples:
-              - 'userDoc,devDoc,storageLayout,compilation.sources'
+              - 'userdoc,devdoc,storageLayout,compilation.sources'
         - $ref: '#/components/parameters/chainId'
         - $ref: '#/components/parameters/address'
       responses:
@@ -392,6 +392,7 @@ components:
                   chainId: '11155111'
                   address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                   verifiedAt: '2024-07-24T12:00:00Z'
+                  matchId: '3266227'
             Pending:
               value:
                 isJobCompleted: false
@@ -437,9 +438,13 @@ components:
                       transactionHash:
                         $ref: '#/components/schemas/Keccak256'
                       blockNumber:
-                        type: integer
+                        type: string
+                        examples:
+                          - '21721660'
                       transactionIndex:
-                        type: integer
+                        type: string
+                        examples:
+                          - '3'
                       deployer:
                         $ref: '#/components/schemas/Address'
                   sources:
@@ -470,10 +475,6 @@ components:
                         type: string
                         examples:
                           - 'contracts/MyContract.sol:MyContract'
-                  implementations:
-                    type: array
-                    items:
-                      type: object
                   abi:
                     type: array
                     items:
@@ -482,9 +483,9 @@ components:
                     type: object
                   storageLayout:
                     type: object
-                  userDoc:
+                  userdoc:
                     type: object
-                  devDoc:
+                  devdoc:
                     type: object
                   stdJsonInput:
                     type: object
@@ -530,9 +531,9 @@ components:
                                 type: array
                                 items:
                                   type: object
-                              userDoc:
+                              userdoc:
                                 type: object
-                              devDoc:
+                              devdoc:
                                 type: object
                               storageLayout:
                                 type: object
@@ -579,6 +580,7 @@ components:
                 chainId: '11155111'
                 address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                 verifiedAt: '2024-07-24T12:00:00Z'
+                matchId: '3266227'
                 creationBytecode:
                   onchainBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
                   recompiledBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
@@ -673,8 +675,8 @@ components:
                     callProtection: '0x9deba23b95205127e906108f191a26f5d520896a'
                 deployment:
                   transactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
-                  blockNumber: 0
-                  transactionIndex: 0
+                  blockNumber: '21721660'
+                  transactionIndex: '0'
                   deployer: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                 sources:
                   contracts/Storage.sol:
@@ -707,19 +709,56 @@ components:
                       }
                 compilation:
                   language: Solidity
+                  compiler: solc
                   compilerVersion: v0.8.12+commit.f00d7308
                   compilerSettings: {}
                   name: MyContract
                   fullyQualifiedName: 'contracts/MyContract.sol:MyContract'
-                isProxy: true
-                implementations:
-                  - {}
                 abi:
                   - {}
-                userDoc: {}
-                devDoc: {}
+                userdoc: {}
+                devdoc: {}
                 storageLayout: {}
                 metadata: {}
+                stdJsonInput:
+                  language: Solidity
+                  sources:
+                    contracts/Storage.sol:
+                      content: |
+                        // SPDX-License-Identifier: MIT
+                        pragma solidity ^0.8.0;
+
+                        contract Storage {
+                            uint256 number;
+
+                            function setNumber(uint256 newNumber) public {
+                                number = newNumber;
+                            }
+
+                            function getNumber() public view returns (uint256) {
+                                return number;
+                            }
+                        }
+                    contracts/Owner.sol:
+                      content: |
+                        // SPDX-License-Identifier: MIT
+                        pragma solidity ^0.8.0;
+
+                        contract Owner {
+                            address public owner;
+
+                            constructor() {
+                                owner = msg.sender;
+                            }
+                        }
+                  settings: {}
+                stdJsonOutput:
+                  sources: {}
+                  contracts: {}
+                proxyResolution:
+                  isProxy: false
+                  proxyType: null
+                  implementations: []
             Minimal Response:
               value:
                 match: exact_match
@@ -728,6 +767,7 @@ components:
                 chainId: '11155111'
                 address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                 verifiedAt: '2024-07-24T12:00:00Z'
+                matchId: '3266227'
             '`fields=creationBytecode.onchainBytecode,abi,deployment`':
               value:
                 match: match
@@ -740,8 +780,8 @@ components:
                   onchainBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
                 deployment:
                   transactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
-                  blockNumber: 0
-                  transactionIndex: 0
+                  blockNumber: '21721660'
+                  transactionIndex: '0'
                   deployer: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                 abi:
                   - {}
@@ -754,12 +794,12 @@ components:
                 address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                 verifiedAt: '2024-07-24T12:00:00Z'
                 deployment:
-                  blockNumber: 0
-                  transactionIndex: 0
+                  blockNumber: '21721660'
+                  transactionIndex: '0'
                 abi:
                   - {}
-                userDoc: {}
-                devDoc: {}
+                userdoc: {}
+                devdoc: {}
                 storageLayout: {}
                 metadata: {}
             Proxy resolution (`fields=proxyResolution`):
@@ -797,7 +837,10 @@ components:
                 address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                 verifiedAt: '2024-07-24T12:00:00Z'
                 proxyResolution:
-                  proxyResolutionError: RPC failed
+                  proxyResolutionError:
+                    customCode: proxy_resolution_error
+                    message: RPC failed
+                    errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
     ReturnVerificationJob:
       description: |-
         Successfully submitted the verification. The server started to process the verification. 
@@ -979,7 +1022,8 @@ components:
         - match
         - creationMatch
         - runtimeMatch
-        - matchId
+        - chainId
+        - address
     VerificationStatusNullable:
       type: string
       enum:
@@ -1301,7 +1345,7 @@ components:
               address:
                 $ref: '#/components/schemas/Address'
         proxyResolutionError:
-          type: string
+          $ref: '#/components/schemas/GenericErrorResponse'
     ProxyType:
       type: string
       enum:

@@ -13,7 +13,8 @@ import logger from "../../../common/logger";
 import { Services } from "../../services/services";
 import {
   detectAndResolveProxy,
-  ProxyType,
+  Implementation,
+  ProxyDetectionResult,
 } from "../../services/utils/proxy-contract-util";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { getAddress } from "ethers";
@@ -137,11 +138,7 @@ export async function checkAllByChainAndAddressEndpoint(
           }
 
           // Proxy detection and resolution
-          type Implementation = { address: string; name?: string };
-          let proxyStatus: {
-            isProxy?: boolean;
-            proxyType?: ProxyType | null;
-            implementations?: Implementation[];
+          let proxyStatus: Partial<ProxyDetectionResult> & {
             proxyResolutionError?: string;
           } = {};
           if (
@@ -159,7 +156,7 @@ export async function checkAllByChainAndAddressEndpoint(
               // Find contract names if the implementations are verified on Sourcify
               const implementations = await Promise.all(
                 proxyDetectionResult.implementations.map(
-                  async (implementationAddress) => {
+                  async ({ address: implementationAddress }) => {
                     implementationAddress = getAddress(implementationAddress);
                     const implementation: Implementation = {
                       address: implementationAddress,

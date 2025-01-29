@@ -112,8 +112,29 @@ export function getTotalMatchLevel(
   creationStatus: Status,
   runtimeStatus: Status,
 ): MatchLevel {
+  if (
+    ![creationStatus, runtimeStatus].find(
+      (status) => status === "partial" || status === "perfect",
+    )
+  ) {
+    return null;
+  }
   if (creationStatus === "perfect" || runtimeStatus === "perfect") {
     return "exact_match";
   }
   return "match";
+}
+
+export function reduceAccessorStringToProperty(
+  accessorString: string, // for example "deployment.blockNumber"
+  obj: Record<string, any>,
+): string | Record<string, any> {
+  return accessorString
+    .split(".")
+    .reduce((current: Record<string, any>, field) => {
+      if (!current[field]) {
+        throw new Error(`String ${accessorString} is not a valid property`);
+      }
+      return current[field];
+    }, obj);
 }

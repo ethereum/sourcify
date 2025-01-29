@@ -25,6 +25,7 @@ import {
   MethodReturnType,
   PaginatedData,
   VerifiedContractMinimal,
+  VerifiedContract,
 } from "../types";
 import {
   RWStorageIdentifiers,
@@ -38,6 +39,7 @@ import {
   S3RepositoryServiceOptions,
 } from "./storageServices/S3RepositoryService";
 import { DatabaseOptions } from "./utils/Database";
+import { Field } from "./utils/database-util";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -81,6 +83,12 @@ export interface RWStorageService extends WStorageService {
     descending: boolean,
     afterMatchId?: string,
   ): Promise<{ results: VerifiedContractMinimal[] }>;
+  getContract?(
+    chainId: string,
+    address: string,
+    fields?: Field[],
+    omit?: Field[],
+  ): Promise<VerifiedContract>;
 }
 
 export interface EnabledServices {

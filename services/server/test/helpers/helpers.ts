@@ -41,6 +41,13 @@ export async function deployFromAbiAndBytecode(
   return contractAddress;
 }
 
+export type DeploymentInfo = {
+  contractAddress: string;
+  txHash: string;
+  blockNumber: number;
+  txIndex: number;
+};
+
 /**
  * Creator tx hash is needed for tests. This function returns the tx hash in addition to the contract address.
  *
@@ -50,7 +57,7 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   abi: Interface | InterfaceAbi,
   bytecode: BytesLike | { object: string },
   args?: any[],
-) {
+): Promise<DeploymentInfo> {
   const contractFactory = new ContractFactory(abi, bytecode, signer);
   console.log(`Deploying contract ${args?.length ? `with args ${args}` : ""}`);
   const deployment = await contractFactory.deploy(...(args || []));
@@ -78,22 +85,22 @@ export async function deployFromAbiAndBytecodeForCreatorTxHash(
   };
 }
 
-export async function deployAndVerifyContract(
-  chainFixture: LocalChainFixture,
+export async function verifyContract(
   serverFixture: ServerFixture,
+  chainFixture: LocalChainFixture,
+  contractAddress?: string,
+  creatorTxHash?: string,
   partial: boolean = false,
 ) {
-  const contractAddress = await deployFromAbiAndBytecode(
-    chainFixture.localSigner,
-    chainFixture.defaultContractArtifact.abi,
-    chainFixture.defaultContractArtifact.bytecode,
-    [],
-  );
   await chai
     .request(serverFixture.server.app)
     .post("/")
-    .field("address", contractAddress)
+    .field("address", contractAddress || chainFixture.defaultContractAddress)
     .field("chain", chainFixture.chainId)
+    .field(
+      "creatorTxHash",
+      creatorTxHash || chainFixture.defaultContractCreatorTx,
+    )
     .attach(
       "files",
       partial
@@ -107,6 +114,27 @@ export async function deployAndVerifyContract(
         ? chainFixture.defaultContractModifiedSource
         : chainFixture.defaultContractSource,
     );
+}
+
+export async function deployAndVerifyContract(
+  chainFixture: LocalChainFixture,
+  serverFixture: ServerFixture,
+  partial: boolean = false,
+) {
+  const { contractAddress, txHash } =
+    await deployFromAbiAndBytecodeForCreatorTxHash(
+      chainFixture.localSigner,
+      chainFixture.defaultContractArtifact.abi,
+      chainFixture.defaultContractArtifact.bytecode,
+      [],
+    );
+  await verifyContract(
+    serverFixture,
+    chainFixture,
+    contractAddress,
+    txHash,
+    partial,
+  );
   return contractAddress;
 }
 
