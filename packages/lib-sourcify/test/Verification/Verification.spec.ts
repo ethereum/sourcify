@@ -5,7 +5,11 @@ import SourcifyChain from '../../src/lib/SourcifyChain';
 import { ChildProcess } from 'child_process';
 import { JsonRpcSigner } from 'ethers';
 import path from 'path';
-import { deployFromAbiAndBytecode, expectMatch } from '../utils';
+import {
+  deployFromAbiAndBytecode,
+  expectMatch,
+  /* checkAndVerifyDeployed, */
+} from '../utils';
 import {
   startHardhatNetwork,
   stopHardhatNetwork,
@@ -186,6 +190,150 @@ describe('Verification Class Tests', () => {
           `Chain #${sourcifyChainHardhat.chainId} does not have a contract deployed at ${UNUSED_ADDRESS}.`,
         );
       }
+    });
+
+    it('should return partial match when there is perfect bytecode match but no auxdata', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'NoAuxdata',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+
+      expectMatch(
+        {
+          address: contractAddress,
+          chainId: sourcifyChainHardhat.chainId.toString(),
+          runtimeMatch: verification.getStatus().runtimeMatch,
+          creationMatch: verification.getStatus().creationMatch,
+        },
+        'partial',
+        contractAddress,
+      );
+    });
+
+    it('should return null match when there is no perfect match and no auxdata', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'NoAuxdata',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+
+      compilation.getRuntimeBytecode = () => {
+        return '0x1234567890123456789012345678901234567890123456789012345678901234';
+      };
+
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      try {
+        await verification.verify();
+      } catch (e: any) {
+        expect(e.message).to.equal(
+          "The deployed and recompiled bytecode don't match.",
+        );
+      }
+    });
+
+    it('should detect extra file input bug when optimizer is enabled', async () => {
+      // Deploy the original contract
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'ExtraFilesBytecodeMismatch',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      // Try to verify with a compilation that has extra files
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+
+      const failingVerification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+
+      try {
+        await failingVerification.verify();
+      } catch (err: any) {
+        expect(err.message).to.include(
+          "It seems your contract's metadata hashes match but not the bytecodes",
+        );
+        expect(err.message).to.include(
+          'https://github.com/ethereum/sourcify/issues/618',
+        );
+      }
+
+      // Read all files from the sources directory
+      const sourcesPath = path.join(contractFolderPath, 'complete_sources');
+      const sourceFiles: string[] = [];
+      const readDirRecursively = (dir: string) => {
+        const files = fs.readdirSync(dir);
+        for (const file of files) {
+          const fullPath = path.join(dir, file);
+          if (fs.statSync(fullPath).isDirectory()) {
+            readDirRecursively(fullPath);
+          } else {
+            sourceFiles.push(fullPath);
+          }
+        }
+      };
+      readDirRecursively(sourcesPath);
+
+      const additionalSources: Record<string, { content: string }> = {};
+      for (const fullPath of sourceFiles) {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        const relativePath = path.relative(sourcesPath, fullPath);
+        additionalSources[relativePath] = { content };
+      }
+
+      // Use the full sources as the input
+      compilation.jsonInput.sources = additionalSources;
+
+      // Try to verify again with the full sources
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+
+      expectMatch(
+        {
+          address: contractAddress,
+          chainId: sourcifyChainHardhat.chainId.toString(),
+          runtimeMatch: verification.getStatus().runtimeMatch,
+          creationMatch: verification.getStatus().creationMatch,
+        },
+        'perfect',
+        contractAddress,
+      );
     });
 
     it('should fail when chain is temporarily unavailable', async () => {

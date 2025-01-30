@@ -241,13 +241,23 @@ export class Verification {
       : recompiledBytecode === onchainBytecode;
 
     if (matchesBytecode) {
+      // If there is perfect match but no auxdata, return partial match
+      if (
+        !context.cborAuxdata ||
+        Object.keys(context.cborAuxdata).length === 0
+      ) {
+        result.match = 'partial';
+        result.libraryMap = libraryMap;
+        return result;
+      }
+
       result.match = 'perfect';
       result.libraryMap = libraryMap;
       return result;
     }
 
-    // Try matching with normalized auxdata
-    if (!context.cborAuxdata) {
+    // If there is no perfect match and no auxdata, return null
+    if (!context.cborAuxdata || Object.keys(context.cborAuxdata).length === 0) {
       return result;
     }
 
