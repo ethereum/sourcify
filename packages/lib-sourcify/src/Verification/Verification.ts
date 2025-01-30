@@ -16,7 +16,12 @@ import {
   normalizeBytecodesAuxdata,
 } from '../lib/verification';
 import { lt } from 'semver';
-import { splitAuxdata, AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
+import {
+  splitAuxdata,
+  AuxdataStyle,
+  decode as decodeBytecode,
+  SolidityDecodedObject,
+} from '@ethereum-sourcify/bytecode-utils';
 
 interface BytecodeMatchingContext {
   recompiledBytecode: string;
@@ -241,10 +246,23 @@ export class Verification {
       : recompiledBytecode === onchainBytecode;
 
     if (matchesBytecode) {
-      // If there is perfect match but no auxdata, return partial match
+      // If there is perfect match but auxdata doesn't contain any metadata hash, return partial match
       if (
         !context.cborAuxdata ||
-        Object.keys(context.cborAuxdata).length === 0
+        Object.keys(context.cborAuxdata).length === 0 ||
+        Object.values(context.cborAuxdata).some((cborAuxdata) => {
+          try {
+            const { ipfs, bzzr0, bzzr1 } = decodeBytecode(
+              cborAuxdata.value,
+              this.compilation.auxdataStyle,
+            ) as SolidityDecodedObject;
+            return (
+              ipfs === undefined && bzzr0 === undefined && bzzr1 === undefined
+            );
+          } catch {
+            return false;
+          }
+        })
       ) {
         result.match = 'partial';
         result.libraryMap = libraryMap;

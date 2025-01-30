@@ -102,7 +102,7 @@ export class SolidityCompilation extends AbstractCompilation {
       return true;
     }
 
-    // Case: there is only one auxdata, no need to recompile
+    // Case: there is only one auxdata, no need to recompile if we find both runtime and creation auxdata at the end of the bytecode (creation auxdata can be in a different place)
     if (auxdatasFromCompilerOutput.length === 1) {
       // Extract the auxdata from the end of the recompiled runtime bytecode
       const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
@@ -146,7 +146,7 @@ export class SolidityCompilation extends AbstractCompilation {
       }
     }
 
-    // Case: multiple auxdatas or failing creation auxdata,
+    // Case: multiple auxdatas or creation auxdata not found at the end of the bytecode,
     // we need to recompile with a slightly edited file to check the differences
     const editedContractCompilerOutput = await this.generateEditedContract({
       version: this.compilerVersion,
@@ -161,7 +161,7 @@ export class SolidityCompilation extends AbstractCompilation {
     const editedContractAuxdatasFromCompilerOutput =
       findAuxdatasInLegacyAssembly(editedContract.evm.legacyAssembly);
 
-    // Potentially we already found runtimeBytecodeCborAuxdata in the case of failing creation auxdata
+    // Potentially we already found runtimeBytecodeCborAuxdata in the case of creation auxdata not found at the end of the bytecode
     // so no need to call `findAuxdataPositions`
     if (this.runtimeBytecodeCborAuxdata === undefined) {
       this.runtimeBytecodeCborAuxdata = findAuxdataPositions(
