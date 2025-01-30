@@ -3,6 +3,7 @@ import {
   CompilationTarget,
   CompiledContractCborAuxdata,
   Metadata,
+  LinkReferences,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
@@ -126,4 +127,6 @@ export abstract class AbstractCompilation {
   }
 
   abstract getImmutableReferences(): ImmutableReferences;
+  abstract getRuntimeLinkReferences(): LinkReferences;
+  abstract getCreationLinkReferences(): LinkReferences;
 }

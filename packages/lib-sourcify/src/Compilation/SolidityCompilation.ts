@@ -7,7 +7,7 @@ import {
   SolidityOutput,
   SolidityOutputContract,
 } from './SolidityTypes';
-import { CompilationTarget } from './CompilationTypes';
+import { CompilationTarget, LinkReferences } from './CompilationTypes';
 import {
   findAuxdataPositions,
   findAuxdatasInLegacyAssembly,
@@ -58,6 +58,7 @@ export class SolidityCompilation extends AbstractCompilation {
         ],
       },
     };
+    delete this.jsonInput.settings.compilationTarget;
   }
 
   /** Generates an edited contract with a space at the end of each source file to create a different source file hash and consequently a different metadata hash.
@@ -190,5 +191,15 @@ export class SolidityCompilation extends AbstractCompilation {
   getImmutableReferences(): ImmutableReferences {
     const compilationTarget = this.getCompilationTarget();
     return compilationTarget.evm.deployedBytecode.immutableReferences || {};
+  }
+
+  getRuntimeLinkReferences(): LinkReferences {
+    const compilationTarget = this.getCompilationTarget();
+    return compilationTarget.evm.deployedBytecode.linkReferences || {};
+  }
+
+  getCreationLinkReferences(): LinkReferences {
+    const compilationTarget = this.getCompilationTarget();
+    return compilationTarget.evm.bytecode.linkReferences || {};
   }
 }
