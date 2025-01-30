@@ -16,6 +16,7 @@ import {
 import {
   CompilationTarget,
   CompiledContractCborAuxdata,
+  LinkReferences,
 } from './CompilationTypes';
 import { ImmutableReferences } from './SolidityTypes';
 
@@ -154,6 +155,16 @@ export class VyperCompilation extends AbstractCompilation {
       }
     }
     return immutableReferences;
+  }
+
+  getRuntimeLinkReferences(): LinkReferences {
+    // Vyper doesn't support libraries
+    return {};
+  }
+
+  getCreationLinkReferences(): LinkReferences {
+    // Vyper doesn't support libraries
+    return {};
   }
 
   public async compile() {

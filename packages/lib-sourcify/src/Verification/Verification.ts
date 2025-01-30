@@ -91,6 +91,8 @@ export class Verification {
     const runtimeBytecode = this.compilation.getRuntimeBytecode();
     const creationBytecode = this.compilation.getCreationBytecode();
     const immutableReferences = this.compilation.getImmutableReferences();
+    const runtimeLinkReferences = this.compilation.getRuntimeLinkReferences();
+    const creationLinkReferences = this.compilation.getCreationLinkReferences();
 
     if (runtimeBytecode === '0x' || creationBytecode === '0x') {
       throw new Error(
@@ -109,7 +111,7 @@ export class Verification {
         runtimeBytecode,
         this.onchainRuntimeBytecode,
         immutableReferences,
-        {} as LinkReferences,
+        runtimeLinkReferences,
       );
 
       // Handle viaIR + disabled optimizer + <0.8.21 case
@@ -186,7 +188,7 @@ export class Verification {
         await this.matchWithCreationTx(
           creationBytecode,
           this.sourcifyChain,
-          {} as LinkReferences, // TODO: Get link references from compilation
+          creationLinkReferences,
         );
       } catch (e: any) {
         logWarn('Error matching with creation tx', {
