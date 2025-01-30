@@ -5,11 +5,7 @@ import SourcifyChain from '../../src/lib/SourcifyChain';
 import { ChildProcess } from 'child_process';
 import { JsonRpcSigner } from 'ethers';
 import path from 'path';
-import {
-  deployFromAbiAndBytecode,
-  expectMatch,
-  /* checkAndVerifyDeployed, */
-} from '../utils';
+import { deployFromAbiAndBytecode, expectMatch, vyperCompiler } from '../utils';
 import {
   startHardhatNetwork,
   stopHardhatNetwork,
@@ -23,6 +19,7 @@ import { PathContent } from '../../src/lib/types';
 import { useSolidityCompiler } from '../compiler/solidityCompiler';
 import { findSolcPlatform } from '../compiler/solidityCompiler';
 import fs from 'fs';
+import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 
 class TestSolidityCompiler implements ISolidityCompiler {
   async compile(
@@ -62,6 +59,44 @@ async function getCompilationFromMetadata(contractFolderPath: string) {
 
   // Create compilation
   return await metadataContract.createCompilation(new TestSolidityCompiler());
+}
+
+// Helper function to create Vyper compilation
+async function createVyperCompilation(
+  contractFolderPath: string,
+  version: string,
+  settings: {
+    evmVersion?: 'london' | 'paris' | 'shanghai' | 'cancun' | 'istanbul';
+    optimize?: 'gas' | 'codesize' | 'none' | boolean;
+  } = { evmVersion: 'istanbul' },
+) {
+  const contractFileName = 'test.vy';
+  const contractFileContent = await fs.promises.readFile(
+    path.join(contractFolderPath, contractFileName),
+  );
+
+  return new VyperCompilation(
+    vyperCompiler,
+    version,
+    {
+      language: 'Vyper',
+      sources: {
+        [contractFileName]: {
+          content: contractFileContent.toString(),
+        },
+      },
+      settings: {
+        ...settings,
+        outputSelection: {
+          '*': ['evm.bytecode'],
+        },
+      },
+    },
+    {
+      path: contractFileName,
+      name: contractFileName.split('.')[0],
+    },
+  );
 }
 
 const HARDHAT_PORT = 8544;
@@ -600,6 +635,176 @@ describe('Verification Class Tests', () => {
         'perfect',
         contractAddress,
       );
+    });
+  });
+
+  describe('Vyper Compilation Tests', () => {
+    it('should verify a simple Vyper contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Vyper',
+        'testcontract',
+      );
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const vyperCompilation = await createVyperCompilation(
+        contractFolderPath,
+        '0.3.10+commit.91361694',
+      );
+
+      const verification = new Verification(
+        vyperCompilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      expectMatch(
+        {
+          address: contractAddress,
+          chainId: sourcifyChainHardhat.chainId.toString(),
+          runtimeMatch: verification.getStatus().runtimeMatch,
+          creationMatch: verification.getStatus().creationMatch,
+        },
+        'partial',
+        contractAddress,
+      );
+    });
+
+    it('should verify a Vyper contract with immutables', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Vyper',
+        'withImmutables',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        [5], // Constructor argument for immutable value
+      );
+
+      const vyperCompilation = await createVyperCompilation(
+        contractFolderPath,
+        '0.4.0+commit.e9db8d9f',
+        {
+          evmVersion: 'london',
+          optimize: 'codesize',
+        },
+      );
+
+      const verification = new Verification(
+        vyperCompilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+
+      expectMatch(
+        {
+          address: contractAddress,
+          chainId: sourcifyChainHardhat.chainId.toString(),
+          runtimeMatch: verification.getStatus().runtimeMatch,
+          creationMatch: verification.getStatus().creationMatch,
+        },
+        'partial',
+        contractAddress,
+      );
+
+      // Check if immutable values are correctly set
+      const transformations = verification.getTransformations();
+      expect(transformations.runtimeTransformations).to.deep.include({
+        type: 'insert',
+        reason: 'immutable',
+        offset: 167,
+        id: '0',
+      });
+    });
+
+    it('should fail to verify when using wrong Vyper contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Vyper',
+        'testcontract',
+      );
+      const wrongContractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Vyper',
+        'testcontract2',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const vyperCompilation = await createVyperCompilation(
+        wrongContractFolderPath,
+        '0.3.10+commit.91361694',
+      );
+
+      const verification = new Verification(
+        vyperCompilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+
+      try {
+        await verification.verify();
+        throw new Error('Should have failed');
+      } catch (err: any) {
+        expect(err.message).to.equal(
+          "The deployed and recompiled bytecode don't match.",
+        );
+      }
+    });
+
+    it('should handle Vyper contracts with different auxdata versions', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Vyper',
+        'testcontract',
+      );
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        path.join(contractFolderPath, 'wrongAuxdata'),
+      );
+
+      const vyperCompilation = await createVyperCompilation(
+        contractFolderPath,
+        '0.3.10+commit.91361694',
+      );
+
+      const verification = new Verification(
+        vyperCompilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      const transformations = verification.getTransformations();
+      expect(transformations.creationTransformations).to.deep.include({
+        type: 'replace',
+        reason: 'cborAuxdata',
+        offset: 158,
+        id: '1',
+      });
+      expect(
+        transformations.creationTransformationValues?.cborAuxdata?.['1'],
+      ).to.equal('0x84188f8000a1657679706572830003090012');
     });
   });
 });
