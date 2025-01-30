@@ -467,6 +467,8 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
+      // This test just checks that Verification's getter properties return values formatted correctly
+
       // Test getStatus
       const status = verification.getStatus();
       expect(status.runtimeMatch).to.equal('perfect');
