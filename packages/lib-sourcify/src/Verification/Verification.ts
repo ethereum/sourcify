@@ -5,6 +5,7 @@ import {
   Transformation,
   TransformationValues,
   StringMap,
+  CompiledContractCborAuxdata,
 } from '../lib/types';
 import { logDebug, logInfo, logWarn } from '../lib/logger';
 import SourcifyChain from '../lib/SourcifyChain';
@@ -16,6 +17,24 @@ import {
 } from '../lib/verification';
 import { lt } from 'semver';
 import { splitAuxdata, AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
+
+interface BytecodeMatchingContext {
+  recompiledBytecode: string;
+  onchainBytecode: string;
+  linkReferences: LinkReferences;
+  transformations: Transformation[];
+  transformationValues: TransformationValues;
+  cborAuxdata?: CompiledContractCborAuxdata;
+  isCreation?: boolean;
+}
+
+interface BytecodeMatchingResult {
+  match: 'perfect' | 'partial' | null;
+  libraryMap?: StringMap;
+  normalizedRecompiledBytecode?: string;
+  transformations: Transformation[];
+  transformationValues: TransformationValues;
+}
 
 export class Verification {
   // Bytecodes
@@ -193,6 +212,74 @@ export class Verification {
     throw Error("The deployed and recompiled bytecode don't match.");
   }
 
+  private async matchBytecodes(
+    context: BytecodeMatchingContext,
+  ): Promise<BytecodeMatchingResult> {
+    let { recompiledBytecode } = context;
+    const { onchainBytecode } = context;
+    const result: BytecodeMatchingResult = {
+      match: null,
+      transformations: [...context.transformations],
+      transformationValues: { ...context.transformationValues },
+    };
+
+    // Replace library placeholders
+    const { replaced, libraryMap } = handleLibraries(
+      recompiledBytecode,
+      onchainBytecode,
+      context.linkReferences,
+      result.transformations,
+      result.transformationValues,
+    );
+    recompiledBytecode = replaced;
+
+    // Direct bytecode match
+    const matchesBytecode = context.isCreation
+      ? onchainBytecode.startsWith(recompiledBytecode)
+      : recompiledBytecode === onchainBytecode;
+
+    if (matchesBytecode) {
+      result.match = 'perfect';
+      result.libraryMap = libraryMap;
+      return result;
+    }
+
+    // Try matching with normalized auxdata
+    if (!context.cborAuxdata) {
+      return result;
+    }
+
+    const {
+      normalizedRecompiledBytecode,
+      normalizedOnchainBytecode,
+      transformations: auxdataTransformations,
+      transformationsValuesCborAuxdata,
+    } = normalizeBytecodesAuxdata(
+      recompiledBytecode,
+      onchainBytecode,
+      context.cborAuxdata,
+    );
+
+    result.normalizedRecompiledBytecode = normalizedRecompiledBytecode;
+
+    const matchesNormalizedBytecode = context.isCreation
+      ? normalizedOnchainBytecode.startsWith(normalizedRecompiledBytecode)
+      : normalizedRecompiledBytecode === normalizedOnchainBytecode;
+
+    if (matchesNormalizedBytecode) {
+      result.match = 'partial';
+      result.libraryMap = libraryMap;
+      result.transformations = [
+        ...result.transformations,
+        ...auxdataTransformations,
+      ];
+      result.transformationValues.cborAuxdata =
+        transformationsValuesCborAuxdata;
+    }
+
+    return result;
+  }
+
   private async matchWithRuntimeBytecode(
     recompiledRuntimeBytecode: string,
     onchainRuntimeBytecode: string,
@@ -207,16 +294,6 @@ export class Verification {
       this.runtimeTransformationValues,
     );
 
-    // Replace library placeholders
-    const { replaced, libraryMap } = handleLibraries(
-      recompiledRuntimeBytecode,
-      onchainRuntimeBytecode,
-      linkReferences,
-      this.runtimeTransformations,
-      this.runtimeTransformationValues,
-    );
-    recompiledRuntimeBytecode = replaced;
-
     // Handle immutable references
     onchainRuntimeBytecode = replaceImmutableReferences(
       immutableReferences,
@@ -226,47 +303,24 @@ export class Verification {
       this.compilation.auxdataStyle,
     );
 
-    // Direct bytecode match
-    if (recompiledRuntimeBytecode === onchainRuntimeBytecode) {
-      this.libraryMap = libraryMap;
-      this.runtimeMatch = 'perfect';
-      return;
-    }
-
-    // Try matching with normalized auxdata
     await this.compilation.generateCborAuxdataPositions();
 
-    if (!this.compilation.runtimeBytecodeCborAuxdata) {
-      return;
-    }
+    const result = await this.matchBytecodes({
+      recompiledBytecode: recompiledRuntimeBytecode,
+      onchainBytecode: onchainRuntimeBytecode,
+      linkReferences,
+      transformations: this.runtimeTransformations,
+      transformationValues: this.runtimeTransformationValues,
+      cborAuxdata: this.compilation.runtimeBytecodeCborAuxdata,
+      isCreation: false,
+    });
 
-    const {
-      normalizedRecompiledBytecode: normalizedRecompiledRuntimeBytecode,
-      normalizedOnchainBytecode: normalizedOnchainRuntimeBytecode,
-      transformations: runtimeAuxdataTransformations,
-      transformationsValuesCborAuxdata: runtimeTransformationsValuesCborAuxdata,
-    } = normalizeBytecodesAuxdata(
-      recompiledRuntimeBytecode,
-      onchainRuntimeBytecode,
-      this.compilation.runtimeBytecodeCborAuxdata,
-    );
-
-    // Store normalized bytecodes
+    this.runtimeMatch = result.match;
+    this.libraryMap = result.libraryMap;
     this.normalizedRecompiledRuntimeBytecode =
-      normalizedRecompiledRuntimeBytecode;
-
-    if (
-      normalizedRecompiledRuntimeBytecode === normalizedOnchainRuntimeBytecode
-    ) {
-      this.libraryMap = libraryMap;
-      this.runtimeMatch = 'partial';
-      this.runtimeTransformations = [
-        ...this.runtimeTransformations,
-        ...runtimeAuxdataTransformations,
-      ];
-      this.runtimeTransformationValues.cborAuxdata =
-        runtimeTransformationsValuesCborAuxdata;
-    }
+      result.normalizedRecompiledBytecode;
+    this.runtimeTransformations = result.transformations;
+    this.runtimeTransformationValues = result.transformationValues;
   }
 
   private async matchWithCreationTx(
@@ -292,60 +346,24 @@ export class Verification {
     this.onchainCreationBytecode = creationBytecode;
     this.txIndex = txReceipt.index;
 
-    // Replace library placeholders
-    const { replaced, libraryMap } = handleLibraries(
-      recompiledCreationBytecode,
-      this.onchainCreationBytecode,
-      linkReferences,
-      this.creationTransformations,
-      this.creationTransformationValues,
-    );
-    recompiledCreationBytecode = replaced;
-
-    // Direct bytecode match
-    if (this.onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
-      this.creationMatch = 'perfect';
-      this.libraryMap = libraryMap;
-      return;
-    }
-
-    // Try matching with normalized auxdata
     await this.compilation.generateCborAuxdataPositions();
 
-    if (!this.compilation.creationBytecodeCborAuxdata) {
-      return;
-    }
+    const result = await this.matchBytecodes({
+      isCreation: true,
+      recompiledBytecode: recompiledCreationBytecode,
+      onchainBytecode: this.onchainCreationBytecode,
+      linkReferences,
+      transformations: this.creationTransformations,
+      transformationValues: this.creationTransformationValues,
+      cborAuxdata: this.compilation.creationBytecodeCborAuxdata,
+    });
 
-    const {
-      normalizedRecompiledBytecode: normalizedRecompiledCreationBytecode,
-      normalizedOnchainBytecode: normalizedOnchainCreationBytecode,
-      transformations: creationAuxdataTransformations,
-      transformationsValuesCborAuxdata:
-        creationTransformationsValuesCborAuxdata,
-    } = normalizeBytecodesAuxdata(
-      recompiledCreationBytecode,
-      this.onchainCreationBytecode,
-      this.compilation.creationBytecodeCborAuxdata,
-    );
-
-    // Store normalized bytecodes
+    this.creationMatch = result.match;
+    this.libraryMap = result.libraryMap;
     this.normalizedRecompiledCreationBytecode =
-      normalizedRecompiledCreationBytecode;
-
-    if (
-      normalizedOnchainCreationBytecode.startsWith(
-        normalizedRecompiledCreationBytecode,
-      )
-    ) {
-      this.libraryMap = libraryMap;
-      this.creationMatch = 'partial';
-      this.creationTransformations = [
-        ...this.creationTransformations,
-        ...creationAuxdataTransformations,
-      ];
-      this.creationTransformationValues.cborAuxdata =
-        creationTransformationsValuesCborAuxdata;
-    }
+      result.normalizedRecompiledBytecode;
+    this.creationTransformations = result.transformations;
+    this.creationTransformationValues = result.transformationValues;
   }
 
   // Getters for the verification results
