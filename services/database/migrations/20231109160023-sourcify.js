@@ -45,6 +45,7 @@ exports.up = function (db, callback) {
             creation_match varchar NULL,
             runtime_match varchar NULL,
             created_at timestamptz NOT NULL DEFAULT now(),
+            metadata json NOT NULL,
             CONSTRAINT sourcify_matches_pkey PRIMARY KEY (id),
             CONSTRAINT sourcify_matches_pseudo_pkey UNIQUE (verified_contract_id)
         );
