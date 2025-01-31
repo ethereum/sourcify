@@ -3,10 +3,10 @@ openapi: "3.0.0"
 paths:
   /session/verify/etherscan:
     post:
-      deprecated: true
+      deprecated: false
       summary: Verify from Etherscan
       tags:
-        - (Deprecated) Session Verification
+        - Session Verification
       requestBody:
         content:
           application/json:

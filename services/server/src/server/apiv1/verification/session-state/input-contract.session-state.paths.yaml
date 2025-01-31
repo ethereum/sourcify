@@ -3,10 +3,10 @@ openapi: "3.0.0"
 paths:
   /session/input-contract:
     post:
-      deprecated: true
+      deprecated: false
       summary: Import deployed contract trying to fetch metadata and files form IPFS
       tags:
-        - (Deprecated) Session Verification
+        - Session Verification
       requestBody:
         required: true
         content:

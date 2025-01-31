@@ -3,10 +3,10 @@ openapi: "3.0.0"
 paths:
   /session/data:
     get:
-      deprecated: true
+      deprecated: false
       summary: Get session data
       tags:
-        - (Deprecated) Session Verification
+        - Session Verification
       responses:
         "200":
           description: OK

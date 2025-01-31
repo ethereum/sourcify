@@ -3,10 +3,10 @@ openapi: "3.0.0"
 paths:
   /session/clear:
     post:
-      deprecated: true
+      deprecated: false
       summary: Clear session data
       tags:
-        - (Deprecated) Session Verification
+        - Session Verification
       responses:
         "200":
           description: OK
