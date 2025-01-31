@@ -26,6 +26,7 @@ exports.up = function (db, callback) {
   async.series([db.runSql.bind(db, allianceSchemaSql)], callback);
 };
 
+// Reset Database and remove all tables and functions when running migrate:reset
 exports.down = function (db, callback) {
   async.series(
     [
