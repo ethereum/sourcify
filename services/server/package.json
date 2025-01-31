@@ -15,7 +15,7 @@
     "start": "node ./dist/server/cli.js",
     "postgres-test:start": "docker-compose -f test/docker-compose.yml up -d",
     "postgres-test:stop": "docker-compose -f test/docker-compose.yml rm -fsv",
-    "postgres-test:migrate": "cd ../database && npm run migrate:up -- --env test",
+    "postgres-test:migrate": "cd ../database && git submodule update --init && npm run migrate:up -- --env test",
     "test:unit": "mocha  --exit --recursive test/unit/**",
     "test:integration": "npm run postgres-test:migrate && mocha --exit --recursive test/integration/**",
     "test": "npm run postgres-test:migrate & npx c8 --reporter=none mocha --exit --recursive test/unit/** test/integration/**",
