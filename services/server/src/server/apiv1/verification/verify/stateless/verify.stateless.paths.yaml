@@ -3,6 +3,7 @@ openapi: "3.0.0"
 paths:
   /verify:
     post:
+      deprecated: false
       description: |
         Sends provided files for verification. 
 
@@ -180,6 +181,7 @@ paths:
                     error: "The deployed and recompiled bytecode don't match."
   /verify-deprecated:
     post:
+      deprecated: false
       description: |
         Sends provided files for verification
       tags:

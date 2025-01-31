@@ -3,6 +3,7 @@ openapi: "3.0.0"
 paths:
   /files/{chain}/{address}:
     get:
+      deprecated: false
       summary: Get all files of a contract (full match)
       description: Returns all files for the desired contract with the address and chain. Searches only for full matches.
       tags:

@@ -7,19 +7,32 @@ import {
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { RWStorageService, StorageService } from "../StorageService";
-import { bytesFromString } from "../utils/database-util";
+import {
+  bytesFromString,
+  Field,
+  FIELDS_TO_STORED_PROPERTIES,
+  StoredProperties,
+} from "../utils/database-util";
 import {
   ContractData,
   FileObject,
   FilesInfo,
   FilesRaw,
   FilesRawValue,
-  MatchLevel,
-  MatchLevelWithoutAny,
-  PaginatedContractData,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
+  PaginatedData,
+  Pagination,
+  VerifiedContractMinimal,
+  VerifiedContract,
 } from "../../types";
 import Path from "path";
-import { getFileRelativePath } from "../utils/util";
+import {
+  getFileRelativePath,
+  getTotalMatchLevel,
+  reduceAccessorStringToProperty,
+  toMatchLevel,
+} from "../utils/util";
 import { getAddress, id as keccak256Str } from "ethers";
 import { BadRequestError } from "../../../common/errors";
 import { RWStorageIdentifiers } from "./identifiers";
@@ -166,27 +179,24 @@ export class SourcifyDatabaseService
     return res;
   };
 
-  getPaginatedContracts = async (
+  getPaginationForContracts = async (
     chainId: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
     page: number,
     limit: number,
-    descending: boolean = false,
-  ): Promise<PaginatedContractData> => {
+    currentPageCount: number,
+  ): Promise<Pagination> => {
     await this.init();
 
     // Initialize empty result
-    const res: PaginatedContractData = {
-      results: [],
-      pagination: {
-        currentPage: page,
-        resultsPerPage: limit,
-        resultsCurrentPage: 0,
-        totalResults: 0,
-        totalPages: 0,
-        hasNextPage: false,
-        hasPreviousPage: false,
-      },
+    const pagination: Pagination = {
+      currentPage: page,
+      resultsPerPage: limit,
+      resultsCurrentPage: currentPageCount,
+      totalResults: 0,
+      totalPages: 0,
+      hasNextPage: false,
+      hasPreviousPage: false,
     };
 
     // Count perfect and partial matches
@@ -194,7 +204,7 @@ export class SourcifyDatabaseService
       await this.database.countSourcifyMatchAddresses(parseInt(chainId));
 
     if (matchAddressesCountResult.rowCount === 0) {
-      return res;
+      return pagination;
     }
 
     // Calculate totalResults, return empty res if there are no contracts
@@ -202,23 +212,40 @@ export class SourcifyDatabaseService
     const partialTotal = matchAddressesCountResult.rows[0].partial_total;
 
     const anyTotal = fullTotal + partialTotal;
-    const matchTotals: Record<MatchLevel, number> = {
+    const matchTotals: Record<V1MatchLevel, number> = {
       full_match: fullTotal,
       partial_match: partialTotal,
       any_match: anyTotal,
     };
-
     // return empty res if requested `match` total is zero
     if (matchTotals[match] === 0) {
-      return res;
+      return pagination;
     }
-    res.pagination.totalResults = matchTotals[match];
+    pagination.totalResults = matchTotals[match];
 
-    res.pagination.totalPages = Math.ceil(
-      res.pagination.totalResults / res.pagination.resultsPerPage,
+    pagination.totalPages = Math.ceil(
+      pagination.totalResults / pagination.resultsPerPage,
     );
 
-    // Now make the real query for addresses
+    if (currentPageCount > 0) {
+      pagination.hasNextPage =
+        pagination.currentPage * pagination.resultsPerPage + currentPageCount <
+        pagination.totalResults;
+      pagination.hasPreviousPage = pagination.currentPage === 0 ? false : true;
+    }
+
+    return pagination;
+  };
+
+  getPaginatedContractAddresses = async (
+    chainId: string,
+    match: V1MatchLevel,
+    page: number,
+    limit: number,
+    descending: boolean = false,
+  ): Promise<PaginatedData<string>> => {
+    await this.init();
+
     const matchAddressesResult =
       await this.database.getSourcifyMatchAddressesByChainAndMatch(
         parseInt(chainId),
@@ -228,20 +255,194 @@ export class SourcifyDatabaseService
         descending,
       );
 
-    if (matchAddressesResult.rowCount && matchAddressesResult.rowCount > 0) {
-      res.pagination.resultsCurrentPage = matchAddressesResult.rowCount;
-      res.pagination.hasNextPage =
-        res.pagination.currentPage * res.pagination.resultsPerPage +
-          matchAddressesResult.rowCount <
-        res.pagination.totalResults;
-      res.pagination.hasPreviousPage =
-        res.pagination.currentPage === 0 ? false : true;
-      res.results = matchAddressesResult.rows.map((row) =>
-        getAddress(row.address),
+    const results = matchAddressesResult.rows.map((row) =>
+      getAddress(row.address),
+    );
+
+    const pagination = await this.getPaginationForContracts(
+      chainId,
+      match,
+      page,
+      limit,
+      matchAddressesResult?.rowCount ?? 0,
+    );
+
+    return { pagination, results };
+  };
+
+  getContractsByChainId = async (
+    chainId: string,
+    limit: number,
+    descending: boolean,
+    afterMatchId?: string,
+  ): Promise<{ results: VerifiedContractMinimal[] }> => {
+    await this.init();
+
+    const sourcifyMatchesResult = await this.database.getSourcifyMatchesByChain(
+      parseInt(chainId),
+      limit,
+      descending,
+      afterMatchId,
+    );
+
+    const results: VerifiedContractMinimal[] = sourcifyMatchesResult.rows.map(
+      (row) => ({
+        match: getTotalMatchLevel(row.creation_match, row.runtime_match),
+        creationMatch: toMatchLevel(row.creation_match),
+        runtimeMatch: toMatchLevel(row.runtime_match),
+        chainId,
+        address: getAddress(row.address),
+        verifiedAt: row.verified_at,
+        matchId: row.id,
+      }),
+    );
+
+    return { results };
+  };
+
+  getContract = async (
+    chainId: string,
+    address: string,
+    fields?: Field[],
+    omit?: Field[],
+  ): Promise<VerifiedContract> => {
+    if (fields && omit) {
+      throw new Error("Cannot specify both fields and omit at the same time");
+    }
+
+    // Collect which fields are requested
+    const requestedFields = new Set<Field>();
+
+    if (fields) {
+      fields.forEach((field) => requestedFields.add(field));
+    }
+
+    if (omit) {
+      for (const field of Object.keys(FIELDS_TO_STORED_PROPERTIES)) {
+        if (typeof field === "string") {
+          if (!omit.includes(field as Field)) {
+            requestedFields.add(field as Field);
+          }
+        } else {
+          for (const subField of Object.keys(field)) {
+            const fullSubField: Field = `${field}.${subField}`;
+            if (!omit.includes(field) && !omit.includes(fullSubField)) {
+              requestedFields.add(fullSubField);
+            }
+          }
+        }
+      }
+    }
+
+    // Add default fields
+    const defaultFields: Field[] = [
+      "matchId",
+      "creationMatch",
+      "runtimeMatch",
+      "verifiedAt",
+    ];
+    defaultFields.forEach((field) => requestedFields.add(field));
+
+    // Get corresponding database properties
+    const requestedProperties = Array.from(requestedFields).reduce(
+      (properties, fullField) => {
+        const property = reduceAccessorStringToProperty(
+          fullField,
+          FIELDS_TO_STORED_PROPERTIES,
+        );
+
+        if (typeof property === "string") {
+          properties.push(property as StoredProperties);
+        } else {
+          // The whole subobject is requested, e.g. the creationBytecode object
+          for (const value of Object.values(property)) {
+            properties.push(value);
+          }
+        }
+        return properties;
+      },
+      [] as StoredProperties[],
+    );
+
+    // Retrieve database result
+    const sourcifyMatchResult =
+      await this.database.getSourcifyMatchByChainAddressWithProperties(
+        parseInt(chainId),
+        bytesFromString(address),
+        requestedProperties,
+      );
+
+    if (sourcifyMatchResult.rowCount === 0) {
+      return {
+        match: null,
+        creationMatch: null,
+        runtimeMatch: null,
+        chainId,
+        address,
+      };
+    }
+
+    // Map the database result to the contract object
+    const retrievedContract = Array.from(requestedFields).reduce(
+      (verifiedContract, fullField) => {
+        const property = reduceAccessorStringToProperty(
+          fullField,
+          FIELDS_TO_STORED_PROPERTIES,
+        );
+
+        const addToContract = (field: string, subField: string, value: any) => {
+          if (subField) {
+            if (!verifiedContract[field]) {
+              verifiedContract[field] = {};
+            }
+            verifiedContract[field][subField] = value;
+          } else {
+            verifiedContract[field] = value;
+          }
+        };
+
+        if (typeof property === "string") {
+          const [field, subField] = fullField.split(".");
+          addToContract(
+            field,
+            subField,
+            sourcifyMatchResult.rows[0][property as StoredProperties],
+          );
+        } else {
+          // The whole subobject is requested, e.g. the creationBytecode object
+          for (const [subfield, subproperty] of Object.entries(property)) {
+            addToContract(
+              fullField,
+              subfield,
+              sourcifyMatchResult.rows[0][subproperty as StoredProperties],
+            );
+          }
+        }
+        return verifiedContract;
+      },
+      {} as any,
+    );
+
+    // Add and transform the properties of the contract which cannot be handled on the db level
+    const result: VerifiedContract = {
+      ...retrievedContract,
+      match: getTotalMatchLevel(
+        retrievedContract.creationMatch,
+        retrievedContract.runtimeMatch,
+      ),
+      creationMatch: toMatchLevel(retrievedContract.creationMatch),
+      runtimeMatch: toMatchLevel(retrievedContract.runtimeMatch),
+      chainId,
+      address,
+    };
+
+    if (retrievedContract.deployment?.deployer) {
+      result.deployment!.deployer = getAddress(
+        retrievedContract.deployment.deployer,
       );
     }
 
-    return res;
+    return result;
   };
 
   /**
@@ -342,7 +543,7 @@ export class SourcifyDatabaseService
   getFile = async (
     chainId: string,
     address: string,
-    match: MatchLevelWithoutAny,
+    match: V1MatchLevelWithoutAny,
     path: string,
   ): Promise<string | false> => {
     // this.getFiles queries sourcify_match, it extract always one and only one match
@@ -383,7 +584,7 @@ export class SourcifyDatabaseService
   getTree = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<string[]>> => {
     const {
       status: contractStatus,
@@ -442,7 +643,7 @@ export class SourcifyDatabaseService
   getContent = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>> => {
     const {
       status: contractStatus,

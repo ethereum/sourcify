@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { verifyContractsInSessionEndpoint } from "./verify.session.handlers";
-import { safeHandler } from "../../../controllers.common";
+import { safeHandler } from "../../../../common";
 
 const router: Router = Router();
 

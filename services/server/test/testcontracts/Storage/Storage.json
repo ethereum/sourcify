@@ -626,16 +626,14 @@
       "name": "#utility.yul"
     }
   ],
-  "sourceMap": "141:356:8:-:0;;;;;;;;;;;;;;;;;;;",
-  "deployedSourceMap": "141:356:8:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;416:79;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;271:64;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;416:79;457:7;482:6;;475:13;;416:79;:::o;271:64::-;325:3;316:6;:12;;;;271:64;:::o;7:139:9:-;53:5;91:6;78:20;69:29;;107:33;134:5;107:33;:::i;:::-;59:87;;;;:::o;152:262::-;211:6;260:2;248:9;239:7;235:23;231:32;228:2;;;276:1;273;266:12;228:2;319:1;344:53;389:7;380:6;369:9;365:22;344:53;:::i;:::-;334:63;;290:117;218:196;;;;:::o;420:118::-;507:24;525:5;507:24;:::i;:::-;502:3;495:37;485:53;;:::o;544:222::-;637:4;675:2;664:9;660:18;652:26;;688:71;756:1;745:9;741:17;732:6;688:71;:::i;:::-;642:124;;;;:::o;772:77::-;809:7;838:5;827:16;;817:32;;;:::o;855:122::-;928:24;946:5;928:24;:::i;:::-;921:5;918:35;908:2;;967:1;964;957:12;908:2;898:79;:::o",
+  "sourceMap": "141:356:0:-:0;;;;;;;;;;;;;;;;;;;",
+  "deployedSourceMap": "141:356:0:-:0;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;416:79;;;:::i;:::-;;;;;;;:::i;:::-;;;;;;;;271:64;;;;;;;;;;;;;:::i;:::-;;:::i;:::-;;416:79;457:7;482:6;;475:13;;416:79;:::o;271:64::-;325:3;316:6;:12;;;;271:64;:::o;7:139:1:-;53:5;91:6;78:20;69:29;;107:33;134:5;107:33;:::i;:::-;59:87;;;;:::o;152:262::-;211:6;260:2;248:9;239:7;235:23;231:32;228:2;;;276:1;273;266:12;228:2;319:1;344:53;389:7;380:6;369:9;365:22;344:53;:::i;:::-;334:63;;290:117;218:196;;;;:::o;420:118::-;507:24;525:5;507:24;:::i;:::-;502:3;495:37;485:53;;:::o;544:222::-;637:4;675:2;664:9;660:18;652:26;;688:71;756:1;745:9;741:17;732:6;688:71;:::i;:::-;642:124;;;;:::o;772:77::-;809:7;838:5;827:16;;817:32;;;:::o;855:122::-;928:24;946:5;928:24;:::i;:::-;921:5;918:35;908:2;;967:1;964;957:12;908:2;898:79;:::o",
   "source": "// SPDX-License-Identifier: GPL-3.0\n\npragma solidity >=0.7.0 <0.9.0;\n\n/**\n * @title Storage\n * @dev Store & retrieve value in a variable\n */\ncontract Storage {\n\n    uint256 number;\n\n    /**\n     * @dev Store value in variable\n     * @param num value to store\n     */\n    function store(uint256 num) public {\n        number = num;\n    }\n\n    /**\n     * @dev Return value \n     * @return value of 'number'\n     */\n    function retrieve() public view returns (uint256){\n        return number;\n    }\n}\n",
   "sourcePath": "/home/kuzdogan/repos/truffle-test/contracts/Storage.sol",
   "ast": {
     "absolutePath": "project:/contracts/Storage.sol",
     "exportedSymbols": {
-      "Storage": [
-        917
-      ]
+      "Storage": [917]
     },
     "id": 918,
     "license": "GPL-3.0",
@@ -643,15 +641,7 @@
     "nodes": [
       {
         "id": 893,
-        "literals": [
-          "solidity",
-          ">=",
-          "0.7",
-          ".0",
-          "<",
-          "0.9",
-          ".0"
-        ],
+        "literals": ["solidity", ">=", "0.7", ".0", "<", "0.9", ".0"],
         "nodeType": "PragmaDirective",
         "src": "37:31:8"
       },
@@ -668,9 +658,7 @@
         },
         "fullyImplemented": true,
         "id": 917,
-        "linearizedBaseContracts": [
-          917
-        ],
+        "linearizedBaseContracts": [917],
         "name": "Storage",
         "nameLocation": "150:7:8",
         "nodeType": "ContractDefinition",
@@ -910,9 +898,7 @@
   "legacyAST": {
     "absolutePath": "project:/contracts/Storage.sol",
     "exportedSymbols": {
-      "Storage": [
-        917
-      ]
+      "Storage": [917]
     },
     "id": 918,
     "license": "GPL-3.0",
@@ -920,15 +906,7 @@
     "nodes": [
       {
         "id": 893,
-        "literals": [
-          "solidity",
-          ">=",
-          "0.7",
-          ".0",
-          "<",
-          "0.9",
-          ".0"
-        ],
+        "literals": ["solidity", ">=", "0.7", ".0", "<", "0.9", ".0"],
         "nodeType": "PragmaDirective",
         "src": "37:31:8"
       },
@@ -945,9 +923,7 @@
         },
         "fullyImplemented": true,
         "id": 917,
-        "linearizedBaseContracts": [
-          917
-        ],
+        "linearizedBaseContracts": [917],
         "name": "Storage",
         "nameLocation": "150:7:8",
         "nodeType": "ContractDefinition",
@@ -1215,5 +1191,38 @@
     "kind": "user",
     "methods": {},
     "version": 1
+  },
+  "storageLayout": {
+    "storage": [
+      {
+        "astId": 4,
+        "contract": "project:/contracts/Storage.sol:Storage",
+        "label": "number",
+        "offset": 0,
+        "slot": "0",
+        "type": "t_uint256"
+      }
+    ],
+    "types": {
+      "t_uint256": {
+        "encoding": "inplace",
+        "label": "uint256",
+        "numberOfBytes": "32"
+      }
+    }
+  },
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "cborAuxdata": {
+    "1": {
+      "offset": 282,
+      "value": "0xa264697066735822122005183dd5df276b396683ae62d0c96c3a406d6f9dad1ad0923daf492c531124b164736f6c63430008040033"
+    }
+  },
+  "deployedCborAuxdata": {
+    "1": {
+      "offset": 250,
+      "value": "0xa264697066735822122005183dd5df276b396683ae62d0c96c3a406d6f9dad1ad0923daf492c531124b164736f6c63430008040033"
+    }
   }
 }

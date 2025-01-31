@@ -13,7 +13,7 @@ import {
   StringMap,
   AbstractCheckedContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { MatchLevelWithoutAny, MatchQuality, PathConfig } from "../../types";
+import { V1MatchLevelWithoutAny, MatchQuality, PathConfig } from "../../types";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus } from "../../common";
@@ -43,7 +43,7 @@ export class RepositoryV2Service implements WStorageService {
   async getFile(
     chainId: string,
     address: string,
-    match: MatchLevelWithoutAny,
+    match: V1MatchLevelWithoutAny,
     path: string,
   ): Promise<string | false> {
     return await readFile(this.repositoryPath, match, chainId, address, path);

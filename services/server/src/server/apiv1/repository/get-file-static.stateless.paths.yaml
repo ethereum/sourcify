@@ -3,6 +3,7 @@ openapi: "3.0.0"
 paths:
   /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
     get:
+      deprecated: false
       summary: Get a specific file from the repository with the file path (static serving)
       description: Retrieve statically served files over the server.
       tags:

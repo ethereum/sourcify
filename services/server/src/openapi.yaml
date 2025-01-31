@@ -1,4 +1,4 @@
-openapi: "3.0.0"
+openapi: 3.1.0
 info:
   version: 1.0.0
   title: Sourcify API
@@ -9,13 +9,19 @@ info:
 servers:
   $ref: "servers.yaml"
 tags:
-  - name: Stateless Verification
-    description: Main verification endpoints
+  - name: Contract Lookup
+    description: API v2 - Tools and endpoints for looking up contract information
+  - name: Stateless Verification 
+    description: API v1 - Main verification endpoints
   - name: Repository
-    description: Access to already verified contracts and files
+    description: API v1 - Access to already verified contracts and files
   - name: Session Verification
-    description: Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
+    description: API v1 - Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
 paths:
+  /v2/contract/{chainId}/{address}:
+    $ref: "apiv2.yaml#/paths/~1v2~1contract~1{chainId}~1{address}"
+  /v2/contracts/{chainId}:
+    $ref: "apiv2.yaml#/paths/~1v2~1contracts~1{chainId}"
   /verify:
     $ref: "server/apiv1/verification/verify/stateless/verify.stateless.paths.yaml#/paths/~1verify"
   /verify/vyper:

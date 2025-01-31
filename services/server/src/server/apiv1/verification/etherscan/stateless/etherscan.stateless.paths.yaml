@@ -3,6 +3,7 @@ openapi: "3.0"
 paths:
   /verify/etherscan:
     post:
+      deprecated: false
       summary: Verify an Etherscan verified contract
       tags:
         - Stateless Verification
