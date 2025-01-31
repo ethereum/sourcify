@@ -2,25 +2,32 @@
 
 <p align="center">
   &nbsp;
-  <a href="https://sourcify.dev"><img src="https://raw.githubusercontent.com/sourcifyeth/assets/master/logo-assets-svg/logoText.svg" alt="sourcify logo" role="presentation"></a>
+  <a href="https://sourcify.dev"><img src="https://raw.githubusercontent.com/sourcifyeth/assets/master/logo-assets-png/sourcify-eth-card.png" alt="sourcify logo" role="presentation" width=300></a>
 </p>
 
 [![codecov](https://codecov.io/gh/ethereum/sourcify/branch/staging/graph/badge.svg?token=eN6XDAwWfV)](https://codecov.io/gh/ethereum/sourcify)
+[![Matrix Chat](https://img.shields.io/badge/Matrix%20-chat-brightgreen?style=plastic&logo=matrix)](https://matrix.to/#/#ethereum_source-verify:gitter.im)
+[![Discord](https://img.shields.io/badge/Discord%20-chat-brightgreen?style=plastic&logo=discord)](https://discord.com/channels/1160912737539473410)
+[![X Follow](https://img.shields.io/twitter/follow/SourcifyEth?style=plastic&logo=x)](https://X.com/SourcifyEth)
 
-Sourcify ([sourcify.dev](https://sourcify.dev)) is a source code verification service for Ethereum smart contracts supporting Solidity and Vyper.
+Sourcify ([sourcify.dev](https://sourcify.dev)) is a source-code verification service for Ethereum smart contracts supporting Solidity and Vyper. Sourcify is fully commited to
 
-Different than other verification services, Sourcify leverages the [metadata](https://docs.sourcify.dev/docs/metadata/) file to ["fully verify"](https://docs.sourcify.dev/docs/full-vs-partial-match/) the Solidity contracts.
+- Open-source
+- Open-data (see [Downloading the repository](https://docs.sourcify.dev/docs/repository/))
+- Open-standards (see the [Verifier Alliance](https://github.com/verifier-alliance))
+
+in smart-contract verification instead of siloed, propriety services. We foster these values across the ecosystem and work actively to push the status-quo in this direction.
+
+Different than other verification services, Sourcify leverages the [Solidity metadata](https://docs.sourcify.dev/docs/metadata/) and file and its integrity hash to ["fully verify"](https://docs.sourcify.dev/docs/full-vs-partial-match/) the Solidity contracts (see [the playground](https://playground.sourcify.dev)).
 
 Sourcify mainly consists of:
 
-- [sourcify-server](/services/server) - an HTTP server to do verifications and store the verified contracts for supported chains through an [API](https://docs.sourcify.dev/docs/api/)
-- [sourcify-monitor](/services/monitor) - a standalone service that listens to various EVM chains for new contract creations and automatically submits them to a Sourcify API for verification.
+- [sourcify-server](/services/server) - an HTTP server to run source-code verifications and store the verified contracts for the supported chains through an [API](https://docs.sourcify.dev/docs/api/)
+- [sourcify-monitor](/services/monitor) - a standalone service that listens to various EVM chains for new contract creations and automatically submits them to a Sourcify API for verification if published on IPFS.
 - Packages:
   - [@ethereum-sourcify/lib-sourcify](/packages/lib-sourcify/): The core library for Sourcify. It contains the logic to verify contracts.
   - [@ethereum-sourcify/bytecode-utils](/packages/bytecode-utils/): A library to extract and parse the CBOR encoded metadata from the bytecode.
 - [Sourcify UI](https://github.com/sourcifyeth/ui) - a web UI to interact with the server, lookup, and verify contracts
-
-The project aims to serve as a public good infrastructure with fully open-source development and an [open and accessible contract repository](https://docs.sourcify.dev/docs/repository/) of verified contracts. Anyone can easily run their own Sourcify server and monitor to verify contracts on their own. We also aim to provide tooling to verify contracts easier on different platforms e.g. browsers.
 
 _ℹ️ [This monorepo](https://github.com/ethereum/sourcify) contains the main modules. The [sourcifyeth Github organization](https://github.com/sourcifyeth) contains all other auxiliary services and components._
 
@@ -32,14 +39,8 @@ For more details refer to [docs.sourcify.dev](https://docs.sourcify.dev/docs/int
 
 Sourcify aims to be fully open and transparent. You can see what we are working day-to-day on on our [Public Issue Board](https://github.com/orgs/ethereum/projects/46) as well our [Quarterly Milestones](https://github.com/orgs/ethereum/projects/46/views/3) for our longer term plans.
 
-## Questions?
-
-🔍 Check out docs [F.A.Q.](https://docs.sourcify.dev/docs/faq/) and use search in docs.
-
-💬 Chat with us on [Matrix chat](https://matrix.to/#/#ethereum_source-verify:gitter.im) or [Discord](https://discord.gg/6aqd9cfZ9s)
-
-🐦 Follow us and help us spread the word on [Twitter](https://twitter.com/SourcifyEth).
-
 ## Adding a new chain
 
 If you'd like to add a new chain support to Sourcify please follow the [chain support instructions](https://docs.sourcify.dev/docs/chain-support/) in docs.
+
+_Sourcify is an [Argot Collective](https://argot.org) project_
