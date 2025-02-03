@@ -44,7 +44,7 @@ export class VyperCompilation extends AbstractCompilation {
    * compatibility reasons e.g. in the legacy Sourcify API that always assumes a metadata.json
    */
   generateMetadata() {
-    const contract = this.getCompilationTarget();
+    const contract = this.compilationTargetContract;
     const outputMetadata = {
       abi: contract.abi,
       devdoc: contract.devdoc,
@@ -62,7 +62,7 @@ export class VyperCompilation extends AbstractCompilation {
       {},
     );
 
-    this.metadata = {
+    this._metadata = {
       compiler: { version: this.compilerVersion },
       language: 'Vyper',
       output: outputMetadata,
@@ -130,12 +130,12 @@ export class VyperCompilation extends AbstractCompilation {
     this.initVyperJsonInput();
   }
 
-  getImmutableReferences(): ImmutableReferences {
+  get immutableReferences(): ImmutableReferences {
     let immutableReferences = {};
     if (gte(this.compilerVersionCompatibleWithSemver, '0.3.10')) {
       try {
         const { immutableSize } = decode(
-          this.getCreationBytecode(),
+          this.creationBytecode,
           this.auxdataStyle,
         );
         if (immutableSize) {
@@ -143,26 +143,26 @@ export class VyperCompilation extends AbstractCompilation {
             '0': [
               {
                 length: immutableSize,
-                start: this.getRuntimeBytecode().substring(2).length / 2,
+                start: this.runtimeBytecode.substring(2).length / 2,
               },
             ],
           };
         }
       } catch (e) {
         logWarn('Cannot decode vyper contract bytecode', {
-          creationBytecode: this.getCreationBytecode(),
+          creationBytecode: this.creationBytecode,
         });
       }
     }
     return immutableReferences;
   }
 
-  getRuntimeLinkReferences(): LinkReferences {
+  get runtimeLinkReferences(): LinkReferences {
     // Vyper doesn't support libraries
     return {};
   }
 
-  getCreationLinkReferences(): LinkReferences {
+  get creationLinkReferences(): LinkReferences {
     // Vyper doesn't support libraries
     return {};
   }
@@ -178,7 +178,7 @@ export class VyperCompilation extends AbstractCompilation {
   public async generateCborAuxdataPositions() {
     try {
       const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
-        this.getRuntimeBytecode(),
+        this.runtimeBytecode,
         this.auxdataStyle,
       );
 
@@ -187,22 +187,22 @@ export class VyperCompilation extends AbstractCompilation {
         this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_10 ||
         this.auxdataStyle === AuxdataStyle.VYPER_LT_0_3_5
       ) {
-        this.runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
-          this.getRuntimeBytecode(),
+        this._runtimeBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+          this.runtimeBytecode,
           runtimeAuxdataCbor,
           runtimeCborLengthHex,
         );
       } else {
-        this.runtimeBytecodeCborAuxdata = {};
+        this._runtimeBytecodeCborAuxdata = {};
       }
 
       const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
-        this.getCreationBytecode(),
+        this.creationBytecode,
         this.auxdataStyle,
       );
 
-      this.creationBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
-        this.getCreationBytecode(),
+      this._creationBytecodeCborAuxdata = this.tryGenerateCborAuxdataPosition(
+        this.creationBytecode,
         creationAuxdataCbor,
         creationCborLengthHex,
       );
@@ -244,10 +244,10 @@ export class VyperCompilation extends AbstractCompilation {
   }
 
   // Override the bytecodes' getter methods to not duplicate the 0x prefix
-  getCreationBytecode() {
-    return this.getCompilationTarget().evm.bytecode.object;
+  get creationBytecode() {
+    return this.compilationTargetContract.evm.bytecode.object;
   }
-  getRuntimeBytecode() {
-    return this.getCompilationTarget().evm.deployedBytecode.object;
+  get runtimeBytecode() {
+    return this.compilationTargetContract.evm.deployedBytecode.object;
   }
 }

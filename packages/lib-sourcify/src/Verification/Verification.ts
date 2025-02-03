@@ -98,8 +98,8 @@ export class Verification {
     // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
     await this.compilation.generateCborAuxdataPositions();
 
-    const compiledRuntimeBytecode = this.compilation.getRuntimeBytecode();
-    const compiledCreationBytecode = this.compilation.getCreationBytecode();
+    const compiledRuntimeBytecode = this.compilation.runtimeBytecode;
+    const compiledCreationBytecode = this.compilation.creationBytecode;
 
     if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
       throw new Error(
@@ -240,8 +240,8 @@ export class Verification {
       : this.onchainRuntimeBytecode;
 
     const cborAuxdata = context.isCreation
-      ? this.compilation.getCreationBytecodeCborAuxdata()
-      : this.compilation.getRuntimeBytecodeCborAuxdata();
+      ? this.compilation.creationBytecodeCborAuxdata
+      : this.compilation.runtimeBytecodeCborAuxdata;
 
     const transformations = context.isCreation
       ? this.creationTransformations
@@ -251,8 +251,8 @@ export class Verification {
       : this.runtimeTransformationValues;
 
     const linkReferences = context.isCreation
-      ? this.compilation.getCreationLinkReferences()
-      : this.compilation.getRuntimeLinkReferences();
+      ? this.compilation.creationLinkReferences
+      : this.compilation.runtimeLinkReferences;
 
     const result: BytecodeMatchingResult = {
       match: null,
@@ -344,12 +344,12 @@ export class Verification {
     // Check if is a library with call protection
     let normalizedRecompiledRuntimeBytecode =
       this.checkAndCreateCallProtectionTransformation(
-        this.compilation.getRuntimeBytecode(),
+        this.compilation.runtimeBytecode,
       );
 
     // Handle immutable references
     normalizedRecompiledRuntimeBytecode = replaceImmutableReferences(
-      this.compilation.getImmutableReferences(),
+      this.compilation.immutableReferences,
       this.onchainRuntimeBytecode,
       normalizedRecompiledRuntimeBytecode,
       this.runtimeTransformations,
@@ -371,7 +371,7 @@ export class Verification {
   private async matchWithCreationTx() {
     const result = await this.matchBytecodes({
       isCreation: true,
-      normalizedRecompiledBytecode: this.compilation.getCreationBytecode(),
+      normalizedRecompiledBytecode: this.compilation.creationBytecode,
     });
 
     if (result.match === 'partial' || result.match === 'perfect') {
@@ -381,11 +381,9 @@ export class Verification {
           result.normalizedRecompiledBytecode,
         );
       const constructorAbiParamInputs = (
-        this.compilation
-          .getMetadata()
-          ?.output?.abi?.find(
-            (param) => param.type === 'constructor',
-          ) as AbiConstructor
+        this.compilation.metadata?.output?.abi?.find(
+          (param) => param.type === 'constructor',
+        ) as AbiConstructor
       )?.inputs as ParamType[];
       if (abiEncodedConstructorArguments) {
         if (!constructorAbiParamInputs) {
