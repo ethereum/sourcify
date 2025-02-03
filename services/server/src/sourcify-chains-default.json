@@ -2272,5 +2272,14 @@
         "url": "https://scan-testnet.exsat.network"
       }
     }
+  },
+  "5115": {
+    "sourcifyName": "Citrea Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutScrape": {
+        "url": "https://explorer.testnet.citrea.xyz"
+      }
+    }
   }
 }
