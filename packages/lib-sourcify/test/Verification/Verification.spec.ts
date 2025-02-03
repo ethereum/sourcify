@@ -292,6 +292,41 @@ describe('Verification Class Tests', () => {
       }
     });
 
+    it('should add constructor transformation with correct offset and arguments', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'WithImmutables',
+      );
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        ['12345'],
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      const transformations = verification.getTransformations();
+      expect(transformations.creationTransformations).to.deep.include({
+        type: 'insert',
+        reason: 'constructorArguments',
+        offset: 970,
+      });
+      expect(
+        transformations.creationTransformationValues?.constructorArguments,
+      ).to.equal(
+        '0x0000000000000000000000000000000000000000000000000000000000003039',
+      );
+    });
+
     it('should detect extra file input bug when optimizer is enabled', async () => {
       // Deploy the original contract
       const contractFolderPath = path.join(

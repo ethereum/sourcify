@@ -29,7 +29,6 @@ import { AbiConstructor } from 'abitype';
 import { logDebug, logError, logInfo, logWarn } from './logger';
 import SourcifyChain from './SourcifyChain';
 import { lt } from 'semver';
-import { replaceBytecodeAuxdatasWithZeros } from './utils';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
 
 export async function verifyDeployed(
@@ -397,44 +396,33 @@ export function normalizeBytecodesAuxdata(
 ) {
   try {
     let normalizedRecompiledBytecode = recompiledBytecode;
-    let normalizedOnchainBytecode = onchainBytecode;
     const transformations: Transformation[] = [];
     const transformationsValuesCborAuxdata = {} as any;
+    // Instead of normalizing the onchain bytecode, we use its auxdata values to replace the corresponding sections in the recompiled bytecode.
     Object.values(cborAuxdataPositions).forEach((auxdataValues, index) => {
       const offsetStart = auxdataValues.offset * 2 + 2;
       const offsetEnd =
         auxdataValues.offset * 2 + 2 + auxdataValues.value.length - 2;
-      normalizedRecompiledBytecode = replaceBytecodeAuxdatasWithZeros(
-        normalizedRecompiledBytecode,
-        offsetStart,
-        offsetEnd,
-      );
-      const originalAuxdata = normalizedOnchainBytecode.slice(
-        offsetStart,
-        offsetEnd,
-      );
-      normalizedOnchainBytecode = replaceBytecodeAuxdatasWithZeros(
-        normalizedOnchainBytecode,
-        offsetStart,
-        offsetEnd,
-      );
+      // Instead of zeroing out this segment, get the value from the onchain bytecode.
+      const onchainAuxdata = onchainBytecode.slice(offsetStart, offsetEnd);
+      normalizedRecompiledBytecode =
+        normalizedRecompiledBytecode.slice(0, offsetStart) +
+        onchainAuxdata +
+        normalizedRecompiledBytecode.slice(offsetEnd);
       const transformationIndex = `${index + 1}`;
       transformations.push(
         AuxdataTransformation(auxdataValues.offset, transformationIndex),
       );
       transformationsValuesCborAuxdata[transformationIndex] =
-        `0x${originalAuxdata}`;
+        `0x${onchainAuxdata}`;
     });
     return {
       normalizedRecompiledBytecode,
-      normalizedOnchainBytecode,
       transformations,
       transformationsValuesCborAuxdata,
     };
   } catch (error: any) {
-    logError('Cannot normalize bytecodes with the auxdata', {
-      error,
-    });
+    logError('Cannot normalize bytecodes with the auxdata', { error });
     throw new Error('Cannot normalize bytecodes with the auxdata');
   }
 }
@@ -478,9 +466,10 @@ export async function matchWithRuntimeBytecode(
   );
   recompiledRuntimeBytecode = replaced;
 
-  onchainRuntimeBytecode = replaceImmutableReferences(
+  recompiledRuntimeBytecode = replaceImmutableReferences(
     immutableReferences,
     onchainRuntimeBytecode,
+    recompiledRuntimeBytecode,
     match.runtimeTransformations,
     match.runtimeTransformationValues,
     auxdataStyle,
@@ -513,7 +502,6 @@ export async function matchWithRuntimeBytecode(
   // We use normalizeBytecodesAuxdata to replace all the auxdatas in both bytecodes with zeros
   const {
     normalizedRecompiledBytecode: normalizedRecompiledRuntimeBytecode,
-    normalizedOnchainBytecode: normalizedOnchainRuntimeBytecode,
     transformations: runtimeAuxdataTransformations,
     transformationsValuesCborAuxdata: runtimeTransformationsValuesCborAuxdata,
   } = normalizeBytecodesAuxdata(
@@ -523,7 +511,7 @@ export async function matchWithRuntimeBytecode(
   )!;
 
   // If after the normalization the bytecodes are the same, we have a partial match
-  if (normalizedRecompiledRuntimeBytecode == normalizedOnchainRuntimeBytecode) {
+  if (normalizedRecompiledRuntimeBytecode == onchainRuntimeBytecode) {
     match.libraryMap = libraryMap;
     match.immutableReferences = immutableReferences;
     match.runtimeMatch = 'partial';
@@ -637,7 +625,6 @@ export async function matchWithCreationTx(
     // We use normalizeBytecodesAuxdata to replace all the auxdatas in both bytecodes with zeros
     const {
       normalizedRecompiledBytecode: normalizedRecompiledCreationBytecode,
-      normalizedOnchainBytecode: normalizedOnchainCreationBytecode,
       transformations: creationAuxdataTransformations,
       transformationsValuesCborAuxdata:
         creationTransformationsValuesCborAuxdata,
@@ -649,7 +636,7 @@ export async function matchWithCreationTx(
 
     // If after the normalization the bytecodes are the same, we have a partial match
     if (
-      normalizedOnchainCreationBytecode.startsWith(
+      match.onchainCreationBytecode.startsWith(
         normalizedRecompiledCreationBytecode,
       )
     ) {
@@ -806,11 +793,14 @@ export function checkCallProtectionAndReplaceAddress(
 export function replaceImmutableReferences(
   immutableReferences: ImmutableReferences,
   onchainRuntimeBytecode: string,
+  recompiledBytecode: string,
   transformationsArray: Transformation[],
   transformationValues: TransformationValues,
   auxdataStyle: AuxdataStyle,
 ) {
-  onchainRuntimeBytecode = onchainRuntimeBytecode.slice(2); // remove "0x"
+  // Remove "0x" from the beginning of both bytecodes.
+  onchainRuntimeBytecode = onchainRuntimeBytecode.slice(2);
+  recompiledBytecode = recompiledBytecode.slice(2);
 
   Object.keys(immutableReferences).forEach((astId) => {
     immutableReferences[astId].forEach((reference) => {
@@ -824,6 +814,8 @@ export function replaceImmutableReferences(
           auxdataStyle === AuxdataStyle.SOLIDITY ? 'replace' : 'insert',
         ),
       );
+
+      // Extract the immutable value from the onchain bytecode.
       const immutableValue = onchainRuntimeBytecode.slice(
         start * 2,
         start * 2 + length * 2,
@@ -836,22 +828,21 @@ export function replaceImmutableReferences(
       transformationValues.immutables[astId] = `0x${immutableValue}`;
 
       if (auxdataStyle === AuxdataStyle.SOLIDITY) {
-        // Write zeros in the place
-        const zeros = '0'.repeat(length * 2);
-        onchainRuntimeBytecode =
-          onchainRuntimeBytecode.slice(0, start * 2) +
-          zeros +
-          onchainRuntimeBytecode.slice(start * 2 + length * 2);
+        // Replace the placeholder in the recompiled bytecode with the onchain immutable value.
+        recompiledBytecode =
+          recompiledBytecode.slice(0, start * 2) +
+          immutableValue +
+          recompiledBytecode.slice(start * 2 + length * 2);
       } else if (auxdataStyle === AuxdataStyle.VYPER) {
-        // This case works only for Vyper 0.3.10 and above
-        onchainRuntimeBytecode = onchainRuntimeBytecode.slice(0, start * 2);
+        // For Vyper, insert the immutable value.
+        recompiledBytecode = recompiledBytecode + immutableValue;
       }
     });
   });
-  return '0x' + onchainRuntimeBytecode;
+  return '0x' + recompiledBytecode;
 }
 
-function extractAbiEncodedConstructorArguments(
+export function extractAbiEncodedConstructorArguments(
   onchainCreationBytecode: string,
   compiledCreationBytecode: string,
 ) {

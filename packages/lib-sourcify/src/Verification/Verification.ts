@@ -1,5 +1,10 @@
 import { AbstractCompilation } from '../Compilation/AbstractCompilation';
-import { Transformation, TransformationValues, StringMap } from '../lib/types';
+import {
+  Transformation,
+  TransformationValues,
+  StringMap,
+  ConstructorTransformation,
+} from '../lib/types';
 import { logDebug, logInfo, logWarn } from '../lib/logger';
 import SourcifyChain from '../lib/SourcifyChain';
 import {
@@ -7,6 +12,7 @@ import {
   checkCallProtectionAndReplaceAddress,
   replaceImmutableReferences,
   normalizeBytecodesAuxdata,
+  extractAbiEncodedConstructorArguments,
 } from '../lib/verification';
 import { lt } from 'semver';
 import {
@@ -15,19 +21,21 @@ import {
   decode as decodeBytecode,
   SolidityDecodedObject,
 } from '@ethereum-sourcify/bytecode-utils';
+import { AbiConstructor } from 'abitype';
+import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 
 interface BytecodeMatchingContext {
   isCreation: boolean;
-  processedRecompiledBytecode: string;
-  processedOnchainBytecode: string;
+  normalizedRecompiledBytecode: string;
 }
 
 interface BytecodeMatchingResult {
   match: 'perfect' | 'partial' | null;
   libraryMap?: StringMap;
-  normalizedRecompiledBytecode?: string;
+  normalizedRecompiledBytecode: string;
   transformations: Transformation[];
   transformationValues: TransformationValues;
+  message?: string;
 }
 
 export class Verification {
@@ -50,6 +58,7 @@ export class Verification {
   private blockNumber?: number;
   private txIndex?: number;
   private deployer?: string;
+  private abiEncodedConstructorArguments?: string;
 
   constructor(
     private compilation: AbstractCompilation,
@@ -215,8 +224,10 @@ export class Verification {
     context: BytecodeMatchingContext,
   ): Promise<BytecodeMatchingResult> {
     // Here we use bytecodes from the context because they are already processed
-    let processedRecompiledBytecode = context.processedRecompiledBytecode;
-    const processedOnchainBytecode = context.processedOnchainBytecode;
+    let normalizedRecompiledBytecode = context.normalizedRecompiledBytecode;
+    const onchainBytecode = context.isCreation
+      ? this.getOnchainCreationBytecode()
+      : this.getOnchainRuntimeBytecode();
 
     const cborAuxdata = context.isCreation
       ? this.compilation.getCreationBytecodeCborAuxdata()
@@ -237,22 +248,23 @@ export class Verification {
       match: null,
       transformations: [...transformations],
       transformationValues: { ...transformationValues },
+      normalizedRecompiledBytecode,
     };
 
     // Replace library placeholders
     const { replaced, libraryMap } = handleLibraries(
-      processedRecompiledBytecode,
-      processedOnchainBytecode,
+      normalizedRecompiledBytecode,
+      onchainBytecode,
       linkReferences,
       result.transformations,
       result.transformationValues,
     );
-    processedRecompiledBytecode = replaced;
+    normalizedRecompiledBytecode = replaced;
 
     // Direct bytecode match
     const matchesBytecode = context.isCreation
-      ? processedOnchainBytecode.startsWith(processedRecompiledBytecode)
-      : processedRecompiledBytecode === processedOnchainBytecode;
+      ? onchainBytecode.startsWith(normalizedRecompiledBytecode)
+      : normalizedRecompiledBytecode === onchainBytecode;
 
     if (matchesBytecode) {
       // If there is perfect match but auxdata doesn't contain any metadata hash, return partial match
@@ -289,21 +301,20 @@ export class Verification {
     }
 
     const {
-      normalizedRecompiledBytecode,
-      normalizedOnchainBytecode,
+      normalizedRecompiledBytecode: normalizedRecompiledBytecode_,
       transformations: auxdataTransformations,
       transformationsValuesCborAuxdata,
     } = normalizeBytecodesAuxdata(
-      processedRecompiledBytecode,
-      processedOnchainBytecode,
+      normalizedRecompiledBytecode,
+      onchainBytecode,
       cborAuxdata,
     );
 
-    result.normalizedRecompiledBytecode = normalizedRecompiledBytecode;
+    result.normalizedRecompiledBytecode = normalizedRecompiledBytecode_;
 
     const matchesNormalizedBytecode = context.isCreation
-      ? normalizedOnchainBytecode.startsWith(normalizedRecompiledBytecode)
-      : normalizedRecompiledBytecode === normalizedOnchainBytecode;
+      ? onchainBytecode.startsWith(normalizedRecompiledBytecode_)
+      : normalizedRecompiledBytecode_ === onchainBytecode;
 
     if (matchesNormalizedBytecode) {
       result.match = 'partial';
@@ -321,7 +332,7 @@ export class Verification {
 
   private async matchWithRuntimeBytecode() {
     // Check if is a library with call protection
-    const processedRecompiledRuntimeBytecode =
+    let normalizedRecompiledRuntimeBytecode =
       checkCallProtectionAndReplaceAddress(
         this.compilation.getRuntimeBytecode(),
         this.getOnchainRuntimeBytecode(),
@@ -330,9 +341,10 @@ export class Verification {
       );
 
     // Handle immutable references
-    const processedOnchainRuntimeBytecode = replaceImmutableReferences(
+    normalizedRecompiledRuntimeBytecode = replaceImmutableReferences(
       this.compilation.getImmutableReferences(),
       this.getOnchainRuntimeBytecode(),
+      normalizedRecompiledRuntimeBytecode,
       this.runtimeTransformations,
       this.runtimeTransformationValues,
       this.compilation.auxdataStyle,
@@ -340,8 +352,7 @@ export class Verification {
 
     const result = await this.matchBytecodes({
       isCreation: false,
-      processedRecompiledBytecode: processedRecompiledRuntimeBytecode,
-      processedOnchainBytecode: processedOnchainRuntimeBytecode,
+      normalizedRecompiledBytecode: normalizedRecompiledRuntimeBytecode,
     });
 
     this.runtimeMatch = result.match;
@@ -355,9 +366,55 @@ export class Verification {
   private async matchWithCreationTx() {
     const result = await this.matchBytecodes({
       isCreation: true,
-      processedRecompiledBytecode: this.compilation.getCreationBytecode(),
-      processedOnchainBytecode: this.getOnchainCreationBytecode(),
+      normalizedRecompiledBytecode: this.compilation.getCreationBytecode(),
     });
+
+    if (result.match === 'partial' || result.match === 'perfect') {
+      const abiEncodedConstructorArguments =
+        extractAbiEncodedConstructorArguments(
+          this.getOnchainCreationBytecode(),
+          result.normalizedRecompiledBytecode,
+        );
+      const constructorAbiParamInputs = (
+        this.compilation
+          .getMetadata()
+          ?.output?.abi?.find(
+            (param) => param.type === 'constructor',
+          ) as AbiConstructor
+      )?.inputs as ParamType[];
+      if (abiEncodedConstructorArguments) {
+        if (!constructorAbiParamInputs) {
+          result.match = null;
+          result.message = `Failed to match with creation bytecode: constructor ABI Inputs are missing`;
+          return;
+        }
+        // abiCoder doesn't break if called with a wrong `abiEncodedConstructorArguments`
+        // so in order to successfuly check if the constructor arguments actually match
+        // we need to re-encode it and compare them
+        const decodeResult = abiCoder.decode(
+          constructorAbiParamInputs,
+          abiEncodedConstructorArguments,
+        );
+        const encodeResult = abiCoder.encode(
+          constructorAbiParamInputs,
+          decodeResult,
+        );
+        if (encodeResult !== abiEncodedConstructorArguments) {
+          result.match = null;
+          result.message = `Failed to match with creation bytecode: constructor arguments ABI decoding failed ${encodeResult} vs ${abiEncodedConstructorArguments}`;
+          return;
+        }
+
+        result.transformations?.push(
+          ConstructorTransformation(
+            result.normalizedRecompiledBytecode.substring(2).length / 2,
+          ),
+        );
+        result.transformationValues.constructorArguments =
+          abiEncodedConstructorArguments;
+      }
+      this.abiEncodedConstructorArguments = abiEncodedConstructorArguments;
+    }
 
     this.creationMatch = result.match;
     this.libraryMap = result.libraryMap;
@@ -418,5 +475,9 @@ export class Verification {
       throw new Error('Onchain runtime bytecode not available');
     }
     return this.onchainRuntimeBytecode;
+  }
+
+  public getAbiEncodedConstructorArguments() {
+    return this.abiEncodedConstructorArguments;
   }
 }
