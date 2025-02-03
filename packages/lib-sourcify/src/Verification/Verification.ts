@@ -4,12 +4,12 @@ import {
   TransformationValues,
   StringMap,
   ConstructorTransformation,
+  CallProtectionTransformation,
 } from '../lib/types';
 import { logDebug, logInfo, logWarn } from '../lib/logger';
 import SourcifyChain from '../lib/SourcifyChain';
 import {
   handleLibraries,
-  checkCallProtectionAndReplaceAddress,
   replaceImmutableReferences,
   normalizeBytecodesAuxdata,
   extractAbiEncodedConstructorArguments,
@@ -23,6 +23,7 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 import { AbiConstructor } from 'abitype';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
+import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 
 interface BytecodeMatchingContext {
   isCreation: boolean;
@@ -67,7 +68,9 @@ export class Verification {
     private creatorTxHash?: string,
   ) {}
 
-  async verify(): Promise<void> {
+  async verify({
+    forceEmscripten = false,
+  }: { forceEmscripten?: boolean } = {}): Promise<void> {
     logInfo('Verifying contract', {
       address: this.address,
       chainId: this.sourcifyChain.chainId,
@@ -79,6 +82,7 @@ export class Verification {
 
     // Can't match if there is no deployed bytecode
     if (!this.onchainRuntimeBytecode) {
+      // todo: add custom SourcifyLibError, with custom code/message
       throw new Error(
         `Chain #${this.sourcifyChain.chainId} is temporarily unavailable`,
       );
@@ -91,43 +95,27 @@ export class Verification {
 
     // Compile the contract
     await this.compilation.compile();
-    await this.compilation.generateCborAuxdataPositions();
-    const runtimeBytecode = this.compilation.getRuntimeBytecode();
-    const creationBytecode = this.compilation.getCreationBytecode();
 
-    if (runtimeBytecode === '0x' || creationBytecode === '0x') {
+    // We need to manually generate the auxdata positions because they are not automatically produced during compilation
+    // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
+    await this.compilation.generateCborAuxdataPositions();
+
+    const compiledRuntimeBytecode = this.compilation.getRuntimeBytecode();
+    const compiledCreationBytecode = this.compilation.getCreationBytecode();
+
+    if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
       throw new Error(
         `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`,
       );
     }
 
-    // Try to match with deployed bytecode
+    // Try to match onchain runtime bytecode with compiled runtime bytecode
     try {
       logDebug('Matching with deployed bytecode', {
         chain: this.sourcifyChain.chainId,
         address: this.address,
       });
-
       await this.matchWithRuntimeBytecode();
-
-      // Handle viaIR + disabled optimizer + <0.8.21 case
-      if (this.runtimeMatch === null && this.creationMatch === null) {
-        const metadata = this.compilation.getMetadata();
-        if (
-          lt(metadata.compiler.version, '0.8.21') &&
-          !metadata.settings.optimizer?.enabled &&
-          metadata.settings?.viaIR
-        ) {
-          logInfo('Force Emscripten compiler', {
-            address: this.address,
-            chainId: this.sourcifyChain.chainId,
-          });
-
-          // Recompile with Emscripten and retry verification
-          await this.compilation.compile(true);
-          return this.verify();
-        }
-      }
     } catch (e: any) {
       logWarn('Error matching with runtime bytecode', {
         chain: this.sourcifyChain.chainId,
@@ -137,42 +125,66 @@ export class Verification {
       throw e;
     }
 
-    // Case when extra unused files in compiler input cause different bytecode
-    // See issues:
-    // https://github.com/ethereum/sourcify/issues/618
-    // https://github.com/ethereum/solidity/issues/14250
-    // https://github.com/ethereum/solidity/issues/14494
-    try {
-      if (this.runtimeMatch === null && this.creationMatch === null) {
-        const metadata = this.compilation.getMetadata();
+    // Handle Solidity specific verification bug cases
+    if (
+      this.compilation instanceof SolidityCompilation &&
+      this.runtimeMatch === null &&
+      this.creationMatch === null
+    ) {
+      const settings = this.compilation.jsonInput.settings;
+
+      // Handle when <0.8.21 and with viaIR and with optimizer disabled
+      // See issues:
+      //   https://github.com/ethereum/sourcify/issues/1088
+      if (
+        !forceEmscripten && // Enter this case only if we are not already forcing Emscripten
+        lt(this.compilation.compilerVersion, '0.8.21') &&
+        !settings.optimizer?.enabled &&
+        settings?.viaIR
+      ) {
+        logInfo('Force Emscripten compiler', {
+          address: this.address,
+          chainId: this.sourcifyChain.chainId,
+        });
+
+        // Try to verify again with Emscripten
+        return this.verify({ forceEmscripten: true });
+      }
+
+      // Case when extra unused files in compiler input cause different bytecode
+      // See issues:
+      //   https://github.com/ethereum/sourcify/issues/618
+      //   https://github.com/ethereum/solidity/issues/14250
+      //   https://github.com/ethereum/solidity/issues/14494
+      try {
         const [, deployedAuxdata] = splitAuxdata(
           this.onchainRuntimeBytecode || '',
           AuxdataStyle.SOLIDITY,
         );
         const [, recompiledAuxdata] = splitAuxdata(
-          runtimeBytecode,
+          compiledRuntimeBytecode,
           AuxdataStyle.SOLIDITY,
         );
         // Metadata hashes match but bytecodes don't match.
         if (
           deployedAuxdata === recompiledAuxdata &&
-          metadata.settings.optimizer?.enabled
+          settings.optimizer?.enabled
         ) {
           throw new Error(
             "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
           );
         }
+      } catch (e: any) {
+        logWarn('Error checking for extra-file-input-bug', {
+          chain: this.sourcifyChain.chainId,
+          address: this.address,
+          error: e.message,
+        });
+        throw e;
       }
-    } catch (e: any) {
-      logWarn('Error checking for extra-file-input-bug', {
-        chain: this.sourcifyChain.chainId,
-        address: this.address,
-        error: e.message,
-      });
-      throw e;
     }
 
-    // Try to match with creation tx if available
+    // Try to match onchain creation bytecode with compiled creation bytecode
     if (this.creatorTxHash) {
       try {
         logDebug('Matching with creation tx', {
@@ -333,11 +345,8 @@ export class Verification {
   private async matchWithRuntimeBytecode() {
     // Check if is a library with call protection
     let normalizedRecompiledRuntimeBytecode =
-      checkCallProtectionAndReplaceAddress(
+      this.checkAndCreateCallProtectionTransformation(
         this.compilation.getRuntimeBytecode(),
-        this.getOnchainRuntimeBytecode(),
-        this.runtimeTransformations,
-        this.runtimeTransformationValues,
       );
 
     // Handle immutable references
@@ -479,5 +488,39 @@ export class Verification {
 
   public getAbiEncodedConstructorArguments() {
     return this.abiEncodedConstructorArguments;
+  }
+
+  // transformation functions
+
+  // returns the full bytecode with the call protection replaced with the real address
+  checkAndCreateCallProtectionTransformation(
+    normalizedRecompiledBytecode: string,
+  ): string {
+    const template = normalizedRecompiledBytecode;
+    const real = this.getOnchainRuntimeBytecode();
+    const transformationsArray = this.runtimeTransformations;
+    const transformationValues = this.runtimeTransformationValues;
+
+    const push20CodeOp = '73';
+    const callProtection = `0x${push20CodeOp}${'00'.repeat(20)}`;
+
+    if (template.startsWith(callProtection)) {
+      const replacedCallProtection = real.slice(0, 0 + callProtection.length);
+      const callProtectionAddress = replacedCallProtection.slice(4); // remove 0x73
+      transformationsArray.push(CallProtectionTransformation());
+      transformationValues.callProtection = '0x' + callProtectionAddress;
+
+      return replacedCallProtection + template.substring(callProtection.length);
+    }
+    return template;
+  }
+
+  // TODO: let's use this syntax for all the getters
+  // (we don't need this, just example)
+  get compilerVersion() {
+    if (!this.compilation.compilerVersion) {
+      throw new Error('Compiler version not available');
+    }
+    return this.compilation.compilerVersion;
   }
 }
