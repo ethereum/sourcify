@@ -853,6 +853,7 @@ describe('lib-sourcify tests', () => {
       const replacedBytecode = replaceImmutableReferences(
         immutableReferences,
         runtimeBytecode,
+        recompiledRuntimeBytecode,
         [],
         {},
         AuxdataStyle.SOLIDITY,
