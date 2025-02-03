@@ -1769,8 +1769,8 @@ describe("Test Supported Chains", function () {
     "0xad90c25cA57A3871241D88c42dca829ae59EC144",
     "5115",
     "Citrea Testnet",
-    "shared/"
-  )
+    "shared/",
+  );
 
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
