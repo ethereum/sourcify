@@ -1,12 +1,5 @@
 import { AbstractCompilation } from '../Compilation/AbstractCompilation';
-import {
-  ImmutableReferences,
-  LinkReferences,
-  Transformation,
-  TransformationValues,
-  StringMap,
-  CompiledContractCborAuxdata,
-} from '../lib/types';
+import { Transformation, TransformationValues, StringMap } from '../lib/types';
 import { logDebug, logInfo, logWarn } from '../lib/logger';
 import SourcifyChain from '../lib/SourcifyChain';
 import {
@@ -24,13 +17,9 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 
 interface BytecodeMatchingContext {
-  recompiledBytecode: string;
-  onchainBytecode: string;
-  linkReferences: LinkReferences;
-  transformations: Transformation[];
-  transformationValues: TransformationValues;
-  cborAuxdata?: CompiledContractCborAuxdata;
-  isCreation?: boolean;
+  isCreation: boolean;
+  processedRecompiledBytecode: string;
+  processedOnchainBytecode: string;
 }
 
 interface BytecodeMatchingResult {
@@ -93,11 +82,9 @@ export class Verification {
 
     // Compile the contract
     await this.compilation.compile();
+    await this.compilation.generateCborAuxdataPositions();
     const runtimeBytecode = this.compilation.getRuntimeBytecode();
     const creationBytecode = this.compilation.getCreationBytecode();
-    const immutableReferences = this.compilation.getImmutableReferences();
-    const runtimeLinkReferences = this.compilation.getRuntimeLinkReferences();
-    const creationLinkReferences = this.compilation.getCreationLinkReferences();
 
     if (runtimeBytecode === '0x' || creationBytecode === '0x') {
       throw new Error(
@@ -112,12 +99,7 @@ export class Verification {
         address: this.address,
       });
 
-      await this.matchWithRuntimeBytecode(
-        runtimeBytecode,
-        this.onchainRuntimeBytecode,
-        immutableReferences,
-        runtimeLinkReferences,
-      );
+      await this.matchWithRuntimeBytecode();
 
       // Handle viaIR + disabled optimizer + <0.8.21 case
       if (this.runtimeMatch === null && this.creationMatch === null) {
@@ -182,7 +164,7 @@ export class Verification {
     }
 
     // Try to match with creation tx if available
-    if (this.creatorTxHash && creationBytecode) {
+    if (this.creatorTxHash) {
       try {
         logDebug('Matching with creation tx', {
           chain: this.sourcifyChain.chainId,
@@ -190,11 +172,21 @@ export class Verification {
           creatorTxHash: this.creatorTxHash,
         });
 
-        await this.matchWithCreationTx(
-          creationBytecode,
-          this.sourcifyChain,
-          creationLinkReferences,
-        );
+        // Get creation transaction data
+        const creatorTx = await this.sourcifyChain.getTx(this.creatorTxHash);
+        this.blockNumber = creatorTx.blockNumber || undefined;
+        this.deployer = creatorTx.from;
+
+        const { creationBytecode, txReceipt } =
+          await this.sourcifyChain.getContractCreationBytecodeAndReceipt(
+            this.address,
+            this.creatorTxHash,
+            creatorTx,
+          );
+        this.onchainCreationBytecode = creationBytecode;
+        this.txIndex = txReceipt.index;
+
+        await this.matchWithCreationTx();
       } catch (e: any) {
         logWarn('Error matching with creation tx', {
           chain: this.sourcifyChain.chainId,
@@ -222,35 +214,52 @@ export class Verification {
   private async matchBytecodes(
     context: BytecodeMatchingContext,
   ): Promise<BytecodeMatchingResult> {
-    let { recompiledBytecode } = context;
-    const { onchainBytecode } = context;
+    // Here we use bytecodes from the context because they are already processed
+    let processedRecompiledBytecode = context.processedRecompiledBytecode;
+    const processedOnchainBytecode = context.processedOnchainBytecode;
+
+    const cborAuxdata = context.isCreation
+      ? this.compilation.getCreationBytecodeCborAuxdata()
+      : this.compilation.getRuntimeBytecodeCborAuxdata();
+
+    const transformations = context.isCreation
+      ? this.creationTransformations
+      : this.runtimeTransformations;
+    const transformationValues = context.isCreation
+      ? this.creationTransformationValues
+      : this.runtimeTransformationValues;
+
+    const linkReferences = context.isCreation
+      ? this.compilation.getCreationLinkReferences()
+      : this.compilation.getRuntimeLinkReferences();
+
     const result: BytecodeMatchingResult = {
       match: null,
-      transformations: [...context.transformations],
-      transformationValues: { ...context.transformationValues },
+      transformations: [...transformations],
+      transformationValues: { ...transformationValues },
     };
 
     // Replace library placeholders
     const { replaced, libraryMap } = handleLibraries(
-      recompiledBytecode,
-      onchainBytecode,
-      context.linkReferences,
+      processedRecompiledBytecode,
+      processedOnchainBytecode,
+      linkReferences,
       result.transformations,
       result.transformationValues,
     );
-    recompiledBytecode = replaced;
+    processedRecompiledBytecode = replaced;
 
     // Direct bytecode match
     const matchesBytecode = context.isCreation
-      ? onchainBytecode.startsWith(recompiledBytecode)
-      : recompiledBytecode === onchainBytecode;
+      ? processedOnchainBytecode.startsWith(processedRecompiledBytecode)
+      : processedRecompiledBytecode === processedOnchainBytecode;
 
     if (matchesBytecode) {
       // If there is perfect match but auxdata doesn't contain any metadata hash, return partial match
       if (
-        !context.cborAuxdata ||
-        Object.keys(context.cborAuxdata).length === 0 ||
-        Object.values(context.cborAuxdata).some((cborAuxdata) => {
+        !cborAuxdata ||
+        Object.keys(cborAuxdata).length === 0 ||
+        Object.values(cborAuxdata).some((cborAuxdata) => {
           try {
             const { ipfs, bzzr0, bzzr1 } = decodeBytecode(
               cborAuxdata.value,
@@ -275,7 +284,7 @@ export class Verification {
     }
 
     // If there is no perfect match and no auxdata, return null
-    if (!context.cborAuxdata || Object.keys(context.cborAuxdata).length === 0) {
+    if (!cborAuxdata || Object.keys(cborAuxdata).length === 0) {
       return result;
     }
 
@@ -285,9 +294,9 @@ export class Verification {
       transformations: auxdataTransformations,
       transformationsValuesCborAuxdata,
     } = normalizeBytecodesAuxdata(
-      recompiledBytecode,
-      onchainBytecode,
-      context.cborAuxdata,
+      processedRecompiledBytecode,
+      processedOnchainBytecode,
+      cborAuxdata,
     );
 
     result.normalizedRecompiledBytecode = normalizedRecompiledBytecode;
@@ -310,39 +319,29 @@ export class Verification {
     return result;
   }
 
-  private async matchWithRuntimeBytecode(
-    recompiledRuntimeBytecode: string,
-    onchainRuntimeBytecode: string,
-    immutableReferences: ImmutableReferences,
-    linkReferences: LinkReferences,
-  ) {
+  private async matchWithRuntimeBytecode() {
     // Check if is a library with call protection
-    recompiledRuntimeBytecode = checkCallProtectionAndReplaceAddress(
-      recompiledRuntimeBytecode,
-      onchainRuntimeBytecode,
-      this.runtimeTransformations,
-      this.runtimeTransformationValues,
-    );
+    const processedRecompiledRuntimeBytecode =
+      checkCallProtectionAndReplaceAddress(
+        this.compilation.getRuntimeBytecode(),
+        this.getOnchainRuntimeBytecode(),
+        this.runtimeTransformations,
+        this.runtimeTransformationValues,
+      );
 
     // Handle immutable references
-    onchainRuntimeBytecode = replaceImmutableReferences(
-      immutableReferences,
-      onchainRuntimeBytecode,
+    const processedOnchainRuntimeBytecode = replaceImmutableReferences(
+      this.compilation.getImmutableReferences(),
+      this.getOnchainRuntimeBytecode(),
       this.runtimeTransformations,
       this.runtimeTransformationValues,
       this.compilation.auxdataStyle,
     );
 
-    await this.compilation.generateCborAuxdataPositions();
-
     const result = await this.matchBytecodes({
-      recompiledBytecode: recompiledRuntimeBytecode,
-      onchainBytecode: onchainRuntimeBytecode,
-      linkReferences,
-      transformations: this.runtimeTransformations,
-      transformationValues: this.runtimeTransformationValues,
-      cborAuxdata: this.compilation.runtimeBytecodeCborAuxdata,
       isCreation: false,
+      processedRecompiledBytecode: processedRecompiledRuntimeBytecode,
+      processedOnchainBytecode: processedOnchainRuntimeBytecode,
     });
 
     this.runtimeMatch = result.match;
@@ -353,39 +352,11 @@ export class Verification {
     this.runtimeTransformationValues = result.transformationValues;
   }
 
-  private async matchWithCreationTx(
-    recompiledCreationBytecode: string,
-    sourcifyChain: SourcifyChain,
-    linkReferences: LinkReferences,
-  ) {
-    if (!this.creatorTxHash) {
-      return;
-    }
-
-    // Get creation transaction data
-    const creatorTx = await sourcifyChain.getTx(this.creatorTxHash);
-    this.blockNumber = creatorTx.blockNumber || undefined;
-    this.deployer = creatorTx.from;
-
-    const { creationBytecode, txReceipt } =
-      await sourcifyChain.getContractCreationBytecodeAndReceipt(
-        this.address,
-        this.creatorTxHash,
-        creatorTx,
-      );
-    this.onchainCreationBytecode = creationBytecode;
-    this.txIndex = txReceipt.index;
-
-    await this.compilation.generateCborAuxdataPositions();
-
+  private async matchWithCreationTx() {
     const result = await this.matchBytecodes({
       isCreation: true,
-      recompiledBytecode: recompiledCreationBytecode,
-      onchainBytecode: this.onchainCreationBytecode,
-      linkReferences,
-      transformations: this.creationTransformations,
-      transformationValues: this.creationTransformationValues,
-      cborAuxdata: this.compilation.creationBytecodeCborAuxdata,
+      processedRecompiledBytecode: this.compilation.getCreationBytecode(),
+      processedOnchainBytecode: this.getOnchainCreationBytecode(),
     });
 
     this.creationMatch = result.match;
@@ -396,7 +367,6 @@ export class Verification {
     this.creationTransformationValues = result.transformationValues;
   }
 
-  // Getters for the verification results
   public getStatus() {
     return {
       runtimeMatch: this.runtimeMatch,
@@ -434,5 +404,19 @@ export class Verification {
 
   public getLibraryMap() {
     return this.libraryMap;
+  }
+
+  public getOnchainCreationBytecode(): string {
+    if (!this.onchainCreationBytecode) {
+      throw new Error('Onchain creation bytecode not available');
+    }
+    return this.onchainCreationBytecode;
+  }
+
+  public getOnchainRuntimeBytecode(): string {
+    if (!this.onchainRuntimeBytecode) {
+      throw new Error('Onchain runtime bytecode not available');
+    }
+    return this.onchainRuntimeBytecode;
   }
 }

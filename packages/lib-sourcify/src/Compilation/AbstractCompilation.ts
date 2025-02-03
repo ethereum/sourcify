@@ -129,4 +129,18 @@ export abstract class AbstractCompilation {
   abstract getImmutableReferences(): ImmutableReferences;
   abstract getRuntimeLinkReferences(): LinkReferences;
   abstract getCreationLinkReferences(): LinkReferences;
+
+  getCreationBytecodeCborAuxdata(): CompiledContractCborAuxdata {
+    if (!this.creationBytecodeCborAuxdata) {
+      throw new Error('Creation bytecode cbor auxdata is not set');
+    }
+    return this.creationBytecodeCborAuxdata;
+  }
+
+  getRuntimeBytecodeCborAuxdata(): CompiledContractCborAuxdata {
+    if (!this.runtimeBytecodeCborAuxdata) {
+      throw new Error('Runtime bytecode cbor auxdata is not set');
+    }
+    return this.runtimeBytecodeCborAuxdata;
+  }
 }
