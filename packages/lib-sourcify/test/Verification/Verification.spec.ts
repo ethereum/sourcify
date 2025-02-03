@@ -674,6 +674,7 @@ describe('Verification Class Tests', () => {
   });
 
   describe('Vyper Compilation Tests', () => {
+    // TODO: implement constructor argument transformation test
     it('should verify a simple Vyper contract', async () => {
       const contractFolderPath = path.join(
         __dirname,
