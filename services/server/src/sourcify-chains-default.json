@@ -2277,7 +2277,7 @@
     "sourcifyName": "Citrea Testnet",
     "supported": true,
     "fetchContractCreationTxUsing": {
-      "blockscoutScrape": {
+      "blockscoutApi": {
         "url": "https://explorer.testnet.citrea.xyz"
       }
     }
