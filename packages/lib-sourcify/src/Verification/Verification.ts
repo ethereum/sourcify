@@ -41,10 +41,8 @@ interface BytecodeMatchingResult {
 
 export class Verification {
   // Bytecodes
-  private normalizedRecompiledRuntimeBytecode?: string;
-  private normalizedRecompiledCreationBytecode?: string;
-  private onchainRuntimeBytecode?: string;
-  private onchainCreationBytecode?: string;
+  private _onchainRuntimeBytecode?: string;
+  private _onchainCreationBytecode?: string;
 
   // Transformations
   private runtimeTransformations: Transformation[] = [];
@@ -55,11 +53,11 @@ export class Verification {
   // Match status
   private runtimeMatch: 'perfect' | 'partial' | null = null;
   private creationMatch: 'perfect' | 'partial' | null = null;
-  private libraryMap?: StringMap;
+  private _libraryMap?: StringMap;
   private blockNumber?: number;
   private txIndex?: number;
   private deployer?: string;
-  private abiEncodedConstructorArguments?: string;
+  private _abiEncodedConstructorArguments?: string;
 
   constructor(
     private compilation: AbstractCompilation,
@@ -76,7 +74,7 @@ export class Verification {
       chainId: this.sourcifyChain.chainId,
     });
 
-    this.onchainRuntimeBytecode = await this.sourcifyChain.getBytecode(
+    this._onchainRuntimeBytecode = await this.sourcifyChain.getBytecode(
       this.address,
     );
 
@@ -158,7 +156,7 @@ export class Verification {
       //   https://github.com/ethereum/solidity/issues/14494
       try {
         const [, deployedAuxdata] = splitAuxdata(
-          this.onchainRuntimeBytecode || '',
+          this.onchainRuntimeBytecode,
           AuxdataStyle.SOLIDITY,
         );
         const [, recompiledAuxdata] = splitAuxdata(
@@ -204,7 +202,7 @@ export class Verification {
             this.creatorTxHash,
             creatorTx,
           );
-        this.onchainCreationBytecode = creationBytecode;
+        this._onchainCreationBytecode = creationBytecode;
         this.txIndex = txReceipt.index;
 
         await this.matchWithCreationTx();
@@ -238,8 +236,8 @@ export class Verification {
     // Here we use bytecodes from the context because they are already processed
     let normalizedRecompiledBytecode = context.normalizedRecompiledBytecode;
     const onchainBytecode = context.isCreation
-      ? this.getOnchainCreationBytecode()
-      : this.getOnchainRuntimeBytecode();
+      ? this.onchainCreationBytecode
+      : this.onchainRuntimeBytecode;
 
     const cborAuxdata = context.isCreation
       ? this.compilation.getCreationBytecodeCborAuxdata()
@@ -352,7 +350,7 @@ export class Verification {
     // Handle immutable references
     normalizedRecompiledRuntimeBytecode = replaceImmutableReferences(
       this.compilation.getImmutableReferences(),
-      this.getOnchainRuntimeBytecode(),
+      this.onchainRuntimeBytecode,
       normalizedRecompiledRuntimeBytecode,
       this.runtimeTransformations,
       this.runtimeTransformationValues,
@@ -365,9 +363,7 @@ export class Verification {
     });
 
     this.runtimeMatch = result.match;
-    this.libraryMap = result.libraryMap;
-    this.normalizedRecompiledRuntimeBytecode =
-      result.normalizedRecompiledBytecode;
+    this._libraryMap = result.libraryMap;
     this.runtimeTransformations = result.transformations;
     this.runtimeTransformationValues = result.transformationValues;
   }
@@ -381,7 +377,7 @@ export class Verification {
     if (result.match === 'partial' || result.match === 'perfect') {
       const abiEncodedConstructorArguments =
         extractAbiEncodedConstructorArguments(
-          this.getOnchainCreationBytecode(),
+          this.onchainCreationBytecode,
           result.normalizedRecompiledBytecode,
         );
       const constructorAbiParamInputs = (
@@ -422,45 +418,50 @@ export class Verification {
         result.transformationValues.constructorArguments =
           abiEncodedConstructorArguments;
       }
-      this.abiEncodedConstructorArguments = abiEncodedConstructorArguments;
+      this._abiEncodedConstructorArguments = abiEncodedConstructorArguments;
     }
 
     this.creationMatch = result.match;
-    this.libraryMap = result.libraryMap;
-    this.normalizedRecompiledCreationBytecode =
-      result.normalizedRecompiledBytecode;
+    this._libraryMap = result.libraryMap;
     this.creationTransformations = result.transformations;
     this.creationTransformationValues = result.transformationValues;
   }
 
-  public getStatus() {
+  get status() {
     return {
       runtimeMatch: this.runtimeMatch,
       creationMatch: this.creationMatch,
     };
   }
 
-  public getTransformations() {
+  get onchainRuntimeBytecode() {
+    if (!this._onchainRuntimeBytecode) {
+      throw new Error('Onchain runtime bytecode not available');
+    }
+    return this._onchainRuntimeBytecode;
+  }
+
+  get onchainCreationBytecode() {
+    if (!this._onchainCreationBytecode) {
+      throw new Error('Onchain creation bytecode not available');
+    }
+    return this._onchainCreationBytecode;
+  }
+
+  get transformations() {
     return {
-      runtimeTransformations: this.runtimeTransformations,
-      creationTransformations: this.creationTransformations,
-      runtimeTransformationValues: this.runtimeTransformationValues,
-      creationTransformationValues: this.creationTransformationValues,
+      runtime: {
+        list: this.runtimeTransformations,
+        values: this.runtimeTransformationValues,
+      },
+      creation: {
+        list: this.creationTransformations,
+        values: this.creationTransformationValues,
+      },
     };
   }
 
-  public getBytecodes() {
-    return {
-      onchainRuntimeBytecode: this.onchainRuntimeBytecode,
-      onchainCreationBytecode: this.onchainCreationBytecode,
-      normalizedRecompiledRuntimeBytecode:
-        this.normalizedRecompiledRuntimeBytecode,
-      normalizedRecompiledCreationBytecode:
-        this.normalizedRecompiledCreationBytecode,
-    };
-  }
-
-  public getDeploymentInfo() {
+  get deploymentInfo() {
     return {
       blockNumber: this.blockNumber,
       txIndex: this.txIndex,
@@ -468,26 +469,12 @@ export class Verification {
     };
   }
 
-  public getLibraryMap() {
-    return this.libraryMap;
+  get libraryMap() {
+    return this._libraryMap;
   }
 
-  public getOnchainCreationBytecode(): string {
-    if (!this.onchainCreationBytecode) {
-      throw new Error('Onchain creation bytecode not available');
-    }
-    return this.onchainCreationBytecode;
-  }
-
-  public getOnchainRuntimeBytecode(): string {
-    if (!this.onchainRuntimeBytecode) {
-      throw new Error('Onchain runtime bytecode not available');
-    }
-    return this.onchainRuntimeBytecode;
-  }
-
-  public getAbiEncodedConstructorArguments() {
-    return this.abiEncodedConstructorArguments;
+  get abiEncodedConstructorArguments() {
+    return this._abiEncodedConstructorArguments;
   }
 
   // transformation functions
@@ -497,7 +484,7 @@ export class Verification {
     normalizedRecompiledBytecode: string,
   ): string {
     const template = normalizedRecompiledBytecode;
-    const real = this.getOnchainRuntimeBytecode();
+    const real = this.onchainRuntimeBytecode;
     const transformationsArray = this.runtimeTransformations;
     const transformationValues = this.runtimeTransformationValues;
 
@@ -513,14 +500,5 @@ export class Verification {
       return replacedCallProtection + template.substring(callProtection.length);
     }
     return template;
-  }
-
-  // TODO: let's use this syntax for all the getters
-  // (we don't need this, just example)
-  get compilerVersion() {
-    if (!this.compilation.compilerVersion) {
-      throw new Error('Compiler version not available');
-    }
-    return this.compilation.compilerVersion;
   }
 }

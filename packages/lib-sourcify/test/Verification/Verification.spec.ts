@@ -156,8 +156,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'perfect',
         contractAddress,
@@ -196,8 +196,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'partial',
         contractAddress,
@@ -252,8 +252,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'partial',
         contractAddress,
@@ -314,15 +314,13 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      const transformations = verification.getTransformations();
-      expect(transformations.creationTransformations).to.deep.include({
+      const transformations = verification.transformations;
+      expect(transformations.creation.list).to.deep.include({
         type: 'insert',
         reason: 'constructorArguments',
         offset: 970,
       });
-      expect(
-        transformations.creationTransformationValues?.constructorArguments,
-      ).to.equal(
+      expect(transformations.creation.values?.constructorArguments).to.equal(
         '0x0000000000000000000000000000000000000000000000000000000000003039',
       );
     });
@@ -398,8 +396,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'perfect',
         contractAddress,
@@ -465,9 +463,9 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
-          libraryMap: verification.getLibraryMap(),
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
+          libraryMap: verification.libraryMap,
         },
         'perfect',
         contractAddress,
@@ -502,8 +500,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'perfect',
         contractAddress,
@@ -521,7 +519,7 @@ describe('Verification Class Tests', () => {
       );
 
       // Deploy the contract
-      const { contractAddress } = await deployFromAbiAndBytecode(
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
         signer,
         contractFolderPath,
       );
@@ -534,30 +532,33 @@ describe('Verification Class Tests', () => {
         compilation,
         sourcifyChainHardhat,
         contractAddress,
+        txHash,
       );
       await verification.verify();
 
       // This test just checks that Verification's getter properties return values formatted correctly
 
       // Test getStatus
-      const status = verification.getStatus();
+      const status = verification.status;
       expect(status.runtimeMatch).to.equal('perfect');
 
-      // Test getBytecodes
-      const bytecodes = verification.getBytecodes();
-      expect(bytecodes.onchainRuntimeBytecode).to.be.a('string');
+      // Test onchainRuntimeBytecode
+      expect(verification.onchainRuntimeBytecode).to.be.a('string');
+
+      // Test onchainCreationBytecode
+      expect(verification.onchainCreationBytecode).to.be.a('string');
 
       // Test getTransformations
-      const transformations = verification.getTransformations();
-      expect(transformations).to.have.property('runtimeTransformations');
-      expect(transformations).to.have.property('creationTransformations');
+      const transformations = verification.transformations;
+      expect(transformations).to.have.property('runtime');
+      expect(transformations).to.have.property('creation');
 
       // Test getDeploymentInfo
-      const deploymentInfo = verification.getDeploymentInfo();
+      const deploymentInfo = verification.deploymentInfo;
       expect(deploymentInfo).to.have.property('blockNumber');
 
       // Test getLibraryMap
-      const libraryMap = verification.getLibraryMap();
+      const libraryMap = verification.libraryMap;
       expect(libraryMap).to.deep.equal({});
     });
   });
@@ -587,8 +588,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'perfect',
         contractAddress,
@@ -628,8 +629,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'perfect',
         contractAddress,
@@ -664,8 +665,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'perfect',
         contractAddress,
@@ -705,8 +706,8 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'partial',
         contractAddress,
@@ -747,16 +748,16 @@ describe('Verification Class Tests', () => {
         {
           address: contractAddress,
           chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.getStatus().runtimeMatch,
-          creationMatch: verification.getStatus().creationMatch,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
         },
         'partial',
         contractAddress,
       );
 
       // Check if immutable values are correctly set
-      const transformations = verification.getTransformations();
-      expect(transformations.runtimeTransformations).to.deep.include({
+      const transformations = verification.transformations;
+      expect(transformations.runtime.list).to.deep.include({
         type: 'insert',
         reason: 'immutable',
         offset: 167,
@@ -831,16 +832,16 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      const transformations = verification.getTransformations();
-      expect(transformations.creationTransformations).to.deep.include({
+      const transformations = verification.transformations;
+      expect(transformations.creation.list).to.deep.include({
         type: 'replace',
         reason: 'cborAuxdata',
         offset: 158,
         id: '1',
       });
-      expect(
-        transformations.creationTransformationValues?.cborAuxdata?.['1'],
-      ).to.equal('0x84188f8000a1657679706572830003090012');
+      expect(transformations.creation.values?.cborAuxdata?.['1']).to.equal(
+        '0x84188f8000a1657679706572830003090012',
+      );
     });
   });
 });
