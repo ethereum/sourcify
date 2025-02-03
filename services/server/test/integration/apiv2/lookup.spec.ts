@@ -759,6 +759,22 @@ describe("GET /v2/contract/:chainId/:address", function () {
     );
   });
 
+  it("should support a special field '*' for returning all fields", async function () {
+    await verifyContract(serverFixture, chainFixture);
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=*`,
+      );
+
+    assertGetContractResponse(
+      res,
+      chainFixture.defaultContractDeploymentInfo,
+      optionalFields,
+    );
+  });
+
   it("should return all fields but the omitted ones when requested", async function () {
     const omittedFields = ["proxyResolution", "deployment"];
 
@@ -847,6 +863,21 @@ describe("GET /v2/contract/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .get(
         `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=userdoc&fields=creationBytecode`,
+      );
+
+    chai.expect(res.status).to.equal(400);
+    chai.expect(res.body.customCode).to.equal("invalid_parameter");
+    chai.expect(res.body).to.have.property("errorId");
+    chai.expect(res.body).to.have.property("message");
+  });
+
+  it("should return a 400 when '*' is used with another field", async function () {
+    await verifyContract(serverFixture, chainFixture);
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=*,creationBytecode`,
       );
 
     chai.expect(res.status).to.equal(400);

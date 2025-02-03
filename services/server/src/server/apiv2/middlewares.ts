@@ -84,7 +84,15 @@ export function validateFieldsAndOmit(
     }
   };
 
-  fields?.forEach(validateField);
+  if (fields?.includes("*")) {
+    if (fields.length > 1) {
+      throw new InvalidParametersError("Cannot specify '*' with other fields");
+    }
+    // If * is requested, overwrite the requested fields with all existing ones
+    req.query.fields = Object.keys(FIELDS_TO_STORED_PROPERTIES).join(",");
+  } else {
+    fields?.forEach(validateField);
+  }
 
   omits?.forEach(validateField);
 
