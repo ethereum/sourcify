@@ -338,6 +338,10 @@
     "sourcifyName": "Candle",
     "supported": false
   },
+  "2020": {
+    "sourcifyName": "Ronin Mainnet",
+    "supported": true
+  },
   "42220": {
     "sourcifyName": "Celo Mainnet",
     "supported": true,
