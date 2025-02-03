@@ -274,9 +274,10 @@ describe('Verification Class Tests', () => {
 
       const compilation = await getCompilationFromMetadata(contractFolderPath);
 
-      compilation.getRuntimeBytecode = () => {
-        return '0x1234567890123456789012345678901234567890123456789012345678901234';
-      };
+      Object.defineProperty(compilation, 'runtimeBytecode', {
+        get: () =>
+          '0x1234567890123456789012345678901234567890123456789012345678901234',
+      });
 
       const verification = new Verification(
         compilation,
