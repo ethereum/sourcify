@@ -749,7 +749,7 @@ describe("GET /v2/contract/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=${encodeURIComponent(optionalFields.join(","))}`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=${optionalFields.join(",")}`,
       );
 
     assertGetContractResponse(
@@ -783,7 +783,7 @@ describe("GET /v2/contract/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=${encodeURIComponent(omittedFields.join(","))}`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=${omittedFields.join(",")}`,
       );
 
     assertGetContractResponse(
@@ -799,7 +799,7 @@ describe("GET /v2/contract/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=${encodeURIComponent("creationBytecode.sourceMap,creationBytecode.onchainBytecode")}`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=creationBytecode.sourceMap,creationBytecode.onchainBytecode`,
       );
 
     assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
@@ -814,7 +814,7 @@ describe("GET /v2/contract/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=${encodeURIComponent("deployment.transactionHash,deployment.blockNumber")}`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?omit=deployment.transactionHash,deployment.blockNumber`,
       );
 
     assertGetContractResponse(
