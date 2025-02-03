@@ -138,6 +138,7 @@ paths:
         - name: fields
           in: query
           description: Comma seperated fields to include in the response. Can also take `*`
+          allowReserved: true
           schema:
             type: string
             examples:
@@ -145,6 +146,7 @@ paths:
         - name: omit
           in: query
           description: Comma seperated fields to NOT include in the response. All fields except matching ones will be returned. Can't be used simultanously with `fields`.
+          allowReserved: true
           schema:
             type: string
             examples:
@@ -408,6 +410,8 @@ components:
               value:
                 isJobCompleted: true
                 verificationId: 72d12273-0723-448e-a9f6-f7957128efa5
+                jobStartTime: '2024-07-24T11:00:00Z'
+                jobFinishTime: '2024-07-24T12:00:00Z'
                 error:
                   custom_code: non_existing_contract
                   message: Contract 0x2738d13E81e30bC615766A0410e7cF199FD59A83 does not exist on chain 11155111
