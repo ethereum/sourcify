@@ -192,6 +192,8 @@ export class VyperCompilation extends AbstractCompilation {
           runtimeAuxdataCbor,
           runtimeCborLengthHex,
         );
+      } else {
+        this.runtimeBytecodeCborAuxdata = {};
       }
 
       const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
