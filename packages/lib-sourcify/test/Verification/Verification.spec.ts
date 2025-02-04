@@ -5,7 +5,11 @@ import SourcifyChain from '../../src/SourcifyChain';
 import { ChildProcess } from 'child_process';
 import { JsonRpcSigner } from 'ethers';
 import path from 'path';
-import { deployFromAbiAndBytecode, expectMatch, vyperCompiler } from '../utils';
+import {
+  deployFromAbiAndBytecode,
+  expectVerification,
+  vyperCompiler,
+} from '../utils';
 import {
   startHardhatNetwork,
   stopHardhatNetwork,
@@ -152,16 +156,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
         },
-        'perfect',
-        contractAddress,
-      );
+      });
     });
 
     it('should partially verify a simple contract', async () => {
@@ -192,16 +192,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: null,
         },
-        'partial',
-        contractAddress,
-      );
+      });
     });
 
     it('should fail to verify a non-existing address', async () => {
@@ -248,16 +244,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: null,
         },
-        'partial',
-        contractAddress,
-      );
+      });
     });
 
     it('should return null match when there is no perfect match and no auxdata', async () => {
@@ -315,15 +307,27 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      const transformations = verification.transformations;
-      expect(transformations.creation.list).to.deep.include({
-        type: 'insert',
-        reason: 'constructorArguments',
-        offset: 970,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: 'perfect',
+        },
+        transformations: {
+          creation: {
+            list: [
+              {
+                type: 'insert',
+                reason: 'constructorArguments',
+                offset: 970,
+              },
+            ],
+            values: {
+              constructorArguments:
+                '0x0000000000000000000000000000000000000000000000000000000000003039',
+            },
+          },
+        },
       });
-      expect(transformations.creation.values?.constructorArguments).to.equal(
-        '0x0000000000000000000000000000000000000000000000000000000000003039',
-      );
     });
 
     it('should detect extra file input bug when optimizer is enabled', async () => {
@@ -393,16 +397,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
         },
-        'perfect',
-        contractAddress,
-      );
+      });
     });
 
     it('should fail when chain is temporarily unavailable', async () => {
@@ -455,23 +455,18 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      const expectedLibraryMap = {
-        __$da572ae5e60c838574a0f88b27a0543803$__:
-          '11fea6722e00ba9f43861a6e4da05fecdf9806b7',
-      };
-
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
-          libraryMap: verification.libraryMap.creation,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
         },
-        'perfect',
-        contractAddress,
-        expectedLibraryMap,
-      );
+        libraryMap: {
+          runtime: {
+            __$da572ae5e60c838574a0f88b27a0543803$__:
+              '11fea6722e00ba9f43861a6e4da05fecdf9806b7',
+          },
+        },
+      });
     });
   });
 
@@ -483,7 +478,7 @@ describe('Verification Class Tests', () => {
         'sources',
         'WithImmutables',
       );
-      const { contractAddress } = await deployFromAbiAndBytecode(
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
         signer,
         contractFolderPath,
         ['12345'],
@@ -494,19 +489,16 @@ describe('Verification Class Tests', () => {
         compilation,
         sourcifyChainHardhat,
         contractAddress,
+        txHash,
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: 'perfect',
         },
-        'perfect',
-        contractAddress,
-      );
+      });
     });
   });
 
@@ -538,10 +530,12 @@ describe('Verification Class Tests', () => {
       await verification.verify();
 
       // This test just checks that Verification's getter properties return values formatted correctly
-
-      // Test getStatus
-      const status = verification.status;
-      expect(status.runtimeMatch).to.equal('perfect');
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: 'perfect',
+        },
+      });
 
       // Test onchainRuntimeBytecode
       expect(verification.onchainRuntimeBytecode).to.be.a('string');
@@ -550,19 +544,35 @@ describe('Verification Class Tests', () => {
       expect(verification.onchainCreationBytecode).to.be.a('string');
 
       // Test getTransformations
-      const transformations = verification.transformations;
-      expect(transformations).to.have.property('runtime');
-      expect(transformations).to.have.property('creation');
+      expectVerification(verification, {
+        transformations: {
+          runtime: {
+            list: [],
+            values: {},
+          },
+          creation: {
+            list: [],
+            values: {},
+          },
+        },
+      });
 
       // Test getDeploymentInfo
       const deploymentInfo = verification.deploymentInfo;
-      expect(deploymentInfo).to.have.property('blockNumber');
+      expectVerification(verification, {
+        deploymentInfo: {
+          blockNumber: deploymentInfo.blockNumber,
+          txIndex: deploymentInfo.txIndex,
+          deployer: deploymentInfo.deployer,
+        },
+      });
 
       // Test getLibraryMap
-      const libraryMap = verification.libraryMap;
-      expect(libraryMap).to.deep.equal({
-        runtime: {},
-        creation: {},
+      expectVerification(verification, {
+        libraryMap: {
+          runtime: {},
+          creation: {},
+        },
       });
     });
   });
@@ -588,16 +598,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
         },
-        'perfect',
-        contractAddress,
-      );
+      });
     });
 
     it('should verify a contract with viaIR:true, optimizer disabled, and compiler <0.8.21', async function () {
@@ -629,16 +635,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: 'perfect',
         },
-        'perfect',
-        contractAddress,
-      );
+      });
     });
   });
 
@@ -665,16 +667,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: 'perfect',
         },
-        'perfect',
-        contractAddress,
-      );
+      });
     });
   });
 
@@ -705,16 +703,12 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: 'partial',
         },
-        'partial',
-        contractAddress,
-      );
+      });
     });
 
     it('should verify a Vyper contract with immutables', async () => {
@@ -747,24 +741,33 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      expectMatch(
-        {
-          address: contractAddress,
-          chainId: sourcifyChainHardhat.chainId.toString(),
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
-        },
-        'partial',
-        contractAddress,
-      );
-
       // Check if immutable values are correctly set
-      const transformations = verification.transformations;
-      expect(transformations.runtime.list).to.deep.include({
-        type: 'insert',
-        reason: 'immutable',
-        offset: 167,
-        id: '0',
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: null,
+        },
+        transformations: {
+          runtime: {
+            list: [
+              {
+                type: 'insert',
+                reason: 'immutable',
+                offset: 167,
+                id: '0',
+              },
+            ],
+            values: {
+              immutables: {
+                '0': '0x000000000000000000000000f39fd6e51aad88f6f4ce6ab8827279cfffb92266000000000000000000000000000000000000000000000000000000000000000500000000000000000000000000000000000000000000000000eca7a2f8618d6f',
+              },
+            },
+          },
+          creation: {
+            list: [],
+            values: {},
+          },
+        },
       });
     });
 
@@ -820,15 +823,27 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      const transformations = verification.transformations;
-      expect(transformations.creation.list).to.deep.include({
-        type: 'insert',
-        reason: 'constructorArguments',
-        offset: 245,
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: 'partial',
+        },
+        transformations: {
+          creation: {
+            list: [
+              {
+                type: 'insert',
+                reason: 'constructorArguments',
+                offset: 245,
+              },
+            ],
+            values: {
+              constructorArguments:
+                '0x0000000000000000000000000000000000000000000000000000000000000005',
+            },
+          },
+        },
       });
-      expect(transformations.creation.values?.constructorArguments).to.equal(
-        '0x0000000000000000000000000000000000000000000000000000000000000005',
-      );
     });
 
     it('should fail to verify when using wrong Vyper contract', async () => {
@@ -898,16 +913,29 @@ describe('Verification Class Tests', () => {
       );
       await verification.verify();
 
-      const transformations = verification.transformations;
-      expect(transformations.creation.list).to.deep.include({
-        type: 'replace',
-        reason: 'cborAuxdata',
-        offset: 158,
-        id: '1',
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: 'partial',
+        },
+        transformations: {
+          creation: {
+            list: [
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 158,
+                id: '1',
+              },
+            ],
+            values: {
+              cborAuxdata: {
+                '1': '0x84188f8000a1657679706572830003090012',
+              },
+            },
+          },
+        },
       });
-      expect(transformations.creation.values?.cborAuxdata?.['1']).to.equal(
-        '0x84188f8000a1657679706572830003090012',
-      );
     });
   });
 });

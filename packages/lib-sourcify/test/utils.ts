@@ -25,6 +25,7 @@ import {
   SolidityJsonInput,
   SolidityOutput,
 } from '../src/Compilation/SolidityTypes';
+import { Verification } from '../src/Verification/Verification';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields
@@ -183,3 +184,125 @@ export const expectMatch = (
     throw e;
   }
 };
+
+/**
+ * Helper function to verify a Verification object using its getters
+ * @param verification The Verification object to check
+ * @param expected Object containing the expected values to verify
+ */
+export function expectVerification(
+  verification: Verification,
+  expected: {
+    status?: {
+      runtimeMatch?: 'perfect' | 'partial' | null;
+      creationMatch?: 'perfect' | 'partial' | null;
+    };
+    libraryMap?: {
+      runtime?: { [key: string]: string };
+      creation?: { [key: string]: string };
+    };
+    deploymentInfo?: {
+      blockNumber?: number;
+      txIndex?: number;
+      deployer?: string;
+    };
+    transformations?: {
+      runtime?: {
+        list?: any[];
+        values?: any;
+      };
+      creation?: {
+        list?: any[];
+        values?: any;
+      };
+    };
+    abiEncodedConstructorArguments?: string;
+  },
+) {
+  try {
+    // Check status
+    if (expected.status) {
+      if (expected.status.runtimeMatch !== undefined) {
+        expect(verification.status.runtimeMatch).to.equal(
+          expected.status.runtimeMatch,
+        );
+      }
+      if (expected.status.creationMatch !== undefined) {
+        expect(verification.status.creationMatch).to.equal(
+          expected.status.creationMatch,
+        );
+      }
+    }
+
+    // Check library map
+    if (expected.libraryMap) {
+      if (expected.libraryMap.runtime) {
+        expect(verification.libraryMap.runtime).to.deep.equal(
+          expected.libraryMap.runtime,
+        );
+      }
+      if (expected.libraryMap.creation) {
+        expect(verification.libraryMap.creation).to.deep.equal(
+          expected.libraryMap.creation,
+        );
+      }
+    }
+
+    // Check deployment info
+    if (expected.deploymentInfo) {
+      if (expected.deploymentInfo.blockNumber !== undefined) {
+        expect(verification.deploymentInfo.blockNumber).to.equal(
+          expected.deploymentInfo.blockNumber,
+        );
+      }
+      if (expected.deploymentInfo.txIndex !== undefined) {
+        expect(verification.deploymentInfo.txIndex).to.equal(
+          expected.deploymentInfo.txIndex,
+        );
+      }
+      if (expected.deploymentInfo.deployer !== undefined) {
+        expect(verification.deploymentInfo.deployer).to.equal(
+          expected.deploymentInfo.deployer,
+        );
+      }
+    }
+
+    // Check transformations
+    if (expected.transformations) {
+      if (expected.transformations.runtime) {
+        if (expected.transformations.runtime.list) {
+          expect(verification.transformations.runtime.list).to.deep.equal(
+            expected.transformations.runtime.list,
+          );
+        }
+        if (expected.transformations.runtime.values) {
+          expect(verification.transformations.runtime.values).to.deep.equal(
+            expected.transformations.runtime.values,
+          );
+        }
+      }
+      if (expected.transformations.creation) {
+        if (expected.transformations.creation.list) {
+          expect(verification.transformations.creation.list).to.deep.equal(
+            expected.transformations.creation.list,
+          );
+        }
+        if (expected.transformations.creation.values) {
+          expect(verification.transformations.creation.values).to.deep.equal(
+            expected.transformations.creation.values,
+          );
+        }
+      }
+    }
+
+    // Check constructor arguments
+    if (expected.abiEncodedConstructorArguments !== undefined) {
+      expect(verification.abiEncodedConstructorArguments).to.equal(
+        expected.abiEncodedConstructorArguments,
+      );
+    }
+  } catch (e) {
+    console.log('Verification:', verification);
+    throw e;
+  }
+}
