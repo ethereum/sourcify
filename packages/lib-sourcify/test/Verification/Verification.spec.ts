@@ -676,7 +676,6 @@ describe('Verification Class Tests', () => {
   });
 
   describe('Vyper Compilation Tests', () => {
-    // TODO: implement constructor argument transformation test
     it('should verify a simple Vyper contract', async () => {
       const contractFolderPath = path.join(
         __dirname,
@@ -764,6 +763,69 @@ describe('Verification Class Tests', () => {
         offset: 167,
         id: '0',
       });
+    });
+
+    it('should add constructor transformation with correct offset and arguments for Vyper contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Vyper',
+        'withImmutables',
+      );
+      const contractFileName = 'test.vy';
+      const vyperContent = await fs.promises.readFile(
+        path.join(contractFolderPath, contractFileName),
+      );
+
+      const constructorArg = 5;
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        [constructorArg],
+      );
+
+      const vyperCompilation = new VyperCompilation(
+        vyperCompiler,
+        '0.4.0+commit.e9db8d9f',
+        {
+          language: 'Vyper',
+          sources: {
+            [contractFileName]: {
+              content: vyperContent.toString(),
+            },
+          },
+          settings: {
+            evmVersion: 'london',
+            optimize: 'codesize',
+            outputSelection: {
+              '*': ['evm.bytecode'],
+            },
+          },
+        },
+        {
+          path: contractFileName,
+          name: contractFileName.split('.')[0],
+        },
+      );
+
+      const verification = new Verification(
+        vyperCompilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      const transformations = verification.transformations;
+      expect(transformations.creation.list).to.deep.include({
+        type: 'insert',
+        reason: 'constructorArguments',
+        offset: 245,
+      });
+      expect(transformations.creation.values?.constructorArguments).to.equal(
+        '0x0000000000000000000000000000000000000000000000000000000000000005',
+      );
     });
 
     it('should fail to verify when using wrong Vyper contract', async () => {
