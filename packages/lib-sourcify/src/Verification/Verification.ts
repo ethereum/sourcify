@@ -82,7 +82,7 @@ export class Verification {
     }
 
     // Compile the contract
-    await this.compilation.compile();
+    await this.compilation.compile(forceEmscripten);
 
     // We need to manually generate the auxdata positions because they are not automatically produced during compilation
     // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
