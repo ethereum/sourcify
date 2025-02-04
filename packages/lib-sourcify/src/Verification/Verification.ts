@@ -294,7 +294,7 @@ export class Verification {
               ipfs === undefined && bzzr0 === undefined && bzzr1 === undefined
             );
           } catch {
-            return false;
+            return true;
           }
         })
       ) {
