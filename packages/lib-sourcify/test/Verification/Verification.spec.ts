@@ -223,6 +223,48 @@ describe('Verification Class Tests', () => {
       }
     });
 
+    it('should verify a library with call protection and add the transformation', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'CallProtectionForLibraries',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
+        },
+        transformations: {
+          runtime: {
+            list: [
+              {
+                type: 'replace',
+                reason: 'callProtection',
+                offset: 1,
+              },
+            ],
+            values: {
+              callProtection: '0x5fbdb2315678afecb367f032d93f642f64180aa3', // The actual deployed library address
+            },
+          },
+        },
+      });
+    });
+
     it('should return partial match when there is perfect bytecode match but no auxdata', async () => {
       const contractFolderPath = path.join(
         __dirname,
