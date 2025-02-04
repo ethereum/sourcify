@@ -638,7 +638,7 @@ describe('Verification Class Tests', () => {
       expectVerification(verification, {
         status: {
           runtimeMatch: 'perfect',
-          creationMatch: 'perfect',
+          creationMatch: null,
         },
       });
     });
