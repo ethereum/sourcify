@@ -183,6 +183,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x7a57a7117cD525c217AC09113A38E9362A092A0E",
+    "2020",
+    "Ronin Mainnet",
+    "shared/",
+  );
+
+  verifyContract(
     "0x8F78b9c92a68DdF719849a40702cFBfa4EB60dD0",
     "44787",
     "Celo Alfajores Testnet",
