@@ -1,19 +1,6 @@
 import { AbstractCompilation } from '../Compilation/AbstractCompilation';
-import {
-  Transformation,
-  TransformationValues,
-  StringMap,
-  ConstructorTransformation,
-  CallProtectionTransformation,
-} from '../lib/types';
-import { logDebug, logInfo, logWarn } from '../lib/logger';
-import SourcifyChain from '../lib/SourcifyChain';
-import {
-  handleLibraries,
-  replaceImmutableReferences,
-  normalizeBytecodesAuxdata,
-  extractAbiEncodedConstructorArguments,
-} from '../lib/verification';
+import { logDebug, logError, logInfo, logWarn } from '../logger';
+import SourcifyChain from '../SourcifyChain';
 import { lt } from 'semver';
 import {
   splitAuxdata,
@@ -24,6 +11,16 @@ import {
 import { AbiConstructor } from 'abitype';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
+import {
+  CompiledContractCborAuxdata,
+  LinkReferences,
+  StringMap,
+} from '../Compilation/CompilationTypes';
+import { id as keccak256Str } from 'ethers';
+import Transformations, {
+  Transformation,
+  TransformationValues,
+} from './Transformations';
 
 interface BytecodeMatchingContext {
   isCreation: boolean;
@@ -262,14 +259,17 @@ export class Verification {
     };
 
     // Replace library placeholders
-    const { replaced, libraryMap } = handleLibraries(
-      normalizedRecompiledBytecode,
-      onchainBytecode,
-      linkReferences,
-      result.transformations,
-      result.transformationValues,
-    );
-    normalizedRecompiledBytecode = replaced;
+    const librariesTransformationResult =
+      this.checkAndCreateLibrariesTransformation(
+        normalizedRecompiledBytecode,
+        onchainBytecode,
+        linkReferences,
+        transformations,
+        transformationValues,
+      );
+    const libraryMap = librariesTransformationResult.libraryMap;
+    normalizedRecompiledBytecode =
+      librariesTransformationResult.normalizedRecompiledBytecode;
 
     // Direct bytecode match
     const matchesBytecode = context.isCreation
@@ -314,7 +314,7 @@ export class Verification {
       normalizedRecompiledBytecode: normalizedRecompiledBytecode_,
       transformations: auxdataTransformations,
       transformationsValuesCborAuxdata,
-    } = normalizeBytecodesAuxdata(
+    } = this.checkAndCreateAuxdataTransformation(
       normalizedRecompiledBytecode,
       onchainBytecode,
       cborAuxdata,
@@ -348,14 +348,10 @@ export class Verification {
       );
 
     // Handle immutable references
-    normalizedRecompiledRuntimeBytecode = replaceImmutableReferences(
-      this.compilation.immutableReferences,
-      this.onchainRuntimeBytecode,
-      normalizedRecompiledRuntimeBytecode,
-      this.runtimeTransformations,
-      this.runtimeTransformationValues,
-      this.compilation.auxdataStyle,
-    );
+    normalizedRecompiledRuntimeBytecode =
+      this.checkAndCreateImmutablesTransformation(
+        normalizedRecompiledRuntimeBytecode,
+      );
 
     const result = await this.matchBytecodes({
       isCreation: false,
@@ -375,48 +371,9 @@ export class Verification {
     });
 
     if (result.match === 'partial' || result.match === 'perfect') {
-      const abiEncodedConstructorArguments =
-        extractAbiEncodedConstructorArguments(
-          this.onchainCreationBytecode,
-          result.normalizedRecompiledBytecode,
-        );
-      const constructorAbiParamInputs = (
-        this.compilation.metadata?.output?.abi?.find(
-          (param) => param.type === 'constructor',
-        ) as AbiConstructor
-      )?.inputs as ParamType[];
-      if (abiEncodedConstructorArguments) {
-        if (!constructorAbiParamInputs) {
-          result.match = null;
-          result.message = `Failed to match with creation bytecode: constructor ABI Inputs are missing`;
-          return;
-        }
-        // abiCoder doesn't break if called with a wrong `abiEncodedConstructorArguments`
-        // so in order to successfuly check if the constructor arguments actually match
-        // we need to re-encode it and compare them
-        const decodeResult = abiCoder.decode(
-          constructorAbiParamInputs,
-          abiEncodedConstructorArguments,
-        );
-        const encodeResult = abiCoder.encode(
-          constructorAbiParamInputs,
-          decodeResult,
-        );
-        if (encodeResult !== abiEncodedConstructorArguments) {
-          result.match = null;
-          result.message = `Failed to match with creation bytecode: constructor arguments ABI decoding failed ${encodeResult} vs ${abiEncodedConstructorArguments}`;
-          return;
-        }
-
-        result.transformations?.push(
-          ConstructorTransformation(
-            result.normalizedRecompiledBytecode.substring(2).length / 2,
-          ),
-        );
-        result.transformationValues.constructorArguments =
-          abiEncodedConstructorArguments;
-      }
-      this._abiEncodedConstructorArguments = abiEncodedConstructorArguments;
+      this.checkAndCreateConstructorArgumentsTransformation(
+        result.normalizedRecompiledBytecode,
+      );
     }
 
     this.creationMatch = result.match;
@@ -492,11 +449,231 @@ export class Verification {
     if (template.startsWith(callProtection)) {
       const replacedCallProtection = real.slice(0, 0 + callProtection.length);
       const callProtectionAddress = replacedCallProtection.slice(4); // remove 0x73
-      transformationsArray.push(CallProtectionTransformation());
+      transformationsArray.push(Transformations.CallProtectionTransformation());
       transformationValues.callProtection = '0x' + callProtectionAddress;
 
       return replacedCallProtection + template.substring(callProtection.length);
     }
     return template;
+  }
+
+  /**
+   * Replaces the values of the immutable variables in the (onchain) deployed bytecode with zeros, so that the bytecode can be compared with the (offchain) recompiled bytecode.
+   * Easier this way because we can simply replace with zeros
+   * Example immutableReferences: {"97":[{"length":32,"start":137}],"99":[{"length":32,"start":421}]} where 97 and 99 are the AST ids
+   */
+  checkAndCreateImmutablesTransformation(normalizedRecompiledBytecode: string) {
+    const immutableReferences = this.compilation.immutableReferences;
+    const transformationsArray = this.runtimeTransformations;
+    const transformationValues = this.runtimeTransformationValues;
+    const auxdataStyle = this.compilation.auxdataStyle;
+    // Remove "0x" from the beginning of both bytecodes.
+    const onchainRuntimeBytecode = this.onchainRuntimeBytecode.slice(2);
+    normalizedRecompiledBytecode = normalizedRecompiledBytecode.slice(2);
+
+    Object.keys(immutableReferences).forEach((astId) => {
+      immutableReferences[astId].forEach((reference) => {
+        const { start, length } = reference;
+
+        // Save the transformation
+        transformationsArray.push(
+          Transformations.ImmutablesTransformation(
+            start,
+            astId,
+            auxdataStyle === AuxdataStyle.SOLIDITY ? 'replace' : 'insert',
+          ),
+        );
+
+        // Extract the immutable value from the onchain bytecode.
+        const immutableValue = onchainRuntimeBytecode.slice(
+          start * 2,
+          start * 2 + length * 2,
+        );
+
+        // Save the transformation value
+        if (transformationValues.immutables === undefined) {
+          transformationValues.immutables = {};
+        }
+        transformationValues.immutables[astId] = `0x${immutableValue}`;
+
+        if (auxdataStyle === AuxdataStyle.SOLIDITY) {
+          // Replace the placeholder in the recompiled bytecode with the onchain immutable value.
+          normalizedRecompiledBytecode =
+            normalizedRecompiledBytecode.slice(0, start * 2) +
+            immutableValue +
+            normalizedRecompiledBytecode.slice(start * 2 + length * 2);
+        } else if (auxdataStyle === AuxdataStyle.VYPER) {
+          // For Vyper, insert the immutable value.
+          normalizedRecompiledBytecode =
+            normalizedRecompiledBytecode + immutableValue;
+        }
+      });
+    });
+    return '0x' + normalizedRecompiledBytecode;
+  }
+
+  extractAbiEncodedConstructorArguments(normalizedRecompiledBytecode: string) {
+    if (
+      this.onchainCreationBytecode.length ===
+      normalizedRecompiledBytecode.length
+    )
+      return undefined;
+
+    return (
+      '0x' +
+      this.onchainCreationBytecode.slice(normalizedRecompiledBytecode.length)
+    );
+  }
+
+  checkAndCreateConstructorArgumentsTransformation(
+    normalizedRecompiledBytecode: string,
+  ) {
+    const abiEncodedConstructorArguments =
+      this.extractAbiEncodedConstructorArguments(normalizedRecompiledBytecode);
+    const constructorAbiParamInputs = (
+      this.compilation.metadata?.output?.abi?.find(
+        (param) => param.type === 'constructor',
+      ) as AbiConstructor
+    )?.inputs as ParamType[];
+    if (abiEncodedConstructorArguments) {
+      if (!constructorAbiParamInputs) {
+        throw new Error(
+          `Failed to match with creation bytecode: constructor ABI Inputs are missing`,
+        );
+      }
+      // abiCoder doesn't break if called with a wrong `abiEncodedConstructorArguments`
+      // so in order to successfuly check if the constructor arguments actually match
+      // we need to re-encode it and compare them
+      const decodeResult = abiCoder.decode(
+        constructorAbiParamInputs,
+        abiEncodedConstructorArguments,
+      );
+      const encodeResult = abiCoder.encode(
+        constructorAbiParamInputs,
+        decodeResult,
+      );
+      if (encodeResult !== abiEncodedConstructorArguments) {
+        throw new Error(
+          `Failed to match with creation bytecode: constructor arguments ABI decoding failed ${encodeResult} vs ${abiEncodedConstructorArguments}`,
+        );
+      }
+
+      this.creationTransformations?.push(
+        Transformations.ConstructorTransformation(
+          normalizedRecompiledBytecode.substring(2).length / 2,
+        ),
+      );
+      this.creationTransformationValues.constructorArguments =
+        abiEncodedConstructorArguments;
+    }
+    this._abiEncodedConstructorArguments = abiEncodedConstructorArguments;
+  }
+
+  checkAndCreateLibrariesTransformation(
+    template: string,
+    real: string,
+    linkReferences: LinkReferences,
+    transformationsArray: Transformation[],
+    transformationValues: TransformationValues,
+  ): {
+    normalizedRecompiledBytecode: string;
+    libraryMap: StringMap;
+  } {
+    const libraryMap: StringMap = {};
+    for (const file in linkReferences) {
+      for (const lib in linkReferences[file]) {
+        for (const linkRefObj of linkReferences[file][lib]) {
+          const fqn = `${file}:${lib}`; // Fully Qualified (FQ) name
+
+          const { start, length } = linkRefObj;
+          const strStart = start * 2 + 2; // Each byte 2 chars and +2 for 0x
+          const strLength = length * 2;
+          const placeholder = template.slice(strStart, strStart + strLength);
+
+          // slice(2) removes 0x
+          const calculatedPlaceholder =
+            '__$' + keccak256Str(fqn).slice(2).slice(0, 34) + '$__';
+          // Placeholder format was different pre v0.5.0 https://docs.soliditylang.org/en/v0.4.26/contracts.html#libraries
+          const trimmedFQN = fqn.slice(0, 36); // in case the fqn is too long
+          const calculatedPreV050Placeholder =
+            '__' + trimmedFQN.padEnd(38, '_');
+
+          if (
+            !(
+              placeholder === calculatedPlaceholder ||
+              placeholder === calculatedPreV050Placeholder
+            )
+          )
+            throw new Error(
+              `Library placeholder mismatch: ${placeholder} vs ${calculatedPlaceholder} or ${calculatedPreV050Placeholder}`,
+            );
+
+          const address = real.slice(strStart, strStart + strLength);
+          libraryMap[placeholder] = address;
+
+          // Replace the specific occurrence of the placeholder
+          template =
+            template.slice(0, strStart) +
+            address +
+            template.slice(strStart + strLength);
+
+          transformationsArray.push(
+            Transformations.LibraryTransformation(start, fqn),
+          );
+
+          if (!transformationValues.libraries) {
+            transformationValues.libraries = {};
+          }
+          // Prepend the library addresses with "0x", this is the format for the DB. FS library-map is without "0x"
+          transformationValues.libraries[fqn] = '0x' + address;
+        }
+      }
+    }
+
+    return {
+      normalizedRecompiledBytecode: template,
+      libraryMap,
+    };
+  }
+
+  checkAndCreateAuxdataTransformation(
+    recompiledBytecode: string,
+    onchainBytecode: string,
+    cborAuxdataPositions: CompiledContractCborAuxdata,
+  ) {
+    try {
+      let normalizedRecompiledBytecode = recompiledBytecode;
+      const transformations: Transformation[] = [];
+      const transformationsValuesCborAuxdata = {} as any;
+      // Instead of normalizing the onchain bytecode, we use its auxdata values to replace the corresponding sections in the recompiled bytecode.
+      Object.values(cborAuxdataPositions).forEach((auxdataValues, index) => {
+        const offsetStart = auxdataValues.offset * 2 + 2;
+        const offsetEnd =
+          auxdataValues.offset * 2 + 2 + auxdataValues.value.length - 2;
+        // Instead of zeroing out this segment, get the value from the onchain bytecode.
+        const onchainAuxdata = onchainBytecode.slice(offsetStart, offsetEnd);
+        normalizedRecompiledBytecode =
+          normalizedRecompiledBytecode.slice(0, offsetStart) +
+          onchainAuxdata +
+          normalizedRecompiledBytecode.slice(offsetEnd);
+        const transformationIndex = `${index + 1}`;
+        transformations.push(
+          Transformations.AuxdataTransformation(
+            auxdataValues.offset,
+            transformationIndex,
+          ),
+        );
+        transformationsValuesCborAuxdata[transformationIndex] =
+          `0x${onchainAuxdata}`;
+      });
+      return {
+        normalizedRecompiledBytecode,
+        transformations,
+        transformationsValuesCborAuxdata,
+      };
+    } catch (error: any) {
+      logError('Cannot normalize bytecodes with the auxdata', { error });
+      throw new Error('Cannot normalize bytecodes with the auxdata');
+    }
   }
 }

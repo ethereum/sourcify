@@ -78,7 +78,7 @@ interface ModelChecker {
   timeout?: number;
 }
 
-interface Settings {
+export interface Settings {
   stopAfter?: string;
   remappings?: string[];
   optimizer?: Optimizer;

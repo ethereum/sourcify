@@ -2,17 +2,10 @@ import { SolidityCheckedContract } from './SolidityCheckedContract';
 import {
   Create2Args,
   ImmutableReferences,
-  ImmutablesTransformation,
   Match,
   Metadata,
-  AuxdataTransformation,
   RecompilationResult,
   StringMap,
-  Transformation,
-  LibraryTransformation,
-  ConstructorTransformation,
-  CallProtectionTransformation,
-  TransformationValues,
   CompiledContractCborAuxdata,
   LinkReferences,
 } from './types';
@@ -26,10 +19,19 @@ import { hexZeroPad, isHexString } from '@ethersproject/bytes';
 import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
-import { logDebug, logError, logInfo, logWarn } from './logger';
-import SourcifyChain from './SourcifyChain';
+import { logDebug, logError, logInfo, logWarn } from '../logger';
+import SourcifyChain from '../SourcifyChain';
 import { lt } from 'semver';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
+import {
+  AuxdataTransformation,
+  CallProtectionTransformation,
+  ConstructorTransformation,
+  ImmutablesTransformation,
+  LibraryTransformation,
+  Transformation,
+  TransformationValues,
+} from '../Verification/Transformations';
 
 export async function verifyDeployed(
   checkedContract: AbstractCheckedContract,
