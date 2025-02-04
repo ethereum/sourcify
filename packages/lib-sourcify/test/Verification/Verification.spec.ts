@@ -258,7 +258,7 @@ describe('Verification Class Tests', () => {
               },
             ],
             values: {
-              callProtection: '0x5fbdb2315678afecb367f032d93f642f64180aa3', // The actual deployed library address
+              callProtection: contractAddress.toLowerCase(),
             },
           },
         },
