@@ -21,20 +21,12 @@ import Transformations, {
   Transformation,
   TransformationValues,
 } from './Transformations';
-
-interface BytecodeMatchingContext {
-  isCreation: boolean;
-  normalizedRecompiledBytecode: string;
-}
-
-interface BytecodeMatchingResult {
-  match: 'perfect' | 'partial' | null;
-  libraryMap?: StringMap;
-  normalizedRecompiledBytecode: string;
-  transformations: Transformation[];
-  transformationValues: TransformationValues;
-  message?: string;
-}
+import {
+  BytecodeMatchingContext,
+  BytecodeMatchingResult,
+  VerificationError,
+  VerificationErrorCode,
+} from './VerificationTypes';
 
 export class Verification {
   // Bytecodes
@@ -77,14 +69,15 @@ export class Verification {
 
     // Can't match if there is no deployed bytecode
     if (!this.onchainRuntimeBytecode) {
-      // todo: add custom SourcifyLibError, with custom code/message
-      throw new Error(
+      throw new VerificationError(
         `Chain #${this.sourcifyChain.chainId} is temporarily unavailable`,
+        VerificationErrorCode.CHAIN_UNAVAILABLE,
       );
     }
     if (this.onchainRuntimeBytecode === '0x') {
-      throw new Error(
+      throw new VerificationError(
         `Chain #${this.sourcifyChain.chainId} does not have a contract deployed at ${this.address}.`,
+        VerificationErrorCode.CONTRACT_NOT_DEPLOYED,
       );
     }
 
@@ -99,8 +92,9 @@ export class Verification {
     const compiledCreationBytecode = this.compilation.creationBytecode;
 
     if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
-      throw new Error(
+      throw new VerificationError(
         `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`,
+        VerificationErrorCode.COMPILED_BYTECODE_IS_ZERO,
       );
     }
 
@@ -117,7 +111,6 @@ export class Verification {
         address: this.address,
         error: e.message,
       });
-      throw e;
     }
 
     // Handle Solidity specific verification bug cases
@@ -165,17 +158,24 @@ export class Verification {
           deployedAuxdata === recompiledAuxdata &&
           settings.optimizer?.enabled
         ) {
-          throw new Error(
+          throw new VerificationError(
             "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+            VerificationErrorCode.EXTRA_FILE_INPUT_BUG,
           );
         }
       } catch (e: any) {
+        if (e instanceof VerificationError) {
+          throw e;
+        }
         logWarn('Error checking for extra-file-input-bug', {
           chain: this.sourcifyChain.chainId,
           address: this.address,
           error: e.message,
         });
-        throw e;
+        throw new VerificationError(
+          e.message,
+          VerificationErrorCode.FAILED_TO_CHECK_EXTRA_FILE_INPUT_BUG,
+        );
       }
     }
 
@@ -210,7 +210,6 @@ export class Verification {
           creatorTxHash: this.creatorTxHash,
           error: e.message,
         });
-        throw e;
       }
     }
 
@@ -224,7 +223,10 @@ export class Verification {
       return;
     }
 
-    throw Error("The deployed and recompiled bytecode don't match.");
+    throw new VerificationError(
+      "The deployed and recompiled bytecode don't match.",
+      VerificationErrorCode.NO_MATCH,
+    );
   }
 
   private async matchBytecodes(
@@ -391,14 +393,20 @@ export class Verification {
 
   get onchainRuntimeBytecode() {
     if (!this._onchainRuntimeBytecode) {
-      throw new Error('Onchain runtime bytecode not available');
+      throw new VerificationError(
+        'Onchain runtime bytecode not available',
+        VerificationErrorCode.ONCHAIN_RUNTIME_BYTECODE_NOT_AVAILABLE,
+      );
     }
     return this._onchainRuntimeBytecode;
   }
 
   get onchainCreationBytecode() {
     if (!this._onchainCreationBytecode) {
-      throw new Error('Onchain creation bytecode not available');
+      throw new VerificationError(
+        'Onchain creation bytecode not available',
+        VerificationErrorCode.ONCHAIN_CREATION_BYTECODE_NOT_AVAILABLE,
+      );
     }
     return this._onchainCreationBytecode;
   }
