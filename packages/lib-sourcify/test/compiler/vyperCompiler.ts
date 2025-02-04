@@ -5,7 +5,7 @@ import { exec, spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
 import { VyperOutput, VyperJsonInput } from '@ethereum-sourcify/lib-sourcify';
 import { fetchWithBackoff } from './common';
-import { logDebug, logError, logWarn } from '../../src/lib/logger';
+import { logDebug, logError, logWarn } from '../../src/logger';
 
 const HOST_VYPER_REPO = 'https://github.com/vyperlang/vyper/releases/download/';
 

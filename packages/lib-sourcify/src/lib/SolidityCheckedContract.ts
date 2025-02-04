@@ -26,7 +26,7 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 import { ipfsHash } from './hashFunctions/ipfsHash';
 import { swarmBzzr0Hash, swarmBzzr1Hash } from './hashFunctions/swarmHash';
-import { logError, logInfo, logSilly, logWarn } from './logger';
+import { logError, logInfo, logSilly, logWarn } from '../logger';
 import { ISolidityCompiler } from './ISolidityCompiler';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
 

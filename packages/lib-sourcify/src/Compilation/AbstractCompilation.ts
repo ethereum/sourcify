@@ -18,7 +18,7 @@ import {
   VyperOutput,
   VyperOutputContract,
 } from './VyperTypes';
-import { logInfo, logSilly, logWarn } from '../lib/logger';
+import { logInfo, logSilly, logWarn } from '../logger';
 
 export abstract class AbstractCompilation {
   /**

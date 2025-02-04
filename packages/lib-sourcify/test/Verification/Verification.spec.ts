@@ -1,7 +1,7 @@
 import { describe, it, before, after } from 'mocha';
 import { expect } from 'chai';
 import { Verification } from '../../src/Verification/Verification';
-import SourcifyChain from '../../src/lib/SourcifyChain';
+import SourcifyChain from '../../src/SourcifyChain';
 import { ChildProcess } from 'child_process';
 import { JsonRpcSigner } from 'ethers';
 import path from 'path';

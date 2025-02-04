@@ -1,20 +1,15 @@
-import {
-  InvalidSources,
-  Metadata,
-  MissingSources,
-  PathContent,
-  StringMap,
-  Settings,
-  Libraries,
-} from '..';
 import { id as keccak256str } from 'ethers';
 import semver from 'semver';
 import { getIpfsGateway, performFetch } from './fetchUtils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import {
   ISolidityCompiler,
+  Libraries,
+  Settings,
   SolidityJsonInput,
 } from '../Compilation/SolidityTypes';
+import { Metadata, StringMap } from '../Compilation/CompilationTypes';
+import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
 
 const CONTENT_VARIATORS = [
   (content: string) => content.replace(/\r?\n/g, '\r\n'),

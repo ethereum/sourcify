@@ -1,4 +1,4 @@
-import { logWarn } from '../lib/logger';
+import { logWarn } from '../logger';
 import { AbstractCompilation } from './AbstractCompilation';
 import { id as keccak256str } from 'ethers';
 import {
