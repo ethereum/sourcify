@@ -50,14 +50,14 @@
     "ethers": "6.13.5",
     "http-status-codes": "2.3.0",
     "jszip": "3.10.1",
-    "semver": "7.6.3"
+    "semver": "7.7.1"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
     "@types/chai-as-promised": "7.1.8",
     "@types/debug": "4.1.12",
     "@types/mocha": "10.0.10",
-    "@types/node": "22.12.0",
+    "@types/node": "22.13.1",
     "@types/sinon": "17.0.3",
     "@types/sinon-chai": "4.0.0",
     "c8": "10.1.3",
