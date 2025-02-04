@@ -129,7 +129,7 @@ export class Verification {
         !forceEmscripten && // Enter this case only if we are not already forcing Emscripten
         lt(this.compilation.compilerVersion, '0.8.21') &&
         !settings.optimizer?.enabled &&
-        settings?.viaIR
+        settings.viaIR
       ) {
         logInfo('Force Emscripten compiler', {
           address: this.address,
