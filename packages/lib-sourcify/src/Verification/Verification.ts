@@ -370,16 +370,16 @@ export class Verification {
       normalizedRecompiledBytecode: this.compilation.creationBytecode,
     });
 
+    this.creationMatch = result.match;
+    this._libraryMap = result.libraryMap;
+    this.creationTransformations = result.transformations;
+    this.creationTransformationValues = result.transformationValues;
+
     if (result.match === 'partial' || result.match === 'perfect') {
       this.checkAndCreateConstructorArgumentsTransformation(
         result.normalizedRecompiledBytecode,
       );
     }
-
-    this.creationMatch = result.match;
-    this._libraryMap = result.libraryMap;
-    this.creationTransformations = result.transformations;
-    this.creationTransformationValues = result.transformationValues;
   }
 
   get status() {
@@ -558,7 +558,7 @@ export class Verification {
         );
       }
 
-      this.creationTransformations?.push(
+      this.creationTransformations.push(
         Transformations.ConstructorTransformation(
           normalizedRecompiledBytecode.substring(2).length / 2,
         ),
