@@ -223,6 +223,67 @@ describe('Verification Class Tests', () => {
       }
     });
 
+    it('should verify a contract with multiple auxdata with wrong auxdata leading to a partial match', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'WithMultipleAuxdatas',
+      );
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        [],
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: 'partial',
+        },
+        transformations: {
+          creation: {
+            list: [
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 4148,
+                id: '1',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 2775,
+                id: '2',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 4095,
+                id: '3',
+              },
+            ],
+            values: {
+              cborAuxdata: {
+                '1': '0xa2646970667358221220fe338e4778c1623b5865cd4121849802c8ed68e688def4d95b606f2f02ec563e64736f6c63430008090033',
+                '2': '0xa2646970667358221220bc654cadfb13b9ef229b6a2db4424f95dc4c52e3ae9b60648aa276f8eb0b3f8464736f6c63430008090033',
+                '3': '0xa2646970667358221220eb4312065a8c0fb940ef11ef5853554a447a5325095ee0f8fbbbbfc43dbb1b7464736f6c63430008090033',
+              },
+            },
+          },
+        },
+      });
+    });
+
     it('should verify a library with call protection and add the transformation', async () => {
       const contractFolderPath = path.join(
         __dirname,
@@ -978,6 +1039,188 @@ describe('Verification Class Tests', () => {
           },
         },
       });
+    });
+  });
+
+  describe('Creation transaction matching tests', () => {
+    // https://github.com/ethereum/sourcify/pull/1623
+    it('should verify a contract partially with the creation bytecode after transformation fields are normalized', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'ConstructorModified',
+      );
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        ['12345'],
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: 'partial',
+        },
+        transformations: {
+          creation: {
+            list: [
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 279,
+                id: '1',
+              },
+              {
+                type: 'insert',
+                reason: 'constructorArguments',
+                offset: 332,
+              },
+            ],
+            values: {
+              cborAuxdata: {
+                '1': '0xa26469706673582212208a693a7ed29129e25fc67a65f83955fb3d86f5fbc378940d697827714b955df564736f6c634300081a0033',
+              },
+              constructorArguments:
+                '0x0000000000000000000000000000000000000000000000000000000000003039',
+            },
+          },
+        },
+      });
+    });
+
+    it('should return null creationMatch when the wrong creation tx hash is passed', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'WithImmutables',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        ['12345'],
+      );
+
+      // Deploy another contract to get a different transaction hash
+      const { txHash: wrongTxHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        ['12345'],
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        wrongTxHash,
+      );
+
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
+        },
+      });
+    });
+
+    it('should fail verification when trying to maliciously verify with creation bytecode that startsWith the creatorTx input', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'WithImmutables',
+      );
+      const maliciousContractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'WithImmutablesCreationBytecodeAttack',
+      );
+
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        ['12345'],
+      );
+
+      const compilation = await getCompilationFromMetadata(
+        maliciousContractFolderPath,
+      );
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+
+      try {
+        await verification.verify();
+        throw new Error('Should have failed');
+      } catch (err: any) {
+        expect(err.message).to.include(
+          "The deployed and recompiled bytecode don't match.",
+        );
+      }
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: null,
+          creationMatch: null,
+        },
+      });
+    });
+
+    it('should fail verification when using an abstract contract', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'WithImmutables',
+      );
+      const abstractContractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'AbstractCreationBytecodeAttack',
+      );
+
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+        ['12345'],
+      );
+
+      const compilation = await getCompilationFromMetadata(
+        abstractContractFolderPath,
+      );
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+
+      try {
+        await verification.verify();
+        throw new Error('Should have failed');
+      } catch (err: any) {
+        expect(err.message).to.include(
+          'The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?',
+        );
+      }
     });
   });
 });

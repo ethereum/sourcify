@@ -85,10 +85,6 @@ export class Verification {
     // Compile the contract
     await this.compilation.compile(forceEmscripten);
 
-    // We need to manually generate the auxdata positions because they are not automatically produced during compilation
-    // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
-    await this.compilation.generateCborAuxdataPositions();
-
     const compiledRuntimeBytecode = this.compilation.runtimeBytecode;
     const compiledCreationBytecode = this.compilation.creationBytecode;
 
@@ -98,6 +94,10 @@ export class Verification {
         VerificationErrorCode.COMPILED_BYTECODE_IS_ZERO,
       );
     }
+
+    // We need to manually generate the auxdata positions because they are not automatically produced during compilation
+    // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
+    await this.compilation.generateCborAuxdataPositions();
 
     // Try to match onchain runtime bytecode with compiled runtime bytecode
     try {
