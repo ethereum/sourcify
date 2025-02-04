@@ -42,7 +42,8 @@ export class Verification {
   // Match status
   private runtimeMatch: 'perfect' | 'partial' | null = null;
   private creationMatch: 'perfect' | 'partial' | null = null;
-  private _libraryMap?: StringMap;
+  private runtimeLibraryMap?: StringMap;
+  private creationLibraryMap?: StringMap;
   private blockNumber?: number;
   private txIndex?: number;
   private deployer?: string;
@@ -361,7 +362,7 @@ export class Verification {
     });
 
     this.runtimeMatch = result.match;
-    this._libraryMap = result.libraryMap;
+    this.runtimeLibraryMap = result.libraryMap;
     this.runtimeTransformations = result.transformations;
     this.runtimeTransformationValues = result.transformationValues;
   }
@@ -373,7 +374,7 @@ export class Verification {
     });
 
     this.creationMatch = result.match;
-    this._libraryMap = result.libraryMap;
+    this.creationLibraryMap = result.libraryMap;
     this.creationTransformations = result.transformations;
     this.creationTransformationValues = result.transformationValues;
 
@@ -433,7 +434,10 @@ export class Verification {
   }
 
   get libraryMap() {
-    return this._libraryMap;
+    return {
+      runtime: this.runtimeLibraryMap,
+      creation: this.creationLibraryMap,
+    };
   }
 
   get abiEncodedConstructorArguments() {

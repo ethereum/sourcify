@@ -15,11 +15,11 @@ import {
   ISolidityCompiler,
   SolidityOutput,
 } from '../../src/Compilation/SolidityTypes';
-import { PathContent } from '../../src/lib/types';
 import { useSolidityCompiler } from '../compiler/solidityCompiler';
 import { findSolcPlatform } from '../compiler/solidityCompiler';
 import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
+import { PathContent } from '../../src/Validation/ValidationTypes';
 
 class TestSolidityCompiler implements ISolidityCompiler {
   async compile(
@@ -466,7 +466,7 @@ describe('Verification Class Tests', () => {
           chainId: sourcifyChainHardhat.chainId.toString(),
           runtimeMatch: verification.status.runtimeMatch,
           creationMatch: verification.status.creationMatch,
-          libraryMap: verification.libraryMap,
+          libraryMap: verification.libraryMap.creation,
         },
         'perfect',
         contractAddress,
@@ -560,7 +560,10 @@ describe('Verification Class Tests', () => {
 
       // Test getLibraryMap
       const libraryMap = verification.libraryMap;
-      expect(libraryMap).to.deep.equal({});
+      expect(libraryMap).to.deep.equal({
+        runtime: {},
+        creation: {},
+      });
     });
   });
 
