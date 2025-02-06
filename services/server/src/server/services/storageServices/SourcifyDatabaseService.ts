@@ -270,181 +270,6 @@ export class SourcifyDatabaseService
     return { pagination, results };
   };
 
-  getContractsByChainId = async (
-    chainId: string,
-    limit: number,
-    descending: boolean,
-    afterMatchId?: string,
-  ): Promise<{ results: VerifiedContractMinimal[] }> => {
-    await this.init();
-
-    const sourcifyMatchesResult = await this.database.getSourcifyMatchesByChain(
-      parseInt(chainId),
-      limit,
-      descending,
-      afterMatchId,
-    );
-
-    const results: VerifiedContractMinimal[] = sourcifyMatchesResult.rows.map(
-      (row) => ({
-        match: getTotalMatchLevel(row.creation_match, row.runtime_match),
-        creationMatch: toMatchLevel(row.creation_match),
-        runtimeMatch: toMatchLevel(row.runtime_match),
-        chainId,
-        address: getAddress(row.address),
-        verifiedAt: row.verified_at,
-        matchId: row.id,
-      }),
-    );
-
-    return { results };
-  };
-
-  getContract = async (
-    chainId: string,
-    address: string,
-    fields?: Field[],
-    omit?: Field[],
-  ): Promise<VerifiedContract> => {
-    if (fields && omit) {
-      throw new Error("Cannot specify both fields and omit at the same time");
-    }
-
-    // Collect which fields are requested
-    const requestedFields = new Set<Field>();
-
-    if (fields) {
-      fields.forEach((field) => requestedFields.add(field));
-    }
-
-    if (omit) {
-      for (const field of Object.keys(FIELDS_TO_STORED_PROPERTIES)) {
-        if (typeof field === "string") {
-          if (!omit.includes(field as Field)) {
-            requestedFields.add(field as Field);
-          }
-        } else {
-          for (const subField of Object.keys(field)) {
-            const fullSubField: Field = `${field}.${subField}`;
-            if (!omit.includes(field) && !omit.includes(fullSubField)) {
-              requestedFields.add(fullSubField);
-            }
-          }
-        }
-      }
-    }
-
-    // Add default fields
-    const defaultFields: Field[] = [
-      "matchId",
-      "creationMatch",
-      "runtimeMatch",
-      "verifiedAt",
-    ];
-    defaultFields.forEach((field) => requestedFields.add(field));
-
-    // Get corresponding database properties
-    const requestedProperties = Array.from(requestedFields).reduce(
-      (properties, fullField) => {
-        const property = reduceAccessorStringToProperty(
-          fullField,
-          FIELDS_TO_STORED_PROPERTIES,
-        );
-
-        if (typeof property === "string") {
-          properties.push(property as StoredProperties);
-        } else {
-          // The whole subobject is requested, e.g. the creationBytecode object
-          for (const value of Object.values(property)) {
-            properties.push(value);
-          }
-        }
-        return properties;
-      },
-      [] as StoredProperties[],
-    );
-
-    // Retrieve database result
-    const sourcifyMatchResult =
-      await this.database.getSourcifyMatchByChainAddressWithProperties(
-        parseInt(chainId),
-        bytesFromString(address),
-        requestedProperties,
-      );
-
-    if (sourcifyMatchResult.rowCount === 0) {
-      return {
-        match: null,
-        creationMatch: null,
-        runtimeMatch: null,
-        chainId,
-        address,
-      };
-    }
-
-    // Map the database result to the contract object
-    const retrievedContract = Array.from(requestedFields).reduce(
-      (verifiedContract, fullField) => {
-        const property = reduceAccessorStringToProperty(
-          fullField,
-          FIELDS_TO_STORED_PROPERTIES,
-        );
-
-        const addToContract = (field: string, subField: string, value: any) => {
-          if (subField) {
-            if (!verifiedContract[field]) {
-              verifiedContract[field] = {};
-            }
-            verifiedContract[field][subField] = value;
-          } else {
-            verifiedContract[field] = value;
-          }
-        };
-
-        if (typeof property === "string") {
-          const [field, subField] = fullField.split(".");
-          addToContract(
-            field,
-            subField,
-            sourcifyMatchResult.rows[0][property as StoredProperties],
-          );
-        } else {
-          // The whole subobject is requested, e.g. the creationBytecode object
-          for (const [subfield, subproperty] of Object.entries(property)) {
-            addToContract(
-              fullField,
-              subfield,
-              sourcifyMatchResult.rows[0][subproperty as StoredProperties],
-            );
-          }
-        }
-        return verifiedContract;
-      },
-      {} as any,
-    );
-
-    // Add and transform the properties of the contract which cannot be handled on the db level
-    const result: VerifiedContract = {
-      ...retrievedContract,
-      match: getTotalMatchLevel(
-        retrievedContract.creationMatch,
-        retrievedContract.runtimeMatch,
-      ),
-      creationMatch: toMatchLevel(retrievedContract.creationMatch),
-      runtimeMatch: toMatchLevel(retrievedContract.runtimeMatch),
-      chainId,
-      address,
-    };
-
-    if (retrievedContract.deployment?.deployer) {
-      result.deployment!.deployer = getAddress(
-        retrievedContract.deployment.deployer,
-      );
-    }
-
-    return result;
-  };
-
   /**
    * getFiles extracts the files from the database `compiled_contracts_sources`
    * and store them into FilesInfo.files, this object is then going to be formatted
@@ -782,4 +607,181 @@ export class SourcifyDatabaseService
       );
     }
   }
+
+  // APIv2 related methods
+
+  getContractsByChainId = async (
+    chainId: string,
+    limit: number,
+    descending: boolean,
+    afterMatchId?: string,
+  ): Promise<{ results: VerifiedContractMinimal[] }> => {
+    await this.init();
+
+    const sourcifyMatchesResult = await this.database.getSourcifyMatchesByChain(
+      parseInt(chainId),
+      limit,
+      descending,
+      afterMatchId,
+    );
+
+    const results: VerifiedContractMinimal[] = sourcifyMatchesResult.rows.map(
+      (row) => ({
+        match: getTotalMatchLevel(row.creation_match, row.runtime_match),
+        creationMatch: toMatchLevel(row.creation_match),
+        runtimeMatch: toMatchLevel(row.runtime_match),
+        chainId,
+        address: getAddress(row.address),
+        verifiedAt: row.verified_at,
+        matchId: row.id,
+      }),
+    );
+
+    return { results };
+  };
+
+  getContract = async (
+    chainId: string,
+    address: string,
+    fields?: Field[],
+    omit?: Field[],
+  ): Promise<VerifiedContract> => {
+    if (fields && omit) {
+      throw new Error("Cannot specify both fields and omit at the same time");
+    }
+
+    // Collect which fields are requested
+    const requestedFields = new Set<Field>();
+
+    if (fields) {
+      fields.forEach((field) => requestedFields.add(field));
+    }
+
+    if (omit) {
+      for (const field of Object.keys(FIELDS_TO_STORED_PROPERTIES)) {
+        if (typeof field === "string") {
+          if (!omit.includes(field as Field)) {
+            requestedFields.add(field as Field);
+          }
+        } else {
+          for (const subField of Object.keys(field)) {
+            const fullSubField: Field = `${field}.${subField}`;
+            if (!omit.includes(field) && !omit.includes(fullSubField)) {
+              requestedFields.add(fullSubField);
+            }
+          }
+        }
+      }
+    }
+
+    // Add default fields
+    const defaultFields: Field[] = [
+      "matchId",
+      "creationMatch",
+      "runtimeMatch",
+      "verifiedAt",
+    ];
+    defaultFields.forEach((field) => requestedFields.add(field));
+
+    // Get corresponding database properties
+    const requestedProperties = Array.from(requestedFields).reduce(
+      (properties, fullField) => {
+        const property = reduceAccessorStringToProperty(
+          fullField,
+          FIELDS_TO_STORED_PROPERTIES,
+        );
+
+        if (typeof property === "string") {
+          properties.push(property as StoredProperties);
+        } else {
+          // The whole subobject is requested, e.g. the creationBytecode object
+          for (const value of Object.values(property)) {
+            properties.push(value);
+          }
+        }
+        return properties;
+      },
+      [] as StoredProperties[],
+    );
+
+    // Retrieve database result
+    const sourcifyMatchResult =
+      await this.database.getSourcifyMatchByChainAddressWithProperties(
+        parseInt(chainId),
+        bytesFromString(address),
+        requestedProperties,
+      );
+
+    if (sourcifyMatchResult.rowCount === 0) {
+      return {
+        match: null,
+        creationMatch: null,
+        runtimeMatch: null,
+        chainId,
+        address,
+      };
+    }
+
+    // Map the database result to the contract object
+    const retrievedContract = Array.from(requestedFields).reduce(
+      (verifiedContract, fullField) => {
+        const property = reduceAccessorStringToProperty(
+          fullField,
+          FIELDS_TO_STORED_PROPERTIES,
+        );
+
+        const addToContract = (field: string, subField: string, value: any) => {
+          if (subField) {
+            if (!verifiedContract[field]) {
+              verifiedContract[field] = {};
+            }
+            verifiedContract[field][subField] = value;
+          } else {
+            verifiedContract[field] = value;
+          }
+        };
+
+        if (typeof property === "string") {
+          const [field, subField] = fullField.split(".");
+          addToContract(
+            field,
+            subField,
+            sourcifyMatchResult.rows[0][property as StoredProperties],
+          );
+        } else {
+          // The whole subobject is requested, e.g. the creationBytecode object
+          for (const [subfield, subproperty] of Object.entries(property)) {
+            addToContract(
+              fullField,
+              subfield,
+              sourcifyMatchResult.rows[0][subproperty as StoredProperties],
+            );
+          }
+        }
+        return verifiedContract;
+      },
+      {} as any,
+    );
+
+    // Add and transform the properties of the contract which cannot be handled on the db level
+    const result: VerifiedContract = {
+      ...retrievedContract,
+      match: getTotalMatchLevel(
+        retrievedContract.creationMatch,
+        retrievedContract.runtimeMatch,
+      ),
+      creationMatch: toMatchLevel(retrievedContract.creationMatch),
+      runtimeMatch: toMatchLevel(retrievedContract.runtimeMatch),
+      chainId,
+      address,
+    };
+
+    if (retrievedContract.deployment?.deployer) {
+      result.deployment!.deployer = getAddress(
+        retrievedContract.deployment.deployer,
+      );
+    }
+
+    return result;
+  };
 }
