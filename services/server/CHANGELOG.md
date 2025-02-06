@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.6.0 - 2025-02-06
+
+- add API v2 lookup endpoints:
+   - Add GET `/v2/contracts/{chainId}`
+   - Add GET `/v2/contract/{chainId}/{address}`
+- add chains:
+   - Ronin Mainnet (2020)
+   - Core Blockchain Testnet2 (1114)
+   - exSat Mainnet (7200)
+   - exSat Testnet (839999)
+   - Citrea Testnet (5115)
+- Add missing Etherscan api key env names
+- Remove ethpandaops from holesky RPCs
+- Enalbe writing to Verifier Alliance DB on production
+
 ## sourcify-server@2.5.0 - 2025-01-08
 
 - Add Vyper verification support
