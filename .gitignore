@@ -27,3 +27,4 @@ workspace/
 
 # Ignore the server local config file. See .nxignore
 **/config/local.js
+
