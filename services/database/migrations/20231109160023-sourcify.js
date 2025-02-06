@@ -80,7 +80,6 @@ exports.up = function (db, callback) {
         db,
         `CREATE TABLE verification_jobs (
             id BIGSERIAL NOT NULL,
-            status varchar NOT NULL,
             started_at timestamptz NOT NULL DEFAULT NOW(),
             completed_at timestamptz,
             chain_id bigint NOT NULL,
