@@ -340,12 +340,14 @@ export class Verification {
     result.normalizedRecompiledBytecode =
       auxdataTransformationResult.normalizedRecompiledBytecode;
 
+    /* eslint-disable indent */
     const matchesNormalizedBytecode = context.isCreation
       ? onchainBytecode.startsWith(
           auxdataTransformationResult.normalizedRecompiledBytecode,
         )
       : auxdataTransformationResult.normalizedRecompiledBytecode ===
         onchainBytecode;
+    /* eslint-enable indent */
 
     if (matchesNormalizedBytecode) {
       result.match = 'partial';

@@ -87,8 +87,8 @@ export function checkAndCreateCallProtectionTransformation(
   normalizedRecompiledBytecode: string,
   onchainRuntimeBytecode: string,
 ) {
-  let transformations: Transformation[] = [];
-  let transformationValues: TransformationValues = {};
+  const transformations: Transformation[] = [];
+  const transformationValues: TransformationValues = {};
   const template = normalizedRecompiledBytecode;
   const real = onchainRuntimeBytecode;
 
