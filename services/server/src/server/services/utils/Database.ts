@@ -5,6 +5,7 @@ import {
   GetSourcifyMatchByChainAddressResult,
   GetSourcifyMatchByChainAddressWithPropertiesResult,
   GetSourcifyMatchesByChainResult,
+  GetVerificationJobByIdResult,
   GetVerifiedContractByChainAndAddressResult,
   SourceInformation,
   STORED_PROPERTIES_TO_SELECTORS,
@@ -277,7 +278,7 @@ ${
       creation_match,
       metadata,
     }: Omit<Tables.SourcifyMatch, "created_at" | "id">,
-    oldVerifiedContractId: number,
+    oldVerifiedContractId: string,
   ) {
     await this.pool.query(
       `UPDATE ${this.schema}.sourcify_matches SET 
@@ -768,6 +769,34 @@ ${
         deployer,
         contract_id,
       ],
+    );
+  }
+
+  async getVerificationJobById(
+    verificationId: string,
+  ): Promise<QueryResult<GetVerificationJobByIdResult>> {
+    return await this.pool.query(
+      `
+    SELECT
+      to_char(verification_jobs.started_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as started_at,
+      to_char(verification_jobs.completed_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as completed_at,
+      verification_jobs.chain_id,
+      concat('0x',encode(verification_jobs.contract_address, 'hex')) as conract_address
+      verification_jobs.verified_contract_id,
+      verification_jobs.error_code,
+      verification_jobs.error_id,
+      verified_contracts.runtime_match,
+      verified_contracts.creation_match,
+      verified_contracts.runtime_metadata_match,
+      verified_contracts.creation_metadata_match,
+      sourcify_matches.match_id,
+      to_char(sourcify_matches.created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as verified_at
+    FROM ${this.schema}.verification_jobs
+    LEFT JOIN ${this.schema}.verified_contracts ON verification_jobs.verified_contract_id = verified_contracts.id
+    LEFT JOIN ${this.schema}.sourcify_matches ON verified_contracts.id = sourcify_matches.verified_contract_id
+    WHERE verification_jobs.id = $1
+    `,
+      [verificationId],
     );
   }
 }

@@ -25,6 +25,7 @@ import {
   Pagination,
   VerifiedContractMinimal,
   VerifiedContract,
+  VerificationJob,
 } from "../../types";
 import Path from "path";
 import {
@@ -38,6 +39,10 @@ import { BadRequestError } from "../../../common/errors";
 import { RWStorageIdentifiers } from "./identifiers";
 import semver from "semver";
 import { DatabaseOptions } from "../utils/Database";
+import {
+  getVerificationErrorMessage,
+  VerificationError,
+} from "../../apiv2/errors";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -608,7 +613,9 @@ export class SourcifyDatabaseService
     }
   }
 
+  ////////////////////////
   // APIv2 related methods
+  ////////////////////////
 
   getContractsByChainId = async (
     chainId: string,
@@ -646,6 +653,8 @@ export class SourcifyDatabaseService
     fields?: Field[],
     omit?: Field[],
   ): Promise<VerifiedContract> => {
+    await this.init();
+
     if (fields && omit) {
       throw new Error("Cannot specify both fields and omit at the same time");
     }
@@ -783,5 +792,61 @@ export class SourcifyDatabaseService
     }
 
     return result;
+  };
+
+  getVerificationJob = async (
+    verificationId: string,
+  ): Promise<VerificationJob | null> => {
+    await this.init();
+
+    const result = await this.database.getVerificationJobById(verificationId);
+
+    if (result.rowCount === 0) {
+      return null;
+    }
+
+    const row = result.rows[0];
+
+    // Still using old match naming for compatibility with utility functions
+    const creationMatch = row.creation_match
+      ? row.creation_metadata_match
+        ? "perfect"
+        : "partial"
+      : null;
+    const runtimeMatch = row.runtime_match
+      ? row.runtime_metadata_match
+        ? "perfect"
+        : "partial"
+      : null;
+
+    const job: VerificationJob = {
+      isJobCompleted: !!row.completed_at,
+      verificationId,
+      jobStartTime: row.started_at,
+      jobFinishTime: row.completed_at || undefined,
+      contract: {
+        match: getTotalMatchLevel(creationMatch, runtimeMatch),
+        creationMatch: toMatchLevel(creationMatch),
+        runtimeMatch: toMatchLevel(runtimeMatch),
+        chainId: row.chain_id,
+        address: row.conract_address,
+        verifiedAt: row.verified_at || undefined,
+        matchId: row.match_id || undefined,
+      },
+    };
+
+    if (row.error_code && row.error_id) {
+      job.error = {
+        customCode: row.error_code as VerificationError,
+        message: getVerificationErrorMessage(
+          row.error_code as VerificationError,
+          row.chain_id,
+          row.conract_address,
+        ),
+        errorId: row.error_id,
+      };
+    }
+
+    return job;
   };
 }

@@ -98,6 +98,15 @@ export type ProxyResolution = Partial<ProxyDetectionResult> & {
   proxyResolutionError?: GenericErrorResponse;
 };
 
+export interface VerificationJob {
+  isJobCompleted: boolean;
+  verificationId: string;
+  jobStartTime: string;
+  jobFinishTime?: string;
+  error?: GenericErrorResponse;
+  contract: VerifiedContractMinimal;
+}
+
 /**
  * An array wrapper with info properties.
  */
