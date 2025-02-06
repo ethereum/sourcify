@@ -25,7 +25,6 @@ import {
   BytecodeMatchingResult,
   SolidityBugType,
   VerificationError,
-  VerificationErrorCode,
 } from './VerificationTypes';
 
 export class Verification {
@@ -71,14 +70,14 @@ export class Verification {
     } catch (e: any) {
       throw new VerificationError(
         `RPC of chain #${this.sourcifyChain.chainId} is temporarily unavailable`,
-        VerificationErrorCode.CHAIN_UNAVAILABLE,
+        'CHAIN_UNAVAILABLE',
       );
     }
 
     if (this.onchainRuntimeBytecode === '0x') {
       throw new VerificationError(
         `Chain #${this.sourcifyChain.chainId} does not have a contract deployed at ${this.address}.`,
-        VerificationErrorCode.CONTRACT_NOT_DEPLOYED,
+        'CONTRACT_NOT_DEPLOYED',
       );
     }
 
@@ -91,7 +90,7 @@ export class Verification {
     if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
       throw new VerificationError(
         `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`,
-        VerificationErrorCode.COMPILED_BYTECODE_IS_ZERO,
+        'COMPILED_BYTECODE_IS_ZERO',
       );
     }
 
@@ -169,7 +168,7 @@ export class Verification {
 
     throw new VerificationError(
       "The deployed and recompiled bytecode don't match.",
-      VerificationErrorCode.NO_MATCH,
+      'NO_MATCH',
     );
   }
 
@@ -223,7 +222,7 @@ export class Verification {
         ) {
           throw new VerificationError(
             "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-            VerificationErrorCode.EXTRA_FILE_INPUT_BUG,
+            'EXTRA_FILE_INPUT_BUG',
           );
         }
       } catch (e: any) {
@@ -237,7 +236,7 @@ export class Verification {
         });
         throw new VerificationError(
           e.message,
-          VerificationErrorCode.FAILED_TO_CHECK_EXTRA_FILE_INPUT_BUG,
+          'FAILED_TO_CHECK_EXTRA_FILE_INPUT_BUG',
         );
       }
     }
@@ -451,7 +450,7 @@ export class Verification {
     if (!this._onchainRuntimeBytecode) {
       throw new VerificationError(
         'Onchain runtime bytecode not available',
-        VerificationErrorCode.ONCHAIN_RUNTIME_BYTECODE_NOT_AVAILABLE,
+        'ONCHAIN_RUNTIME_BYTECODE_NOT_AVAILABLE',
       );
     }
     return this._onchainRuntimeBytecode;
@@ -461,7 +460,7 @@ export class Verification {
     if (!this._onchainCreationBytecode) {
       throw new VerificationError(
         'Onchain creation bytecode not available',
-        VerificationErrorCode.ONCHAIN_CREATION_BYTECODE_NOT_AVAILABLE,
+        'ONCHAIN_CREATION_BYTECODE_NOT_AVAILABLE',
       );
     }
     return this._onchainCreationBytecode;

@@ -1,8 +1,7 @@
 export class SourcifyLibError extends Error {
-  public code: number;
-  constructor(message: string, code: number = 1000) {
+  public code: string;
+  constructor(message: string, code: string) {
     super(message);
     this.code = code;
-    this.name = 'SourcifyLibError';
   }
 }
