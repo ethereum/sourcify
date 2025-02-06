@@ -532,7 +532,9 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.message).to.include(`None of the RPCs responded fetching`);
+        expect(err.message).to.include(
+          'RPC of chain #31337 is temporarily unavailable',
+        );
       }
     });
   });
