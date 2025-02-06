@@ -34,3 +34,8 @@ export class VerificationError extends SourcifyLibError {
     this.name = 'VerificationError';
   }
 }
+
+export enum SolidityBugType {
+  NONE,
+  ECMASCRIPT_BUG,
+}
