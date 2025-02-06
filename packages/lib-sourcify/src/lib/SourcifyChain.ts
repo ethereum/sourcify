@@ -434,6 +434,8 @@ export default class SourcifyChain {
         logInfo('Fetched bytecode', {
           address,
           blockNumber,
+          bytecodeLength: bytecode.length,
+          bytecodeStart: bytecode.slice(0, 32),
           providerUrl: provider.url,
           chainId: this.chainId,
         });

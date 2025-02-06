@@ -275,7 +275,7 @@ export default abstract class AbstractDatabaseService {
         address: bytesFromString(match.address),
         transaction_hash: bytesFromString(match.creatorTxHash),
         block_number: match.blockNumber,
-        txindex: match.txIndex,
+        transaction_index: match.txIndex,
         deployer: bytesFromString(match.deployer),
       },
       compiledContract: {

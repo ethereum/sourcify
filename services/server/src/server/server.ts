@@ -22,7 +22,7 @@ import logger from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "../common/errors/GenericErrorHandler";
 import { validateAddresses, validateSingleAddress } from "./common";
-import { initDeprecatedRoutes } from "./deprecated.routes";
+import { initDeprecatedRoutes } from "./apiv1/deprecated.routes";
 import getSessionMiddleware from "./session";
 import { Services } from "./services/services";
 import { StorageServiceOptions } from "./services/StorageService";
@@ -203,6 +203,9 @@ export class Server {
             validate: (matchType: string) =>
               matchType === "full_match" || matchType === "partial_match",
           },
+        },
+        $refParser: {
+          mode: "dereference",
         },
       }),
     );

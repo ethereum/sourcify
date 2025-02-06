@@ -65,6 +65,20 @@ describe("Test Supported Chains", function () {
       );
     }
   });
+  // exSat Mainnet
+  verifyContract(
+    "0xb0A32eBb9CD221d2FD91149195d87bE97552A90c",
+    "7200",
+    "exSat Mainnet",
+    "shared/",
+  );
+  // exSat Testnet
+  verifyContract(
+    "0xb0A32eBb9CD221d2FD91149195d87bE97552A90c",
+    "839999",
+    "exSat Testnet",
+    "shared/",
+  );
   // Taraxa Mainnet
   verifyContract(
     "0xDDb119FaD25d6320c62A205A8d74ae9895E822EA",
@@ -166,6 +180,13 @@ describe("Test Supported Chains", function () {
     "56",
     "Binance Smart Chain Mainnet",
     "56/",
+  );
+
+  verifyContract(
+    "0x7a57a7117cD525c217AC09113A38E9362A092A0E",
+    "2020",
+    "Ronin Mainnet",
+    "shared/",
   );
 
   verifyContract(
@@ -1222,6 +1243,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0xbC3559436348f1D96029b2Ccc16d2bBDE8016865",
+    "1114",
+    "Core Blockchain Testnet2",
+    "shared/",
+  );
+
+  verifyContract(
     "0x612C7dE4039655B9C9aE9A9B41f3A22319F0dF65",
     "1115",
     "Core Blockchain Testnet",
@@ -1740,6 +1768,14 @@ describe("Test Supported Chains", function () {
     "0x511f9B726559384f10371Bc7f19A925F864a9997",
     "26100",
     "Quantum Portal Network",
+    "shared/",
+  );
+
+  // Citrea Testnet
+  verifyContract(
+    "0xad90c25cA57A3871241D88c42dca829ae59EC144",
+    "5115",
+    "Citrea Testnet",
     "shared/",
   );
 
