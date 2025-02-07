@@ -79,13 +79,12 @@ exports.up = function (db, callback) {
       db.runSql.bind(
         db,
         `CREATE TABLE verification_jobs (
-            id BIGSERIAL NOT NULL,
-            status varchar NOT NULL,
+            id uuid NOT NULL DEFAULT gen_random_uuid(),
             started_at timestamptz NOT NULL DEFAULT NOW(),
             completed_at timestamptz,
             chain_id bigint NOT NULL,
             contract_address bytea NOT NULL,
-            verified_contract_id BIGSERIAL,
+            verified_contract_id BIGINT,
             error_code varchar,
             error_id uuid,
             verification_endpoint varchar NOT NULL,
@@ -98,7 +97,7 @@ exports.up = function (db, callback) {
       db.runSql.bind(
         db,
         `CREATE TABLE verification_jobs_ephemeral (
-            id BIGSERIAL NOT NULL,
+            id uuid NOT NULL DEFAULT gen_random_uuid(),
             recompiled_creation_code bytea,
             recompiled_runtime_code bytea,
             creator_transaction_hash bytea,

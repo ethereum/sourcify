@@ -26,6 +26,7 @@ import {
   PaginatedData,
   VerifiedContractMinimal,
   VerifiedContract,
+  VerificationJob,
 } from "../types";
 import {
   RWStorageIdentifiers,
@@ -89,6 +90,7 @@ export interface RWStorageService extends WStorageService {
     fields?: Field[],
     omit?: Field[],
   ): Promise<VerifiedContract>;
+  getVerificationJob?(verificationId: string): Promise<VerificationJob | null>;
 }
 
 export interface EnabledServices {

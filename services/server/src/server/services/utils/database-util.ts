@@ -79,7 +79,7 @@ export namespace Tables {
   }
 
   export interface VerifiedContract {
-    id: number;
+    id: string;
     compilation_id: string;
     deployment_id: string;
     creation_transformations: Nullable<Transformation[]>;
@@ -107,7 +107,7 @@ export namespace Tables {
 
   export interface SourcifyMatch {
     id: string;
-    verified_contract_id: number;
+    verified_contract_id: string;
     runtime_match: Status | null;
     creation_match: Status | null;
     metadata: Metadata;
@@ -219,6 +219,22 @@ export type GetSourcifyMatchByChainAddressWithPropertiesResult = Partial<
       std_json_output: SolidityOutput | VyperOutput;
     }
 >;
+
+export type GetVerificationJobByIdResult = {
+  started_at: string;
+  completed_at: string | null;
+  chain_id: string;
+  conract_address: string;
+  verified_contract_id: string | null;
+  error_code: string | null;
+  error_id: string | null;
+  runtime_match: boolean | null;
+  creation_match: boolean | null;
+  runtime_metadata_match: boolean | null;
+  creation_metadata_match: boolean | null;
+  match_id: string | null;
+  verified_at: string | null;
+};
 
 const sourcesAggregation =
   "json_object_agg(compiled_contracts_sources.path, json_build_object('content', sources.content))";
