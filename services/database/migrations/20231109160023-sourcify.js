@@ -84,7 +84,7 @@ exports.up = function (db, callback) {
             completed_at timestamptz,
             chain_id bigint NOT NULL,
             contract_address bytea NOT NULL,
-            verified_contract_id BIGSERIAL,
+            verified_contract_id BIGINT,
             error_code varchar,
             error_id uuid,
             verification_endpoint varchar NOT NULL,

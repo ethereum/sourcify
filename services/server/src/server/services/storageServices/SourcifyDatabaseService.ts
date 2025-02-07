@@ -819,6 +819,7 @@ export class SourcifyDatabaseService
         : "partial"
       : null;
 
+    const address = getAddress(row.conract_address);
     const job: VerificationJob = {
       isJobCompleted: !!row.completed_at,
       verificationId,
@@ -829,7 +830,7 @@ export class SourcifyDatabaseService
         creationMatch: toMatchLevel(creationMatch),
         runtimeMatch: toMatchLevel(runtimeMatch),
         chainId: row.chain_id,
-        address: row.conract_address,
+        address,
         verifiedAt: row.verified_at || undefined,
         matchId: row.match_id || undefined,
       },
@@ -841,7 +842,7 @@ export class SourcifyDatabaseService
         message: getVerificationErrorMessage(
           row.error_code as VerificationError,
           row.chain_id,
-          row.conract_address,
+          address,
         ),
         errorId: row.error_id,
       };
