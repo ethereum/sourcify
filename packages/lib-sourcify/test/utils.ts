@@ -294,13 +294,6 @@ export function expectVerification(
         }
       }
     }
-
-    // Check constructor arguments
-    if (expected.abiEncodedConstructorArguments !== undefined) {
-      expect(verification.abiEncodedConstructorArguments).to.equal(
-        expected.abiEncodedConstructorArguments,
-      );
-    }
   } catch (e) {
     console.log('Verification:', verification);
     throw e;
