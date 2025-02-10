@@ -120,8 +120,7 @@ export class Verification {
         forceEmscripten,
         compiledRuntimeBytecode,
       );
-      if (solidityBugType === SolidityBugType.ECMASCRIPT_BUG) {
-        // TODO: change name of ECMASCRIPT_BUG
+      if (solidityBugType === SolidityBugType.IR_OUTPUT_ORDERING_BUG) {
         return await this.verify({ forceEmscripten: true });
       }
     }
@@ -198,7 +197,7 @@ export class Verification {
       });
 
       // Try to verify again with Emscripten
-      return SolidityBugType.ECMASCRIPT_BUG;
+      return SolidityBugType.IR_OUTPUT_ORDERING_BUG;
     }
 
     // Case when extra unused files in compiler input cause different bytecode
@@ -221,7 +220,7 @@ export class Verification {
         settings.optimizer?.enabled
       ) {
         throw new VerificationError(
-          "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+          "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
           'EXTRA_FILE_INPUT_BUG',
         );
       }

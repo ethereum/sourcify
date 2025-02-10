@@ -217,9 +217,7 @@ describe('Verification Class Tests', () => {
       try {
         await verification.verify();
       } catch (err: any) {
-        expect(err.message).to.equal(
-          `Chain #${sourcifyChainHardhat.chainId} does not have a contract deployed at ${UNUSED_ADDRESS}.`,
-        );
+        expect(err.code).to.equal('CONTRACT_NOT_DEPLOYED');
       }
     });
 
@@ -458,12 +456,7 @@ describe('Verification Class Tests', () => {
       try {
         await failingVerification.verify();
       } catch (err: any) {
-        expect(err.message).to.include(
-          "It seems your contract's metadata hashes match but not the bytecodes",
-        );
-        expect(err.message).to.include(
-          'https://github.com/ethereum/sourcify/issues/618',
-        );
+        expect(err.code).to.equal('EXTRA_FILE_INPUT_BUG');
       }
 
       // Read all files from the sources directory
@@ -532,9 +525,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.message).to.include(
-          `Cannot fetch bytecode for chain #${unavailableChain.chainId} and address ${UNUSED_ADDRESS}`,
-        );
+        expect(err.code).to.equal('CANT_FETCH_BYTECODE');
       }
     });
   });
@@ -986,9 +977,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.message).to.equal(
-          "The deployed and recompiled bytecode don't match.",
-        );
+        expect(err.code).to.equal('NO_MATCH');
       }
     });
 
@@ -1172,9 +1161,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.message).to.include(
-          "The deployed and recompiled bytecode don't match.",
-        );
+        expect(err.code).to.equal('NO_MATCH');
       }
 
       expectVerification(verification, {
@@ -1219,9 +1206,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.message).to.include(
-          'The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?',
-        );
+        expect(err.code).to.equal('COMPILED_BYTECODE_IS_ZERO');
       }
     });
   });
