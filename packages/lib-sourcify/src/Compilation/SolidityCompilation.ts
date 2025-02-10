@@ -57,7 +57,6 @@ export class SolidityCompilation extends AbstractCompilation {
         ],
       },
     };
-    delete this.jsonInput.settings.compilationTarget;
   }
 
   /** Generates an edited contract with a space at the end of each source file to create a different source file hash and consequently a different metadata hash.
