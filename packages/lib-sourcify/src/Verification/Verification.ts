@@ -284,11 +284,11 @@ export class Verification {
       librariesTransformationResult.normalizedRecompiledBytecode;
 
     // Direct bytecode match
-    const matchesBytecode = isCreation
+    const doBytecodesMatch = isCreation
       ? onchainBytecode.startsWith(normalizedRecompiledBytecode)
       : normalizedRecompiledBytecode === onchainBytecode;
 
-    if (matchesBytecode) {
+    if (doBytecodesMatch) {
       // If there is perfect match but auxdata doesn't contain any metadata hash, return partial match
       if (
         !cborAuxdata ||
@@ -339,7 +339,7 @@ export class Verification {
       auxdataTransformationResult.normalizedRecompiledBytecode;
 
     /* eslint-disable indent */
-    const matchesNormalizedBytecode = isCreation
+    const doNormalizedBytecodesMatch = isCreation
       ? onchainBytecode.startsWith(
           auxdataTransformationResult.normalizedRecompiledBytecode,
         )
@@ -347,7 +347,7 @@ export class Verification {
         onchainBytecode;
     /* eslint-enable indent */
 
-    if (matchesNormalizedBytecode) {
+    if (doNormalizedBytecodesMatch) {
       result.match = 'partial';
       result.libraryMap = libraryMap;
       result.transformations = [
