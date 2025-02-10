@@ -21,7 +21,6 @@ import {
   TransformationValues,
 } from './Transformations';
 import {
-  BytecodeMatchingContext,
   BytecodeMatchingResult,
   SolidityBugType,
   VerificationError,
@@ -244,26 +243,26 @@ export class Verification {
   }
 
   private async matchBytecodes(
-    context: BytecodeMatchingContext,
+    isCreation: boolean,
+    normalizedRecompiledBytecode: string,
   ): Promise<BytecodeMatchingResult> {
     // Here we use bytecodes from the context because they are already processed
-    let normalizedRecompiledBytecode = context.normalizedRecompiledBytecode;
-    const onchainBytecode = context.isCreation
+    const onchainBytecode = isCreation
       ? this.onchainCreationBytecode
       : this.onchainRuntimeBytecode;
 
-    const cborAuxdata = context.isCreation
+    const cborAuxdata = isCreation
       ? this.compilation.creationBytecodeCborAuxdata
       : this.compilation.runtimeBytecodeCborAuxdata;
 
-    const transformations = context.isCreation
+    const transformations = isCreation
       ? this.creationTransformations
       : this.runtimeTransformations;
-    const transformationValues = context.isCreation
+    const transformationValues = isCreation
       ? this.creationTransformationValues
       : this.runtimeTransformationValues;
 
-    const linkReferences = context.isCreation
+    const linkReferences = isCreation
       ? this.compilation.creationLinkReferences
       : this.compilation.runtimeLinkReferences;
 
@@ -285,7 +284,7 @@ export class Verification {
       librariesTransformationResult.normalizedRecompiledBytecode;
 
     // Direct bytecode match
-    const matchesBytecode = context.isCreation
+    const matchesBytecode = isCreation
       ? onchainBytecode.startsWith(normalizedRecompiledBytecode)
       : normalizedRecompiledBytecode === onchainBytecode;
 
@@ -340,7 +339,7 @@ export class Verification {
       auxdataTransformationResult.normalizedRecompiledBytecode;
 
     /* eslint-disable indent */
-    const matchesNormalizedBytecode = context.isCreation
+    const matchesNormalizedBytecode = isCreation
       ? onchainBytecode.startsWith(
           auxdataTransformationResult.normalizedRecompiledBytecode,
         )
@@ -383,11 +382,10 @@ export class Verification {
         this.compilation.auxdataStyle,
       );
 
-    const matchBytecodesResult = await this.matchBytecodes({
-      isCreation: false,
-      normalizedRecompiledBytecode:
-        immutablesTransformationResult.normalizedRecompiledBytecode,
-    });
+    const matchBytecodesResult = await this.matchBytecodes(
+      false,
+      immutablesTransformationResult.normalizedRecompiledBytecode,
+    );
 
     this.runtimeTransformations = [
       ...this.runtimeTransformations,
@@ -407,10 +405,10 @@ export class Verification {
   }
 
   private async matchWithCreationTx() {
-    const matchBytecodesResult = await this.matchBytecodes({
-      isCreation: true,
-      normalizedRecompiledBytecode: this.compilation.creationBytecode,
-    });
+    const matchBytecodesResult = await this.matchBytecodes(
+      true,
+      this.compilation.creationBytecode,
+    );
 
     this.creationMatch = matchBytecodesResult.match;
     this.creationLibraryMap = matchBytecodesResult.libraryMap;

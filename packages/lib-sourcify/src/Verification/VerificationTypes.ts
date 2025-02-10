@@ -2,11 +2,6 @@ import { StringMap } from '../Compilation/CompilationTypes';
 import { SourcifyLibError } from '../SourcifyLibError';
 import { Transformation, TransformationValues } from './Transformations';
 
-export interface BytecodeMatchingContext {
-  isCreation: boolean;
-  normalizedRecompiledBytecode: string;
-}
-
 export interface BytecodeMatchingResult {
   match: 'perfect' | 'partial' | null;
   libraryMap?: StringMap;
