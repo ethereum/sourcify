@@ -45,7 +45,6 @@ export class Verification {
   private blockNumber?: number;
   private txIndex?: number;
   private deployer?: string;
-  private _abiEncodedConstructorArguments?: string;
 
   constructor(
     private compilation: AbstractCompilation,
@@ -490,9 +489,5 @@ export class Verification {
       runtime: this.runtimeLibraryMap,
       creation: this.creationLibraryMap,
     };
-  }
-
-  get abiEncodedConstructorArguments() {
-    return this._abiEncodedConstructorArguments;
   }
 }
