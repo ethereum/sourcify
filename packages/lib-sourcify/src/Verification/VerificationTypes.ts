@@ -30,5 +30,5 @@ export class VerificationError extends SourcifyLibError {
 
 export enum SolidityBugType {
   NONE,
-  ECMASCRIPT_BUG,
+  IR_OUTPUT_ORDERING_BUG,
 }
