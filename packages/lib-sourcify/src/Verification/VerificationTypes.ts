@@ -17,7 +17,7 @@ export interface BytecodeMatchingResult {
 }
 
 export type VerificationErrorCode =
-  | 'CHAIN_UNAVAILABLE'
+  | 'CANT_FETCH_BYTECODE'
   | 'CONTRACT_NOT_DEPLOYED'
   | 'COMPILED_BYTECODE_IS_ZERO'
   | 'EXTRA_FILE_INPUT_BUG'

@@ -69,8 +69,8 @@ export class Verification {
       );
     } catch (e: any) {
       throw new VerificationError(
-        `RPC of chain #${this.sourcifyChain.chainId} is temporarily unavailable`,
-        'CHAIN_UNAVAILABLE',
+        `Cannot fetch bytecode for chain #${this.sourcifyChain.chainId} and address ${this.address}`,
+        'CANT_FETCH_BYTECODE',
       );
     }
 
