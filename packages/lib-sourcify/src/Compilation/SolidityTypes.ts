@@ -78,7 +78,7 @@ interface ModelChecker {
   timeout?: number;
 }
 
-export interface Settings {
+export interface SoliditySettings {
   stopAfter?: string;
   remappings?: string[];
   optimizer?: Optimizer;
@@ -95,7 +95,7 @@ export interface Settings {
 export interface SolidityJsonInput {
   language: string;
   sources: Sources;
-  settings: Settings;
+  settings: SoliditySettings;
 }
 
 interface SolidityOutputError {

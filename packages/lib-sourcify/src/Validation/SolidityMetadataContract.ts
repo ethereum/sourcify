@@ -5,7 +5,7 @@ import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import {
   ISolidityCompiler,
   Libraries,
-  Settings,
+  SoliditySettings,
   SolidityJsonInput,
 } from '../Compilation/SolidityTypes';
 import { Metadata, StringMap } from '../Compilation/CompilationTypes';
@@ -278,7 +278,7 @@ export class SolidityMetadataContract {
     // Clone the settings object to avoid mutating the original metadata
     this.solcJsonInput.settings = JSON.parse(
       JSON.stringify(this.metadata.settings),
-    ) as Settings;
+    ) as SoliditySettings;
 
     if (
       !this.metadata.settings ||
