@@ -22,9 +22,9 @@ info:
 servers:
   - url: 'http://localhost:3000'
     description: localhost
-  - url: 'https://staging.sourcify.dev/server/v2'
+  - url: 'https://staging.sourcify.dev/server'
     description: Staging
-  - url: 'https://sourcify.dev/server/v2'
+  - url: 'https://sourcify.dev/server'
     description: Production
 paths:
   '/v2/verify/{chainId}/{address}':
@@ -96,9 +96,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
   '/v2/verify/{verificationId}':
     get:
@@ -120,9 +120,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
   '/v2/contract/{chainId}/{address}':
     get:
@@ -168,9 +168,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
   '/v2/contracts/{chainId}':
     get:
@@ -219,9 +219,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
 tags:
   - name: Contract Lookup
