@@ -533,7 +533,7 @@ describe('Verification Class Tests', () => {
         throw new Error('Should have failed');
       } catch (err: any) {
         expect(err.message).to.include(
-          'RPC of chain #31337 is temporarily unavailable',
+          `Cannot fetch bytecode for chain #${unavailableChain.chainId} and address ${UNUSED_ADDRESS}`,
         );
       }
     });
