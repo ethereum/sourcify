@@ -12,7 +12,7 @@ interface CreateTableRequest {
 export default class DuneTableClient {
   private readonly baseUrl = "https://api.dune.com/api/v1/table";
   private readonly headers: Record<string, string>;
-  private readonly namespace: string;
+  private readonly namespace = process.env.DUNE_NAMESPACE || "sourcify";
 
   constructor(apiKey: string) {
     if (!apiKey) {
@@ -23,7 +23,6 @@ export default class DuneTableClient {
       "x-dune-api-key": apiKey,
       "Content-Type": "application/json",
     };
-    this.namespace = "sourcify_team";
   }
 
   private async createTable(request: CreateTableRequest): Promise<Response> {

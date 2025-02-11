@@ -20,6 +20,7 @@ POSTGRES_PASSWORD=your_postgres_password
 
 # Dune API Configuration
 DUNE_API_KEY=your_dune_api_key
+DUNE_NAMESPACE=your_dune_namespace
 ```
 
 ### Installation
