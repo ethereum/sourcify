@@ -102,7 +102,7 @@ export interface InsertData {
 export default class DuneClient {
   private readonly baseUrl = "https://api.dune.com/api/v1/table";
   private readonly headers: { [key: string]: string };
-  private readonly namespace = "sourcify_team";
+  private readonly namespace = process.env.DUNE_NAMESPACE || "sourcify";
 
   constructor(apiKey: string) {
     if (!apiKey) {
