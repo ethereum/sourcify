@@ -205,39 +205,22 @@ export class Verification {
     //   https://github.com/ethereum/sourcify/issues/618
     //   https://github.com/ethereum/solidity/issues/14250
     //   https://github.com/ethereum/solidity/issues/14494
-    try {
-      const [, deployedAuxdata] = splitAuxdata(
-        this.onchainRuntimeBytecode,
-        AuxdataStyle.SOLIDITY,
-      );
-      const [, recompiledAuxdata] = splitAuxdata(
-        compiledRuntimeBytecode,
-        AuxdataStyle.SOLIDITY,
-      );
-      // Metadata hashes match but bytecodes don't match.
-      if (
-        deployedAuxdata === recompiledAuxdata &&
-        settings.optimizer?.enabled
-      ) {
-        throw new VerificationError(
-          "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-          'EXTRA_FILE_INPUT_BUG',
-        );
-      }
-    } catch (e: any) {
-      if (e instanceof VerificationError) {
-        throw e;
-      }
-      logWarn('Error checking for extra-file-input-bug', {
-        chain: this.sourcifyChain.chainId,
-        address: this.address,
-        error: e.message,
-      });
+    const [, deployedAuxdata] = splitAuxdata(
+      this.onchainRuntimeBytecode,
+      AuxdataStyle.SOLIDITY,
+    );
+    const [, recompiledAuxdata] = splitAuxdata(
+      compiledRuntimeBytecode,
+      AuxdataStyle.SOLIDITY,
+    );
+    // Metadata hashes match but bytecodes don't match.
+    if (deployedAuxdata === recompiledAuxdata && settings.optimizer?.enabled) {
       throw new VerificationError(
-        e.message,
-        'FAILED_TO_CHECK_EXTRA_FILE_INPUT_BUG',
+        "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+        'EXTRA_FILE_INPUT_BUG',
       );
     }
+
     return SolidityBugType.NONE;
   }
 
