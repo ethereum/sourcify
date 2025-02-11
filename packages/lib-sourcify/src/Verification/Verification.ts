@@ -12,11 +12,11 @@ import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import { StringMap } from '../Compilation/CompilationTypes';
 
 import {
-  checkAndCreateAuxdataTransformation,
-  checkAndCreateCallProtectionTransformation,
-  checkAndCreateConstructorArgumentsTransformation,
-  checkAndCreateImmutablesTransformation,
-  checkAndCreateLibrariesTransformation,
+  extractAuxdataTransformation,
+  extractCallProtectionTransformation,
+  extractConstructorArgumentsTransformation,
+  extractImmutablesTransformation,
+  extractLibrariesTransformation,
   Transformation,
   TransformationValues,
 } from './Transformations';
@@ -273,7 +273,7 @@ export class Verification {
     };
 
     // Replace library placeholders
-    const librariesTransformationResult = checkAndCreateLibrariesTransformation(
+    const librariesTransformationResult = extractLibrariesTransformation(
       normalizedRecompiledBytecode,
       onchainBytecode,
       linkReferences,
@@ -328,7 +328,7 @@ export class Verification {
       return result;
     }
 
-    const auxdataTransformationResult = checkAndCreateAuxdataTransformation(
+    const auxdataTransformationResult = extractAuxdataTransformation(
       normalizedRecompiledBytecode,
       onchainBytecode,
       cborAuxdata,
@@ -367,19 +367,18 @@ export class Verification {
   private async matchWithRuntimeBytecode() {
     // Check if is a library with call protection
     const callProtectionTransformationResult =
-      checkAndCreateCallProtectionTransformation(
+      extractCallProtectionTransformation(
         this.compilation.runtimeBytecode,
         this.onchainRuntimeBytecode,
       );
 
     // Handle immutable references
-    const immutablesTransformationResult =
-      checkAndCreateImmutablesTransformation(
-        callProtectionTransformationResult.normalizedRecompiledBytecode,
-        this.onchainRuntimeBytecode,
-        this.compilation.immutableReferences,
-        this.compilation.auxdataStyle,
-      );
+    const immutablesTransformationResult = extractImmutablesTransformation(
+      callProtectionTransformationResult.normalizedRecompiledBytecode,
+      this.onchainRuntimeBytecode,
+      this.compilation.immutableReferences,
+      this.compilation.auxdataStyle,
+    );
 
     const matchBytecodesResult = await this.matchBytecodes(
       false,
@@ -420,7 +419,7 @@ export class Verification {
       matchBytecodesResult.match === 'perfect'
     ) {
       const constructorTransformationResult =
-        checkAndCreateConstructorArgumentsTransformation(
+        extractConstructorArgumentsTransformation(
           matchBytecodesResult.normalizedRecompiledBytecode,
           this.onchainCreationBytecode,
           this.compilation.metadata,
