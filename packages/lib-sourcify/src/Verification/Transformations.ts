@@ -83,7 +83,7 @@ export interface TransformationValues {
 }
 
 // returns the full bytecode with the call protection replaced with the real address
-export function checkAndCreateCallProtectionTransformation(
+export function extractCallProtectionTransformation(
   normalizedRecompiledBytecode: string,
   onchainRuntimeBytecode: string,
 ) {
@@ -120,7 +120,7 @@ export function checkAndCreateCallProtectionTransformation(
  * Easier this way because we can simply replace with zeros
  * Example immutableReferences: {"97":[{"length":32,"start":137}],"99":[{"length":32,"start":421}]} where 97 and 99 are the AST ids
  */
-export function checkAndCreateImmutablesTransformation(
+export function extractImmutablesTransformation(
   normalizedRecompiledBytecodeWith0x: string,
   onchainRuntimeBytecodeWith0x: string,
   immutableReferences: ImmutableReferences,
@@ -190,7 +190,7 @@ export function extractAbiEncodedConstructorArguments(
   );
 }
 
-export function checkAndCreateConstructorArgumentsTransformation(
+export function extractConstructorArgumentsTransformation(
   normalizedRecompiledBytecode: string,
   onchainCreationBytecode: string,
   metadata: Metadata,
@@ -243,7 +243,7 @@ export function checkAndCreateConstructorArgumentsTransformation(
   };
 }
 
-export function checkAndCreateLibrariesTransformation(
+export function extractLibrariesTransformation(
   template: string,
   real: string,
   linkReferences: LinkReferences,
@@ -306,7 +306,7 @@ export function checkAndCreateLibrariesTransformation(
   };
 }
 
-export function checkAndCreateAuxdataTransformation(
+export function extractAuxdataTransformation(
   recompiledBytecode: string,
   onchainBytecode: string,
   cborAuxdataPositions: CompiledContractCborAuxdata,
