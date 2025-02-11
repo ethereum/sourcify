@@ -151,12 +151,21 @@
     "sourcifyName": "Ethereum Rinkeby Testnet",
     "supported": false
   },
-  "51": {
-    "sourcifyName": "Apothem",
+  "50": {
+    "sourcifyName": "XDC Network",
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blocksScanApi": {
-        "url": "https://apothem.blocksscan.io/"
+        "url": "https://xdcscan.io/"
+      }
+    }
+  },
+  "51": {
+    "sourcifyName": "XDC Apothem Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blocksScanApi": {
+        "url": "https://apothem.xdcscan.io/"
       }
     }
   },
