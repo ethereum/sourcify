@@ -89,7 +89,6 @@ export interface SoliditySettings {
   libraries?: Libraries;
   outputSelection: OutputSelection;
   modelChecker?: ModelChecker;
-  compilationTarget?: string;
 }
 
 export interface SolidityJsonInput {
