@@ -168,7 +168,7 @@ describe("Test Supported Chains", function () {
   //
   // );
   verifyContract(
-    "0xA0E83aE5dCe0B9203d805D9c2Df3B8dB8687714C",
+    "0xe71b27a3cf12c450fcb8f6d6f42863f4f2f7bf0c",
     "50",
     "XDC Network",
     "shared/",
