@@ -1,6 +1,6 @@
-import { logError, logInfo, logDebug } from '../lib/logger';
+import { logError, logInfo, logDebug } from '../logger';
 import { id as keccak256str } from 'ethers';
-import { IpfsGateway } from '../lib/types';
+import { IpfsGateway } from './ValidationTypes';
 
 export async function performFetch(
   url: string,

@@ -1,4 +1,5 @@
 import { Abi } from 'abitype';
+import { SoliditySettings } from './SolidityTypes';
 
 export interface LinkReferences {
   [filePath: string]: {
@@ -75,6 +76,16 @@ export interface MetadataOutput {
   userdoc: Userdoc;
 }
 
+export interface MetadataCompilerSettings
+  extends Omit<SoliditySettings, 'libraries' | 'outputSelection'> {
+  compilationTarget: {
+    [sourceName: string]: string;
+  };
+  libraries?: {
+    [index: string]: string;
+  };
+}
+
 // Metadata type that reflects the metadata object from
 // https://docs.soliditylang.org/en/latest/metadata.html
 export interface Metadata {
@@ -84,40 +95,7 @@ export interface Metadata {
   };
   language: string;
   output: MetadataOutput;
-  settings: {
-    compilationTarget: {
-      [sourceName: string]: string;
-    };
-    evmVersion?: string;
-    libraries?: {
-      [index: string]: string;
-    };
-    metadata?: {
-      appendCBOR?: boolean;
-      bytecodeHash?: 'none' | 'ipfs' | 'bzzr0' | 'bzzr1';
-      useLiteralContent?: boolean;
-    };
-    optimizer?: {
-      details?: {
-        constantOptimizer?: boolean;
-        cse?: boolean;
-        deduplicate?: boolean;
-        inliner?: boolean;
-        jumpdestRemover?: boolean;
-        orderLiterals?: boolean;
-        peephole?: boolean;
-        yul?: boolean;
-        yulDetails?: {
-          optimizerSteps?: string;
-          stackAllocation?: boolean;
-        };
-      };
-      enabled: boolean;
-      runs: number;
-    };
-    viaIR?: boolean;
-    outputSelection?: any;
-  };
+  settings: MetadataCompilerSettings;
   sources: MetadataSourceMap;
   version: number;
 }

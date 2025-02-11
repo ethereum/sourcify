@@ -1,5 +1,5 @@
 import { Abi } from 'abitype';
-import SourcifyChain from './SourcifyChain';
+import SourcifyChain from '../SourcifyChain';
 import { FetchRequest } from 'ethers';
 export interface PathBuffer {
   path: string;

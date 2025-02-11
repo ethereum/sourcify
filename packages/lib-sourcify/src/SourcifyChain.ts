@@ -12,7 +12,7 @@ import {
   FetchContractCreationTxMethods,
   SourcifyChainExtension,
   TraceSupportedRPC,
-} from './types';
+} from './lib/types';
 import { logDebug, logError, logInfo, logWarn } from './logger';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
