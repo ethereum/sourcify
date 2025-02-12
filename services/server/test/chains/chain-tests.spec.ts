@@ -168,14 +168,14 @@ describe("Test Supported Chains", function () {
   //
   // );
   verifyContract(
-    "0xe71b27a3cf12c450fcb8f6d6f42863f4f2f7bf0c",
+    "0xbe4e03bebf828c8b7104841096a2ef19e587ae1d",
     "50",
     "XDC Network",
     "shared/",
   );
 
   verifyContract(
-    "0x705DAB99067D67aec81dd410e8E697106900A045",
+    "0x1eb067d61e9cf30ede5190ddde2f4096c6417ec1",
     "51",
     "XDC Apothem Testnet",
     "shared/",
