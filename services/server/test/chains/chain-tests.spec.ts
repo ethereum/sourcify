@@ -167,11 +167,17 @@ describe("Test Supported Chains", function () {
   //   "shared/"
   //
   // );
+  verifyContract(
+    "0xbe4e03bebf828c8b7104841096a2ef19e587ae1d",
+    "50",
+    "XDC Network",
+    "shared/",
+  );
 
   verifyContract(
-    "0x8C3FA94eb5b07c9AF7dBFcC53ea3D2BF7FdF3617",
+    "0x1eb067d61e9cf30ede5190ddde2f4096c6417ec1",
     "51",
-    "XinFin Apothem Testnet",
+    "XDC Apothem Testnet",
     "shared/",
   );
 
