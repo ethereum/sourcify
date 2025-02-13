@@ -9,17 +9,10 @@
 
 import path from 'path';
 import fs from 'fs';
-import {
-  SolidityOutput,
-  JsonInput,
-  Match,
-  SourcifyChain,
-  verifyDeployed,
-} from '../src';
+import { Match, SourcifyChain, verifyDeployed } from '../src';
 import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
-import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
 import { useSolidityCompiler } from './compiler/solidityCompiler';
 import { useVyperCompiler } from './compiler/vyperCompiler';
 import {
@@ -27,6 +20,11 @@ import {
   VyperJsonInput,
   VyperOutput,
 } from '../src/lib/IVyperCompiler';
+import {
+  ISolidityCompiler,
+  SolidityJsonInput,
+  SolidityOutput,
+} from '../src/Compilation/SolidityTypes';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields
@@ -62,7 +60,7 @@ export async function deployFromAbiAndBytecode(
 class Solc implements ISolidityCompiler {
   async compile(
     version: string,
-    solcJsonInput: JsonInput,
+    solcJsonInput: SolidityJsonInput,
     forceEmscripten: boolean = false,
   ): Promise<SolidityOutput> {
     return await useSolidityCompiler(version, solcJsonInput, forceEmscripten);
