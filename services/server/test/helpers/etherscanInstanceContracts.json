@@ -318,6 +318,18 @@
       "expectedStatus": "perfect"
     }
   ],
+  "1114": [
+    {
+      "address": "0x06fd8b725adba12a76b21f0a03accbf30d64dc55",
+      "type": "single",
+      "expectedStatus": "partial"
+    },
+    {
+      "address": "0xa4807B287191a9044Cc3CEe537641E9B829cF2F1",
+      "type": "standard-json",
+      "expectedStatus": "partial"
+    }
+  ],
   "1101": [
     {
       "address": "0xe10Add2ad591A7AC3CA46788a06290De017b9fB4",

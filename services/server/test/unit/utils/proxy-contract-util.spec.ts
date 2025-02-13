@@ -22,7 +22,9 @@ describe("proxy contract util", function () {
     chai.expect(result).to.deep.equal({
       isProxy: true,
       proxyType: "EIP1167Proxy",
-      implementations: ["0x9ec1c3dcf667f2035fb4cd2eb42a1566fd54d2b7"],
+      implementations: [
+        { address: "0x9ec1c3dcf667f2035fb4cd2eb42a1566fd54d2b7" },
+      ],
     });
   });
 
@@ -43,11 +45,11 @@ describe("proxy contract util", function () {
       isProxy: true,
       proxyType: "DiamondProxy",
       implementations: [
-        "0x798c3DFb0F66B7f6be23B1aef54F95A2C07ca82E",
-        "0xf77C3c52B615a477Dd434C876ab87A93736ed254",
-        "0x3BA37715Ee934cf160A5ed88D1B8C0cea6Ea839F",
-        "0x44A3F16cB323d54d393f06526D6E661FE9282CFA",
-        "0xc965AeF3625ad80873001D238EaE5e5dfb93B529",
+        { address: "0x798c3DFb0F66B7f6be23B1aef54F95A2C07ca82E" },
+        { address: "0xf77C3c52B615a477Dd434C876ab87A93736ed254" },
+        { address: "0x3BA37715Ee934cf160A5ed88D1B8C0cea6Ea839F" },
+        { address: "0x44A3F16cB323d54d393f06526D6E661FE9282CFA" },
+        { address: "0xc965AeF3625ad80873001D238EaE5e5dfb93B529" },
       ],
     });
   });
@@ -68,7 +70,9 @@ describe("proxy contract util", function () {
     chai.expect(result).to.deep.equal({
       isProxy: true,
       proxyType: "EIP1967Proxy",
-      implementations: ["0xac805a864be8b5c6727a7ecd502c287a20c91379"],
+      implementations: [
+        { address: "0xac805a864be8b5c6727a7ecd502c287a20c91379" },
+      ],
     });
   });
 

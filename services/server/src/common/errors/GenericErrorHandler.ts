@@ -11,6 +11,11 @@ export default function genericErrorHandler(
 ): void {
   const errorCode = +err.code || err.status || 500;
 
+  if (err.payload) {
+    // APIv2 errors include the response payload
+    res.status(errorCode).json(err.payload);
+    return;
+  }
   if (err.errors) {
     // This is a validation error
     res.status(errorCode).json({

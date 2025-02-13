@@ -50,7 +50,7 @@ const hardhatChain = {
   nativeCurrency: { name: 'localETH', symbol: 'localETH', decimals: 18 },
   network: 'testnet',
   networkId: 31337,
-  rpc: [`http://localhost:${HARDHAT_PORT}`],
+  rpc: [`http://127.0.0.1:${HARDHAT_PORT}`],
   supported: true,
 };
 const sourcifyChainHardhat: SourcifyChain = new SourcifyChain(hardhatChain);
@@ -531,18 +531,21 @@ describe('lib-sourcify tests', () => {
 
   // For https://github.com/ethereum/sourcify/pull/1623
   it('should verify a contract partially with the creation bytecode after transformation fields are normalized', async () => {
-    const contractFolderPath = path.join(
-      __dirname,
-      'sources',
-      'ConstructorModified',
-    );
+    const contractFolderPath = path.join(__dirname, 'sources', 'Constructor');
     const { contractAddress, txHash } = await deployFromAbiAndBytecode(
       signer,
       contractFolderPath,
       ['12345'],
     );
+
+    const modifiedContractFolderPath = path.join(
+      __dirname,
+      'sources',
+      'ConstructorModified',
+    );
+
     const match = await checkAndVerifyDeployed(
-      contractFolderPath,
+      modifiedContractFolderPath,
       sourcifyChainHardhat,
       contractAddress,
       txHash,
@@ -1119,6 +1122,123 @@ describe('lib-sourcify tests', () => {
         console.log('Match: ', match);
         throw e;
       }
+    });
+
+    it('should find a perfect match for a contract that has a single metadata hash in the middle of the creation bytecode', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CBORInTheMiddle',
+      );
+
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, []);
+
+      const checkedContracts =
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
+      const recompiled = await checkedContracts[0].recompile();
+      const match: Match = {
+        address: contractAddress,
+        chainId: sourcifyChainHardhat.chainId.toString(),
+        runtimeMatch: null,
+        creationMatch: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      const generateCreationCborAuxdataPositions = async () => {
+        if (!checkedContracts[0].creationBytecodeCborAuxdata) {
+          await checkedContracts[0].generateCborAuxdataPositions();
+        }
+        return checkedContracts[0].creationBytecodeCborAuxdata || {};
+      };
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainHardhat,
+        contractAddress,
+        creatorTxHash,
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
+      );
+      // Must check the creationMatch
+      expect(match.creationMatch).to.equal('perfect');
+    });
+
+    it('should find a perfect match for a contract that has multiple metadata hashes in the middle of the creation bytecode', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CBORInTheMiddleFactory',
+      );
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, [
+          UNUSED_ADDRESS,
+        ]);
+      const checkedContracts =
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
+      const recompiled = await checkedContracts[0].recompile();
+      const match: Match = {
+        address: contractAddress,
+        chainId: sourcifyChainHardhat.chainId.toString(),
+        runtimeMatch: null,
+        creationMatch: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      const generateCreationCborAuxdataPositions = async () => {
+        if (!checkedContracts[0].creationBytecodeCborAuxdata) {
+          await checkedContracts[0].generateCborAuxdataPositions();
+        }
+        return checkedContracts[0].creationBytecodeCborAuxdata || {};
+      };
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainHardhat,
+        contractAddress,
+        creatorTxHash,
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
+      );
+      expect(match.creationMatch).to.equal('perfect');
+    });
+
+    it('should not find a perfect match for a contract for which no cborAuxdataPositions could be generated', async () => {
+      // This mocks the case where no cborAuxdataPositions could be generated
+      const generateCreationCborAuxdataPositions = async () => {
+        return {};
+      };
+
+      const contractFolderPath = path.join(
+        __dirname,
+        'sources',
+        'CBORInTheMiddleFactory',
+      );
+      const { contractAddress, txHash: creatorTxHash } =
+        await deployFromAbiAndBytecode(signer, contractFolderPath, [
+          UNUSED_ADDRESS,
+        ]);
+      const checkedContracts =
+        await checkFilesWithMetadataFromContractFolder(contractFolderPath);
+      const recompiled = await checkedContracts[0].recompile();
+      const match: Match = {
+        address: contractAddress,
+        chainId: sourcifyChainHardhat.chainId.toString(),
+        runtimeMatch: null,
+        creationMatch: null,
+      };
+      const recompiledMetadata: Metadata = JSON.parse(recompiled.metadata);
+      await matchWithCreationTx(
+        match,
+        recompiled.creationBytecode,
+        sourcifyChainHardhat,
+        contractAddress,
+        creatorTxHash,
+        recompiledMetadata,
+        generateCreationCborAuxdataPositions,
+        recompiled.creationLinkReferences,
+      );
+      expect(match.creationMatch).to.equal('partial');
     });
 
     it('find a partial match for a contract with multiple auxdatas and one of the "subcontract" was modified', async () => {

@@ -7,4 +7,5 @@ export interface IResponseError {
   code: number;
   message: string;
   errors?: any[];
+  payload?: Record<string, any>;
 }

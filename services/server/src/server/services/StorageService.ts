@@ -18,11 +18,14 @@ import {
   FileObject,
   FilesInfo,
   Mandatory,
-  MatchLevel,
-  MatchLevelWithoutAny,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
   MethodArgs,
   MethodNames,
-  PaginatedContractData,
+  MethodReturnType,
+  PaginatedData,
+  VerifiedContractMinimal,
+  VerifiedContract,
 } from "../types";
 import {
   RWStorageIdentifiers,
@@ -36,6 +39,7 @@ import {
   S3RepositoryServiceOptions,
 } from "./storageServices/S3RepositoryService";
 import { DatabaseOptions } from "./utils/Database";
+import { Field } from "./utils/database-util";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -50,29 +54,41 @@ export interface RWStorageService extends WStorageService {
   getFile(
     chainId: string,
     address: string,
-    match: MatchLevelWithoutAny,
+    match: V1MatchLevelWithoutAny,
     path: string,
   ): Promise<string | false>;
   getTree(
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<string[]>>;
   getContent(
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>>;
   getContracts(chainId: string): Promise<ContractData>;
-  getPaginatedContracts?(
+  getPaginatedContractAddresses?(
     chainId: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
     page: number,
     limit: number,
     descending: boolean,
-  ): Promise<PaginatedContractData>;
+  ): Promise<PaginatedData<string>>;
   checkByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
   checkAllByChainAndAddress(address: string, chainId: string): Promise<Match[]>;
+  getContractsByChainId?(
+    chainId: string,
+    limit: number,
+    descending: boolean,
+    afterMatchId?: string,
+  ): Promise<{ results: VerifiedContractMinimal[] }>;
+  getContract?(
+    chainId: string,
+    address: string,
+    fields?: Field[],
+    omit?: Field[],
+  ): Promise<VerifiedContract>;
 }
 
 export interface EnabledServices {
@@ -328,14 +344,14 @@ export class StorageService {
     return await Promise.all(promises);
   }
 
-  async performServiceOperation<
+  performServiceOperation<
     T extends Mandatory<RWStorageService>, // Mandatory is used to allow optional functions like getPaginatedContracts
     K extends MethodNames<T>, // MethodNames extracts T's methods
   >(
     methodName: K,
     // MethodArgs gets the parameters types of method K from T
     args: MethodArgs<T, K>,
-  ) {
+  ): MethodReturnType<T, K> {
     const service = this.getDefaultReadService() as T;
     const method = service[methodName];
     try {
@@ -345,7 +361,7 @@ export class StorageService {
         );
       }
 
-      return await method.apply(service, args);
+      return method.apply(service, args);
     } catch (error) {
       logger.error(
         `Error while calling ${String(methodName)} from ${service.IDENTIFIER}`,

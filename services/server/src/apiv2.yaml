@@ -1,0 +1,1372 @@
+openapi: 3.1.0
+info:
+  version: '0.2'
+  title: Sourcify v2 - Draft
+  summary: DRAFT - Sourcify v2
+  description: |-
+    Welcome to the Sourcify's APIv2 Draft. Our new API is currently in the design phase and we are seeking feedback!
+
+    Important differences between the [current API](https://docs.sourcify.dev/docs/api/):
+    - **Ticketing**: The verfication requests resolve into tickets/verification jobs. 
+      - Previously the verification happened during the HTTP request, which resulted in timeouts if compilation took longer
+    - **Standard JSON as default**: In the current design we take the standard JSON format as our main verification endpoint. We still support verification with metadata at `/verify/metadata`.
+    - **Lean API**: We keep the number of endpoints minimal compared to v1. We won't have a session API. 
+    - **Detailed contract response**: Prev. we only returned contract files of a contract. Now we can return details at `/contract/{chainId}/{address}`.
+  contact:
+    name: Sourcify
+    url: 'https://sourcify.dev'
+    email: hello@sourcify.dev
+  license:
+    url: 'https://github.com/ethereum/sourcify/LICENSE.md'
+    name: MIT
+servers:
+  - url: 'http://localhost:3000'
+    description: localhost
+  - url: 'https://staging.sourcify.dev/server'
+    description: Staging
+  - url: 'https://sourcify.dev/server'
+    description: Production
+paths:
+  '/v2/verify/{chainId}/{address}':
+    post:
+      tags:
+        - Verify Contracts
+      summary: Verify Contract (Standard JSON)
+      description: |-
+        Submit a contract for verification via the Solidity [standard JSON input](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description).
+
+        There are no "single file" or "multi-part" verification endpoints because those are essentially wrappers around the Solidity compiler's JSON interface. The verification frontend can provide files and settings options to resemble these. 
+      operationId: verify
+      parameters:
+        - $ref: '#/components/parameters/chainId'
+        - $ref: '#/components/parameters/address'
+      requestBody:
+        $ref: '#/components/requestBodies/StdJSONVerificationRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/ReturnVerificationJob'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+  '/v2/verify/metadata/{chainId}/{address}':
+    post:
+      tags:
+        - Verify Contracts
+      summary: Verify Contract (using Solidity metadata.json)
+      description: Endpoint to submit a verification with the Solidity metadata.json
+      operationId: verify-metadata
+      parameters:
+        - $ref: '#/components/parameters/chainId'
+        - $ref: '#/components/parameters/address'
+      requestBody:
+        $ref: '#/components/requestBodies/MetadataVerificationRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/ReturnVerificationJob'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+  '/v2/verify/etherscan/{chainId}/{address}':
+    post:
+      tags:
+        - Verify Contracts
+      summary: Import from Etherscan
+      description: Import a contract verified on an Etherscan instance or a service with Etherscan-alike API
+      operationId: import-from-etherscan
+      parameters:
+        - $ref: '#/components/parameters/chainId'
+        - $ref: '#/components/parameters/address'
+      requestBody:
+        $ref: '#/components/requestBodies/EtherscanVerificationRequest'
+      responses:
+        '202':
+          $ref: '#/components/responses/ReturnVerificationJob'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/EtherscanLimitResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      servers:
+        - url: 'http://localhost:3000'
+          description: localhost
+        - url: 'https://staging.sourcify.dev/server'
+          description: Staging
+        - url: 'https://sourcify.dev/server'
+          description: Production
+  '/v2/verify/{verificationId}':
+    get:
+      tags:
+        - Verification Jobs
+      summary: Check verification job status
+      description: |-
+        Endpoint to get the status of a verification job.
+
+        Alternatively you can directly check the verification status of a contract with with chainId+address at `GET /v2/contract/{chainId}/{address}`
+      operationId: verification-status
+      parameters:
+        - $ref: '#/components/parameters/verificationId'
+      responses:
+        '200':
+          $ref: '#/components/responses/VerificationJobResponse'
+        '404':
+          $ref: '#/components/responses/VerificationJobNotFound'
+      servers:
+        - url: 'http://localhost:3000'
+          description: localhost
+        - url: 'https://staging.sourcify.dev/server'
+          description: Staging
+        - url: 'https://sourcify.dev/server'
+          description: Production
+  '/v2/contract/{chainId}/{address}':
+    get:
+      tags:
+        - Contract Lookup
+      summary: Get verified contract
+      description: |-
+        By default returns minimal information about the contract: `match`, `creation_match`, `runtime_match`, `chainId`, `address`, and `verifiedAt`
+
+        To get other details one can either list the fields requested in the `fields` query param or ask all fields but omit several with `omit`. To get everything just pass `fields=*`.
+      operationId: get-contract
+      parameters:
+        - name: fields
+          in: query
+          description: Comma seperated fields to include in the response. Can also take `*`
+          allowReserved: true
+          schema:
+            type: string
+            examples:
+              - 'creationBytecode.onchainBytecode,deployment.blockNumber,compilation,abi,metadata'
+        - name: omit
+          in: query
+          description: Comma seperated fields to NOT include in the response. All fields except matching ones will be returned. Can't be used simultanously with `fields`.
+          allowReserved: true
+          schema:
+            type: string
+            examples:
+              - 'userdoc,devdoc,storageLayout,compilation.sources'
+        - $ref: '#/components/parameters/chainId'
+        - $ref: '#/components/parameters/address'
+      responses:
+        '200':
+          $ref: '#/components/responses/VerifiedContract'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '404':
+          $ref: '#/components/responses/ContractNotVerifiedResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      security: []
+      servers:
+        - url: 'http://localhost:3000'
+          description: localhost
+        - url: 'https://staging.sourcify.dev/server'
+          description: Staging
+        - url: 'https://sourcify.dev/server'
+          description: Production
+  '/v2/contracts/{chainId}':
+    get:
+      tags:
+        - Contract Lookup
+      summary: List of verified contracts per chain
+      description: Retrieve the verified contracts on a chain
+      operationId: get-v2-contracts-chainId
+      parameters:
+        - name: sort
+          in: query
+          description: 'Sorts the contracts by most recent first (`desc`, default), or by oldest first (`asc`)'
+          schema:
+            type: string
+            enum:
+              - asc
+              - desc
+            default: desc
+            examples:
+              - asc
+        - name: limit
+          in: query
+          description: Number of contracts that should be returned per page
+          schema:
+            type: number
+            minimum: 1
+            maximum: 200
+            default: 200
+            examples:
+              - 50
+        - name: afterMatchId
+          in: query
+          description: The last `matchId` returned to get contracts older or newer than it (depending on `sort`)
+          schema:
+            type: string
+        - $ref: '#/components/parameters/chainId'
+      responses:
+        '200':
+          $ref: '#/components/responses/ListVerifiedContracts'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '429':
+          $ref: '#/components/responses/TooManyRequestsResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+      servers:
+        - url: 'http://localhost:3000'
+          description: localhost
+        - url: 'https://staging.sourcify.dev/server'
+          description: Staging
+        - url: 'https://sourcify.dev/server'
+          description: Production
+tags:
+  - name: Contract Lookup
+    description: Tools and endpoints for looking up contract information
+  - name: Verification Jobs
+    description: APIs related to checking job management
+  - name: Verify Contracts
+    description: Endpoints for initiating contract verification
+components:
+  parameters:
+    chainId:
+      name: chainId
+      in: path
+      description: The chainId number of the EVM chain
+      required: true
+      schema:
+        type: string
+        pattern: ^\d+$
+        minLength: 1
+        maxLength: 20
+        examples:
+          - '11155111'
+    address:
+      name: address
+      in: path
+      description: Contract's 20 byte address in hex string with the 0x prefix. Case insensitive.
+      required: true
+      schema:
+        type: string
+        pattern: '(\b0x[a-fA-F0-9]{40}\b)'
+        minLength: 42
+        maxLength: 42
+        examples:
+          - '0x2738d13E81e30bC615766A0410e7cF199FD59A83'
+    verificationId:
+      name: verificationId
+      in: path
+      description: Verification Job ID returned from the server for a verification request.
+      required: true
+      schema:
+        type: string
+        format: uuid
+        examples:
+          - 550e8400-e29b-41d4-a716-446655440000
+  requestBodies:
+    StdJSONVerificationRequest:
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              language:
+                $ref: '#/components/schemas/Language'
+              stdJsonInput:
+                type: object
+                description: 'Full [standard JSON object](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description) to pass to the compiler'
+              compilerVersion:
+                $ref: '#/components/schemas/SolidityCompilerVersion'
+              contractIdentifier:
+                type: string
+                description: The fully qualified file path and contract name to indicate which contract to verify.
+                examples:
+                  - 'contracts/Storage.sol:Storage'
+              dryRun:
+                type: boolean
+    MetadataVerificationRequest:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              sources:
+                type: object
+                additionalProperties:
+                  type: string
+              metadata:
+                type: object
+              dryRun:
+                type: boolean
+            required:
+              - sources
+          examples:
+            Example 1:
+              value:
+                sources:
+                  contracts/Storage.sol: |
+                    // SPDX-License-Identifier: MIT
+                    pragma solidity ^0.8.0;
+
+                    contract Storage {
+                        uint256 number;
+
+                        function setNumber(uint256 newNumber) public {
+                            number = newNumber;
+                        }
+
+                        function getNumber() public view returns (uint256) {
+                            return number;
+                        }
+                    }
+                  contracts/Owner.sol: |
+                    // SPDX-License-Identifier: MIT
+                    pragma solidity ^0.8.0;
+
+                    contract Owner {
+                        address public owner;
+
+                        constructor() {
+                            owner = msg.sender;
+                        }
+                    }
+                metadata: {}
+    EtherscanVerificationRequest:
+      description: '> Should the API key be optional or required?'
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              apiKey:
+                type: string
+                description: API key to use when importing from the Etherscan instance or Etherscan-alike API
+              dryRun:
+                type: boolean
+  responses:
+    VerificationJobResponse:
+      description: |-
+        The verification job completed either with success or failure. This endpoint returns `200` even if the verification job fails. Check the `contract.match` field and `error` for verification statuses.
+
+        If the job is not completed yet (i.e. pending), the `isJobCompleted` will be false.
+      content:
+        application/json:
+          schema:
+            type: object
+            allOf:
+              - type: object
+                properties:
+                  isJobCompleted:
+                    type: boolean
+                  verificationId:
+                    type: string
+                    format: uuid
+                  error:
+                    $ref: '#/components/schemas/GenericErrorResponse'
+                    description: 'Optional, when the verification fails for some reason.'
+                  jobStartTime:
+                    type: string
+                    format: date-time
+                  jobFinishTime:
+                    type: string
+                required:
+                  - isJobCompleted
+                  - verificationId
+              - type: object
+                properties:
+                  contract:
+                    $ref: '#/components/schemas/VerifiedContractMinimal'
+          examples:
+            Success:
+              value:
+                isJobCompleted: true
+                verificationId: 72d12273-0723-448e-a9f6-f7957128efa5
+                jobStartTime: '2024-07-24T11:00:00Z'
+                jobFinishTime: '2024-07-24T12:00:00Z'
+                contract:
+                  match: match
+                  creationMatch: match
+                  runtimeMatch: match
+                  chainId: '11155111'
+                  address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                  verifiedAt: '2024-07-24T12:00:00Z'
+                  matchId: '3266227'
+            Pending:
+              value:
+                isJobCompleted: false
+                verificationId: 72d12273-0723-448e-a9f6-f7957128efa5
+                jobStartTime: '2024-07-24T12:00:00Z'
+                contract:
+                  match: null
+                  creationMatch: null
+                  runtimeMatch: null
+                  chainId: '11155111'
+                  address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+            Error:
+              value:
+                isJobCompleted: true
+                verificationId: 72d12273-0723-448e-a9f6-f7957128efa5
+                jobStartTime: '2024-07-24T11:00:00Z'
+                jobFinishTime: '2024-07-24T12:00:00Z'
+                error:
+                  custom_code: non_existing_contract
+                  message: Contract 0x2738d13E81e30bC615766A0410e7cF199FD59A83 does not exist on chain 11155111
+                  id: 1ac6b91a-0605-4459-93dc-18f210a70192
+                contract:
+                  match: null
+                  creationMatch: null
+                  runtimeMatch: null
+                  chainId: '11155111'
+                  address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+    VerifiedContract:
+      description: Example response
+      content:
+        application/json:
+          schema:
+            type: object
+            allOf:
+              - $ref: '#/components/schemas/VerifiedContractMinimal'
+              - type: object
+                properties:
+                  creationBytecode:
+                    $ref: '#/components/schemas/CreationBytecodeResponse'
+                  runtimeBytecode:
+                    $ref: '#/components/schemas/RuntimeBytecodeResponse'
+                  deployment:
+                    type: object
+                    properties:
+                      transactionHash:
+                        $ref: '#/components/schemas/Keccak256'
+                      blockNumber:
+                        type: string
+                        examples:
+                          - '21721660'
+                      transactionIndex:
+                        type: string
+                        examples:
+                          - '3'
+                      deployer:
+                        $ref: '#/components/schemas/Address'
+                  sources:
+                    type: object
+                    additionalProperties:
+                      type: object
+                      properties:
+                        content:
+                          type: string
+                  compilation:
+                    type: object
+                    properties:
+                      language:
+                        $ref: '#/components/schemas/Language'
+                      compiler:
+                        type: string
+                        examples:
+                          - solc
+                      compilerVersion:
+                        $ref: '#/components/schemas/SolidityCompilerVersion'
+                      compilerSettings:
+                        type: object
+                      name:
+                        type: string
+                        examples:
+                          - MyContract
+                      fullyQualifiedName:
+                        type: string
+                        examples:
+                          - 'contracts/MyContract.sol:MyContract'
+                  abi:
+                    type: array
+                    items:
+                      type: object
+                  metadata:
+                    type: object
+                  storageLayout:
+                    type: object
+                  userdoc:
+                    type: object
+                  devdoc:
+                    type: object
+                  stdJsonInput:
+                    type: object
+                    description: The input fields conforming the compiler standard-JSON format.
+                    properties:
+                      language:
+                        $ref: '#/components/schemas/Language'
+                      sources:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            content:
+                              type: string
+                            keccak256:
+                              $ref: '#/components/schemas/Keccak256'
+                      settings:
+                        type: object
+                  stdJsonOutput:
+                    type: object
+                    description: The outputs conforming the compiler standard JSON format
+                    properties:
+                      sources:
+                        type: object
+                        additionalProperties:
+                          type: object
+                          properties:
+                            id:
+                              type: integer
+                              description: The AST IDs of the sources
+                      contracts:
+                        type: object
+                        description: |-
+                          Contracts output in the standard JSON format.
+
+                          This will only contain the entry for the compilaton target contract, even if the `outputSelection` was `*`.            
+                        additionalProperties:
+                          type: object
+                          additionalProperties:
+                            type: object
+                            properties:
+                              abi:
+                                type: array
+                                items:
+                                  type: object
+                              userdoc:
+                                type: object
+                              devdoc:
+                                type: object
+                              storageLayout:
+                                type: object
+                              metadata:
+                                type: string
+                                description: Serialized JSON string
+                              evm:
+                                type: object
+                                properties:
+                                  bytecode:
+                                    type: object
+                                    description: In Sourcify we refer to this field more explicitly as "creation bytecode"
+                                    properties:
+                                      sourceMap:
+                                        type: string
+                                      linkReferences:
+                                        $ref: '#/components/schemas/LinkReferences'
+                                      object:
+                                        $ref: '#/components/schemas/HexStringWithout0x'
+                                        description: 'Without the 0x prefix, as in the compiler output format'
+                                  deployedBytecode:
+                                    type: object
+                                    description: In Sourcify we refer to this field more explicitly as "runtime bytecode"
+                                    properties:
+                                      sourceMap:
+                                        type: string
+                                      linkReferences:
+                                        $ref: '#/components/schemas/LinkReferences'
+                                      object:
+                                        $ref: '#/components/schemas/HexStringWithout0x'
+                                        description: 'Without the 0x prefix, as in the compiler output format'
+                                      immutableReferences:
+                                        type: object
+                                        additionalProperties:
+                                          type: object
+                  proxyResolution:
+                    $ref: '#/components/schemas/ProxyResoltion'
+          examples:
+            Full response:
+              value:
+                match: match
+                creationMatch: match
+                runtimeMatch: match
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                verifiedAt: '2024-07-24T12:00:00Z'
+                matchId: '3266227'
+                creationBytecode:
+                  onchainBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+                  recompiledBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+                  sourceMap: '73951:11562:0:-:0;;;;;;;;;;;;-1:-1:-1;63357:7:0;:15;;-1:-1:-1;;63357:15:0;;;73951:11562;;;;;;'
+                  linkReferences:
+                    contracts/AmplificationUtils.sol:
+                      AmplificationUtils:
+                        - start: 3078
+                          length: 20
+                    contracts/SwapUtils.sol:
+                      SwapUtils:
+                        - start: 2931
+                          length: 20
+                  cborAuxdata:
+                    '1':
+                      value: '0xa2646970667358221220d6808f0352d5e503f1f878b19b1bf46c893bac1e20b3c51884efb58a87435b5564736f6c634300080a0033'
+                      offset: 18685
+                    '2':
+                      value: '0xa264697066735822122017bf4253b73b339897d7c117916781f30b434e6caa783b20eb15065469814dcf64736f6c634300080a0033'
+                      offset: 18465
+                  transformations:
+                    - id: '1'
+                      type: replace
+                      offset: 18040
+                      reason: cborAuxdata
+                    - type: insert
+                      offset: 6183
+                      reason: constructorArguments
+                    - id: 'sources/lib/MyLib.sol:MyLib'
+                      type: replace
+                      offset: 582
+                      reason: library
+                  transformationValues:
+                    libraries:
+                      'sources/lib/MyLib.sol:MyLib': '0x40b70a4904fad0ff86f8c901b231eac759a0ebb0'
+                    constructorArguments: '0x00000000000000000000000085fe79b998509b77bf10a8bd4001d58475d29386'
+                    cborAuxdata:
+                      '0': '0xa26469706673582212201c37bb166aa1bc4777a7471cda1bbba7ef75600cd859180fa30d503673b99f0264736f6c63430008190033'
+                runtimeBytecode:
+                  onchainBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+                  recompiledBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+                  sourceMap: '73951:11562:0:-:0;;;;;;;;;;;;-1:-1:-1;63357:7:0;:15;;-1:-1:-1;;63357:15:0;;;73951:11562;;;;;;'
+                  linkReferences:
+                    contracts/AmplificationUtils.sol:
+                      AmplificationUtils:
+                        - start: 3078
+                          length: 20
+                    contracts/SwapUtils.sol:
+                      SwapUtils:
+                        - start: 2931
+                          length: 20
+                  cborAuxdata:
+                    '1':
+                      value: '0xa2646970667358221220d6808f0352d5e503f1f878b19b1bf46c893bac1e20b3c51884efb58a87435b5564736f6c634300080a0033'
+                      offset: 18685
+                    '2':
+                      value: '0xa264697066735822122017bf4253b73b339897d7c117916781f30b434e6caa783b20eb15065469814dcf64736f6c634300080a0033'
+                      offset: 18465
+                  immutableReferences:
+                    '1050':
+                      - start: 312
+                        length: 32
+                      - start: 2631
+                        length: 32
+                  transformations:
+                    - id: 'CriminalDogs.sol:SafeMath'
+                      type: replace
+                      offset: 1863
+                      reason: library
+                    - id: '1'
+                      type: replace
+                      offset: 2747
+                      reason: cborAuxdata
+                    - id: '1466'
+                      type: replace
+                      offset: 18703
+                      reason: immutable
+                    - id: '1466'
+                      type: replace
+                      offset: 18939
+                      reason: immutable
+                    - type: replace
+                      offset: 1
+                      reason: callProtection
+                  transformationValues:
+                    libraries:
+                      'contracts/order/OrderUtils.sol:OrderUtilsLib': '0x40b70a4904fad0ff86f8c901b231eac759a0ebb0'
+                    immutables:
+                      '1466': '0x000000000000000000000000000000007f56768de3133034fa730a909003a165'
+                    cborAuxdata:
+                      '1': '0xa26469706673582212201c37bb166aa1bc4777a7471cda1bbba7ef75600cd859180fa30d503673b99f0264736f6c63430008190033'
+                    callProtection: '0x9deba23b95205127e906108f191a26f5d520896a'
+                deployment:
+                  transactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+                  blockNumber: '21721660'
+                  transactionIndex: '0'
+                  deployer: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                sources:
+                  contracts/Storage.sol:
+                    content: |
+                      // SPDX-License-Identifier: MIT
+                      pragma solidity ^0.8.0;
+
+                      contract Storage {
+                          uint256 number;
+
+                          function setNumber(uint256 newNumber) public {
+                              number = newNumber;
+                          }
+
+                          function getNumber() public view returns (uint256) {
+                              return number;
+                          }
+                      }
+                  contracts/Owner.sol:
+                    content: |
+                      // SPDX-License-Identifier: MIT
+                      pragma solidity ^0.8.0;
+
+                      contract Owner {
+                          address public owner;
+
+                          constructor() {
+                              owner = msg.sender;
+                          }
+                      }
+                compilation:
+                  language: Solidity
+                  compiler: solc
+                  compilerVersion: v0.8.12+commit.f00d7308
+                  compilerSettings: {}
+                  name: MyContract
+                  fullyQualifiedName: 'contracts/MyContract.sol:MyContract'
+                abi:
+                  - {}
+                userdoc: {}
+                devdoc: {}
+                storageLayout: {}
+                metadata: {}
+                stdJsonInput:
+                  language: Solidity
+                  sources:
+                    contracts/Storage.sol:
+                      content: |
+                        // SPDX-License-Identifier: MIT
+                        pragma solidity ^0.8.0;
+
+                        contract Storage {
+                            uint256 number;
+
+                            function setNumber(uint256 newNumber) public {
+                                number = newNumber;
+                            }
+
+                            function getNumber() public view returns (uint256) {
+                                return number;
+                            }
+                        }
+                    contracts/Owner.sol:
+                      content: |
+                        // SPDX-License-Identifier: MIT
+                        pragma solidity ^0.8.0;
+
+                        contract Owner {
+                            address public owner;
+
+                            constructor() {
+                                owner = msg.sender;
+                            }
+                        }
+                  settings: {}
+                stdJsonOutput:
+                  sources: {}
+                  contracts: {}
+                proxyResolution:
+                  isProxy: false
+                  proxyType: null
+                  implementations: []
+            Minimal Response:
+              value:
+                match: exact_match
+                creationMatch: exact_match
+                runtimeMatch: match
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                verifiedAt: '2024-07-24T12:00:00Z'
+                matchId: '3266227'
+            '`fields=creationBytecode.onchainBytecode,abi,deployment`':
+              value:
+                match: match
+                creationMatch: match
+                runtimeMatch: match
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                verifiedAt: '2024-07-24T12:00:00Z'
+                creationBytecode:
+                  onchainBytecode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+                deployment:
+                  transactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+                  blockNumber: '21721660'
+                  transactionIndex: '0'
+                  deployer: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                abi:
+                  - {}
+            '`omit=creationBytecode,runtimeBytecode,compilation,deployment.transactionHash,deployment.deployer`':
+              value:
+                match: match
+                creationMatch: match
+                runtimeMatch: match
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                verifiedAt: '2024-07-24T12:00:00Z'
+                deployment:
+                  blockNumber: '21721660'
+                  transactionIndex: '0'
+                abi:
+                  - {}
+                userdoc: {}
+                devdoc: {}
+                storageLayout: {}
+                metadata: {}
+            Proxy resolution (`fields=proxyResolution`):
+              value:
+                match: exact_match
+                creationMatch: exact_match
+                runtimeMatch: match
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                verifiedAt: '2024-07-24T12:00:00Z'
+                proxyResolution:
+                  isProxy: true
+                  proxyType: EIP1967Proxy
+                  implementations:
+                    - address: '0x751D7C0Cf91a9b7704541b44E5fF7BeC3D2caA6F'
+                      name: Logic contract
+            Proxy resolution with non-proxy contract:
+              value:
+                match: exact_match
+                creationMatch: exact_match
+                runtimeMatch: match
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                verifiedAt: '2024-07-24T12:00:00Z'
+                proxyResolution:
+                  isProxy: false
+                  proxyType: null
+                  implementations: []
+            Proxy resolution error:
+              value:
+                match: exact_match
+                creationMatch: exact_match
+                runtimeMatch: match
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                verifiedAt: '2024-07-24T12:00:00Z'
+                proxyResolution:
+                  proxyResolutionError:
+                    customCode: proxy_resolution_error
+                    message: RPC failed
+                    errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
+    ReturnVerificationJob:
+      description: |-
+        Successfully submitted the verification. The server started to process the verification. 
+
+        You can follow the verification status via the returned `verificationId` at `GET /v2/verify/{verificationId}`
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VerificationJob'
+    BadRequestResponse:
+      description: Bad request from the client
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorResponse'
+          examples:
+            Example 1:
+              value:
+                custom_code: unsupported_chain
+                message: The chain with chainId 9429413 is not supported
+                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+    TooManyRequestsResponse:
+      description: You are sending too many requests to the server
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorResponse'
+          examples:
+            Example 1:
+              value:
+                custom_code: too_many_requests
+                message: You are sending too many requests
+                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+    ListVerifiedContracts:
+      description: ''
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              results:
+                type: array
+                items:
+                  $ref: '#/components/schemas/VerifiedContractMinimal'
+          examples:
+            Example 1:
+              value:
+                results:
+                  - match: exact_match
+                    creationMatch: match
+                    runtimeMatch: exact_match
+                    chainId: '11155111'
+                    address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                    verifiedAt: '2024-07-24T12:00:00Z'
+                  - match: match
+                    creationMatch: match
+                    runtimeMatch: match
+                    chainId: '11155111'
+                    address: '0x2738d13E81e30bC615766A0410e7cF199FD59A83'
+                    verifiedAt: '2024-07-24T12:00:00Z'
+                pagination:
+                  currentPage: 3
+                  totalPages: 243
+                  resultsPerPage: 5000
+                  totalResults: 24245
+                  hasNextPage: true
+                  hasPreviousPage: true
+    InternalServerErrorResponse:
+      description: ''
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorResponse'
+          examples:
+            Example 1:
+              value:
+                custom_code: internal_error
+                message: Something went wrong
+                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+    EtherscanLimitResponse:
+      description: You've reached the API key limit for the Etherscan key.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorResponse'
+          examples:
+            Example 1:
+              value:
+                custom_code: etherscan_limit
+                message: Etherscan API key limit reached
+                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+    ContractNotVerifiedResponse:
+      description: The contract is not verified on Sourcify
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/VerifiedContractMinimal'
+          examples:
+            Example 1:
+              value:
+                match: null
+                creationMatch: null
+                runtimeMatch: null
+                chainId: '11155111'
+                address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+    VerificationJobNotFound:
+      description: The job is not found with this ID
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/GenericErrorResponse'
+          examples:
+            Example 1:
+              value:
+                custom_code: job_not_found
+                message: The verification job with id 461157eb-e4ea-4c5f-9aec-04c56924fd96 was not found
+                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+  schemas:
+    Language:
+      type: string
+      enum:
+        - Solidity
+        - Vyper
+      title: Language
+      default: Solidity
+    SolidityCompilerVersion:
+      type: string
+      title: SolidityCompilerVersion
+      pattern: 'v\d+\.\d+\.\d+(-nightly\.\d{4}\.\d+\.\d+)?\+commit\.[a-f0-9]{8}'
+      examples:
+        - 0.8.7+commit.e28d00a7
+    GenericErrorResponse:
+      type: object
+      title: GenericErrorResponse
+      properties:
+        customCode:
+          type: string
+          description: A string token to indicate the reason of the error
+          examples:
+            - unsupported_chain
+        message:
+          type: string
+          description: The reasoning of the error
+          examples:
+            - The chain with chainId 3153212 is not supported for verification
+        errorId:
+          type: string
+          format: uuid
+      required:
+        - message
+      examples:
+        - custom_code: unsupported_chain
+          message: The chain with chainId 9429413 is not supported
+          id: 1ac6b91a-0605-4459-93dc-18f210a70192
+    VerifiedContractMinimal:
+      type: object
+      title: VerifiedContractMinimal
+      properties:
+        match:
+          $ref: '#/components/schemas/VerificationStatusNullable'
+        creationMatch:
+          $ref: '#/components/schemas/VerificationStatusNullable'
+        runtimeMatch:
+          $ref: '#/components/schemas/VerificationStatusNullable'
+        chainId:
+          $ref: '#/components/schemas/ChainId'
+        address:
+          $ref: '#/components/schemas/Address'
+        verifiedAt:
+          type: string
+          format: date-time
+          examples:
+            - '2024-07-24T12:00:00Z'
+        matchId:
+          type: string
+          examples:
+            - '3266227'
+      required:
+        - match
+        - creationMatch
+        - runtimeMatch
+        - chainId
+        - address
+    VerificationStatusNullable:
+      type: string
+      enum:
+        - match
+        - exact_match
+        - null
+      title: VerificationStatusNullable
+    ChainId:
+      type: string
+      title: ChainId
+      pattern: ^\d+$
+      minLength: 1
+      maxLength: 20
+      examples:
+        - '11155111'
+    Address:
+      type: string
+      title: Address
+      description: Contract Address in hex string. Can be checksummed or not (i.e. can contain capital letters)
+      pattern: '(\b0x[a-fA-F0-9]{40}\b)'
+      examples:
+        - '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+    CreationBytecodeResponse:
+      type: object
+      title: CreationBytecodeResponse
+      properties:
+        onchainBytecode:
+          $ref: '#/components/schemas/BytecodeString'
+        recompiledBytecode:
+          $ref: '#/components/schemas/BytecodeString'
+        sourceMap:
+          type: string
+        linkReferences:
+          $ref: '#/components/schemas/LinkReferences'
+        cborAuxdata:
+          $ref: '#/components/schemas/CborAuxdataObject'
+          description: CborAuxdata that is found on the recompiled bytecode.
+        transformations:
+          $ref: '#/components/schemas/CreationTransformations'
+        transformationValues:
+          $ref: '#/components/schemas/CreationTransformationValues'
+    BytecodeString:
+      type: string
+      title: BytecodeString
+      pattern: '^0x([0-9|a-f][0-9|a-f])*$'
+      examples:
+        - '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+    LinkReferences:
+      type: object
+      title: LinkReferences
+      properties:
+        id:
+          type: object
+          additionalProperties:
+            type: object
+            additionalProperties:
+              type: array
+              items:
+                $ref: '#/components/schemas/LinkReference'
+      examples:
+        - contracts/AmplificationUtils.sol:
+            AmplificationUtils:
+              - start: 3078
+                length: 20
+          contracts/SwapUtils.sol:
+            SwapUtils:
+              - start: 2931
+                length: 20
+    LinkReference:
+      type: object
+      title: LinkReference
+      properties:
+        start:
+          type: integer
+        length:
+          type: string
+      examples:
+        - start: 3078
+          length: 20
+    CborAuxdataObject:
+      type: object
+      title: CborAuxdataObject
+      additionalProperties:
+        type: object
+        properties:
+          value:
+            type: string
+            examples:
+              - '0xa26469706673582212201e80049ede18eadf4ab7f0dea2c32f2375c33b5aef0b1a16cc5223dbc681559364736f6c63430007060033'
+          offset:
+            type: integer
+            examples:
+              - 5471
+      examples:
+        - '1':
+            value: '0xa2646970667358221220d6808f0352d5e503f1f878b19b1bf46c893bac1e20b3c51884efb58a87435b5564736f6c634300080a0033'
+            offset: 18685
+          '2':
+            value: '0xa264697066735822122017bf4253b73b339897d7c117916781f30b434e6caa783b20eb15065469814dcf64736f6c634300080a0033'
+            offset: 18465
+    CreationTransformations:
+      type: array
+      title: CreationTransformations
+      examples:
+        - - id: '1'
+            type: replace
+            offset: 18040
+            reason: cborAuxdata
+          - type: insert
+            offset: 6183
+            reason: constructorArguments
+          - id: 'sources/lib/MyLib.sol:MyLib'
+            type: replace
+            offset: 582
+            reason: library
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Does not exist on `constructorArguments`. Used to find the corresponding value of the Transformation in the TransformationValues dictionary
+          type:
+            type: string
+            enum:
+              - replace
+              - insert
+            description: '`insert` when the transformation value is appended to the bytecode e.g. constructor arguments'
+          offset:
+            type: integer
+            examples:
+              - 1322
+          reason:
+            type: string
+            enum:
+              - cborAuxdata
+              - library
+              - constructorArguments
+            description: 'Keep in mind the `library` reason is singular here but plural in the TransformationValues dictionary: `libraries`'
+        required:
+          - type
+          - offset
+          - reason
+    CreationTransformationValues:
+      type: object
+      title: CreationTransformationValues
+      properties:
+        libraries:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AddressLowercase'
+        constructorArguments:
+          $ref: '#/components/schemas/HexString'
+        cborAuxdata:
+          type: object
+          description: |-
+            Different format than the `cborAuxdata` field under the bytecode object. 
+
+            Will be here only if there was a transformation on the cborAuxdata. If cborAuxdatas matched, there won't be a transformation.
+          additionalProperties:
+            $ref: '#/components/schemas/HexString'
+      examples:
+        - libraries:
+            'sources/lib/MyLib.sol:MyLib': '0x40b70a4904fad0ff86f8c901b231eac759a0ebb0'
+          constructorArguments: '0x00000000000000000000000085fe79b998509b77bf10a8bd4001d58475d29386'
+          cborAuxdata:
+            '0': '0xa26469706673582212201c37bb166aa1bc4777a7471cda1bbba7ef75600cd859180fa30d503673b99f0264736f6c63430008190033'
+    AddressLowercase:
+      type: string
+      title: AddressLowercase
+      description: Contract Address in hex string
+      pattern: '(\b0x[a-f0-9]{40}\b)'
+      examples:
+        - '0x40b70a4904fad0ff86f8c901b231eac759a0ebb0'
+    HexString:
+      type: string
+      title: HexString
+      pattern: '^0x([0-9|a-f][0-9|a-f])*$'
+      examples:
+        - '0x1a2b3c4d'
+    RuntimeBytecodeResponse:
+      type: object
+      title: RuntimeBytecodeResponse
+      properties:
+        onchainBytecode:
+          $ref: '#/components/schemas/BytecodeString'
+        recompiledBytecode:
+          $ref: '#/components/schemas/BytecodeString'
+        sourceMap:
+          type: string
+        linkReferences:
+          $ref: '#/components/schemas/LinkReferences'
+        cborAuxdata:
+          $ref: '#/components/schemas/CborAuxdataObject'
+          description: CborAuxdata that is found on the recompiled bytecode.
+        immutableReferences:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              $ref: '#/components/schemas/ImmutableReference'
+        transformations:
+          $ref: '#/components/schemas/RuntimeTransformations'
+        transformationValues:
+          $ref: '#/components/schemas/CreationTransformationValues_2'
+    ImmutableReference:
+      type: object
+      title: ImmutableReference
+      properties:
+        start:
+          type: integer
+        length:
+          type: integer
+    RuntimeTransformations:
+      type: array
+      title: RuntimeTransformations
+      examples:
+        - - id: 'CriminalDogs.sol:SafeMath'
+            type: replace
+            offset: 1863
+            reason: library
+          - id: '1'
+            type: replace
+            offset: 2747
+            reason: cborAuxdata
+          - id: '1466'
+            type: replace
+            offset: 18703
+            reason: immutable
+          - id: '1466'
+            type: replace
+            offset: 18939
+            reason: immutable
+          - type: replace
+            offset: 1
+            reason: callProtection
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+            description: Does not exist on `callProtection`. Used to find the corresponding value of the Transformation in the TransformationValues dictionary
+          type:
+            const: replace
+            description: 'Runtime bytecode transformations won''t have `insert`, because runtime does not have constructor arguments to be appended.'
+          offset:
+            type: integer
+            examples:
+              - 1322
+          reason:
+            type: string
+            enum:
+              - cborAuxdata
+              - library
+              - immutable
+              - callProtection
+            description: 'Keep in mind the `library` and `immutable` reasons are singular here but plural in the TransformationValues dictionary: `libraries` and `immutables`'
+        required:
+          - type
+          - offset
+          - reason
+    CreationTransformationValues_2:
+      type: object
+      title: CreationTransformationValues
+      properties:
+        libraries:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/AddressLowercase'
+        immutables:
+          type: object
+          additionalProperties:
+            $ref: '#/components/schemas/HexString'
+        cborAuxdata:
+          type: object
+          description: |-
+            Different format than the `cborAuxdata` field under the bytecode object. 
+
+            Will be here only if there was a transformation on the cborAuxdata. If cborAuxdatas matched, there won't be a transformation.
+          additionalProperties:
+            $ref: '#/components/schemas/HexString'
+        callProtection:
+          $ref: '#/components/schemas/AddressLowercase'
+      examples:
+        - libraries:
+            'contracts/order/OrderUtils.sol:OrderUtilsLib': '0x40b70a4904fad0ff86f8c901b231eac759a0ebb0'
+          immutables:
+            '1466': '0x000000000000000000000000000000007f56768de3133034fa730a909003a165'
+          cborAuxdata:
+            '1': '0xa26469706673582212201c37bb166aa1bc4777a7471cda1bbba7ef75600cd859180fa30d503673b99f0264736f6c63430008190033'
+          callProtection: '0x9deba23b95205127e906108f191a26f5d520896a'
+    Keccak256:
+      type: string
+      title: Keccak256
+      pattern: '(\b0x[a-f0-9]{64}\b)'
+      examples:
+        - '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+    HexStringWithout0x:
+      type: string
+      title: HexStringWithout0x
+      pattern: '^([0-9|a-f][0-9|a-f])*$'
+      examples:
+        - 1a2b3c4d
+    ProxyResoltion:
+      type: object
+      title: ProxyResoltion
+      properties:
+        isProxy:
+          type: boolean
+        proxyType:
+          $ref: '#/components/schemas/ProxyType'
+        implementations:
+          type: array
+          items:
+            type: object
+            properties:
+              name:
+                type: string
+                description: Only present if the implementation contract was verified by Sourcify
+              address:
+                $ref: '#/components/schemas/Address'
+        proxyResolutionError:
+          $ref: '#/components/schemas/GenericErrorResponse'
+    ProxyType:
+      type: string
+      enum:
+        - EIP1167Proxy
+        - FixedProxy
+        - EIP1967Proxy
+        - GnosisSafeProxy
+        - DiamondProxy
+        - PROXIABLEProxy
+        - ZeppelinOSProxy
+        - SequenceWalletProxy
+        - null
+      title: ProxyType
+    VerificationJob:
+      type: object
+      title: VerificationJob
+      properties:
+        verificationId:
+          type: string
+          format: uuid

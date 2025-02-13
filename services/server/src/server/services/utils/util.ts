@@ -1,6 +1,6 @@
 import Path from "path";
 import fs from "fs";
-import { MatchLevelWithoutAny, MatchQuality } from "../../types";
+import { V1MatchLevelWithoutAny, MatchQuality, MatchLevel } from "../../types";
 import { getAddress } from "ethers";
 import { Match, Status } from "@ethereum-sourcify/lib-sourcify";
 
@@ -34,7 +34,7 @@ export async function exists(path: string): Promise<boolean> {
 
 export async function readFile(
   repositoryPath: string,
-  matchType: MatchLevelWithoutAny,
+  matchType: V1MatchLevelWithoutAny,
   chainId: string,
   address: string,
   path: string,
@@ -95,4 +95,46 @@ export function isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
     return true;
   }
   return false;
+}
+
+export function toMatchLevel(status: Status): MatchLevel {
+  switch (status) {
+    case "perfect":
+      return "exact_match";
+    case "partial":
+      return "match";
+    default:
+      return null;
+  }
+}
+
+export function getTotalMatchLevel(
+  creationStatus: Status,
+  runtimeStatus: Status,
+): MatchLevel {
+  if (
+    ![creationStatus, runtimeStatus].find(
+      (status) => status === "partial" || status === "perfect",
+    )
+  ) {
+    return null;
+  }
+  if (creationStatus === "perfect" || runtimeStatus === "perfect") {
+    return "exact_match";
+  }
+  return "match";
+}
+
+export function reduceAccessorStringToProperty(
+  accessorString: string, // for example "deployment.blockNumber"
+  obj: Record<string, any>,
+): string | Record<string, any> {
+  return accessorString
+    .split(".")
+    .reduce((current: Record<string, any>, field) => {
+      if (!current[field]) {
+        throw new Error(`String ${accessorString} is not a valid property`);
+      }
+      return current[field];
+    }, obj);
 }

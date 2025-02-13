@@ -62,7 +62,6 @@
       }
     },
     "rpc": [
-      "https://rpc.holesky.ethpandaops.io",
       {
         "type": "APIKeyRPC",
         "url": "https://eth-holesky.g.alchemy.com/v2/{API_KEY}",
@@ -152,12 +151,21 @@
     "sourcifyName": "Ethereum Rinkeby Testnet",
     "supported": false
   },
-  "51": {
-    "sourcifyName": "Apothem",
+  "50": {
+    "sourcifyName": "XDC Network",
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blocksScanApi": {
-        "url": "https://apothem.blocksscan.io/"
+        "url": "https://xdcscan.io/"
+      }
+    }
+  },
+  "51": {
+    "sourcifyName": "XDC Apothem Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blocksScanApi": {
+        "url": "https://apothem.xdcscan.io/"
       }
     }
   },
@@ -337,6 +345,10 @@
   "534": {
     "sourcifyName": "Candle",
     "supported": false
+  },
+  "2020": {
+    "sourcifyName": "Ronin Mainnet",
+    "supported": true
   },
   "42220": {
     "sourcifyName": "Celo Mainnet",
@@ -734,7 +746,8 @@
     "sourcifyName": "Moonbase",
     "supported": true,
     "etherscanApi": {
-      "apiURL": "https://api-moonbase.moonscan.io"
+      "apiURL": "https://api-moonbase.moonscan.io",
+      "apiKeyEnvName": "MOONSCAN_MOONBEAM_API_KEY"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -1572,6 +1585,17 @@
       }
     }
   },
+  "1114": {
+    "sourcifyName": "Core Blockchain Testnet2",
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api.test2.btcs.network/",
+      "apiKeyEnvName": "COREDAO_TESTNET2_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "etherscanApi": true
+    }
+  },
   "1115": {
     "sourcifyName": "Core Blockchain Testnet",
     "supported": true,
@@ -2070,7 +2094,8 @@
       "etherscanApi": true
     },
     "etherscanApi": {
-      "apiURL": "https://api-sepolia.basescan.org/"
+      "apiURL": "https://api-sepolia.basescan.org/",
+      "apiKeyEnvName": "BASESCAN_API_KEY"
     },
     "rpc": [
       "https://sepolia.base.org",
@@ -2164,7 +2189,7 @@
     "supported": true,
     "etherscanApi": {
       "apiURL": "https://api-cardona-zkevm.polygonscan.com",
-      "apiKeyEnvName": "POLYGONSCAN_API_KEY"
+      "apiKeyEnvName": "ZKEVM_POLYGONSCAN_API_KEY"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -2241,5 +2266,32 @@
   "26100": {
     "sourcifyName": "Quantum Portal Network",
     "supported": true
+  },
+  "7200": {
+    "sourcifyName": "exSat Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://scan.exsat.network"
+      }
+    }
+  },
+  "839999": {
+    "sourcifyName": "exSat Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://scan-testnet.exsat.network"
+      }
+    }
+  },
+  "5115": {
+    "sourcifyName": "Citrea Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.testnet.citrea.xyz"
+      }
+    }
   }
 }

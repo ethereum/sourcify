@@ -1,28 +1,8 @@
 #!/bin/bash
+set -e
 
 # Set npm auth token
 npm config set //registry.npmjs.org/:_authToken=${NPM_TOKEN}
-
-# Define package directories and their corresponding npm package names, e.g.
-# packages/bytecode-utils:@ethereum-sourcify/bytecode-utils
-packages=(
-  "packages/bytecode-utils:@ethereum-sourcify/bytecode-utils"
-  "packages/lib-sourcify:@ethereum-sourcify/lib-sourcify"
-  "services/server:sourcify-server"
-)
-
-# Publish packages
-for package in "${packages[@]}"; do
-  IFS=':' read -r local_path npm_package <<<"$package"
-  if [[ $CIRCLE_TAG == ${npm_package}* ]]; then # Only publish if tag starts with package name. Otherwise it will publish all at once.
-    echo "$CIRCLE_TAG matches $npm_package, publishing $npm_package"
-  else
-    echo "Skipping $npm_package as CIRCLE_TAG doesn't start with $npm_package"
-    continue
-  fi
-
-  publish_if_new_version "$local_path" "$npm_package"
-done
 
 # Helper Functions
 # ----------------
@@ -54,3 +34,24 @@ publish_if_new_version() {
     npm publish -w "$2" --verbose --access=public
   fi
 }
+
+# Define package directories and their corresponding npm package names, e.g.
+# packages/bytecode-utils:@ethereum-sourcify/bytecode-utils
+packages=(
+  "packages/bytecode-utils:@ethereum-sourcify/bytecode-utils"
+  "packages/lib-sourcify:@ethereum-sourcify/lib-sourcify"
+  "services/server:sourcify-server"
+)
+
+# Publish packages
+for package in "${packages[@]}"; do
+  IFS=':' read -r local_path npm_package <<<"$package"
+  if [[ $CIRCLE_TAG == ${npm_package}* ]]; then # Only publish if tag starts with package name. Otherwise it will publish all at once.
+    echo "$CIRCLE_TAG matches $npm_package, publishing $npm_package"
+  else
+    echo "Skipping $npm_package as CIRCLE_TAG doesn't start with $npm_package"
+    continue
+  fi
+
+  publish_if_new_version "$local_path" "$npm_package"
+done
