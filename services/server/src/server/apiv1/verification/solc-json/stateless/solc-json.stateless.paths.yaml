@@ -29,8 +29,7 @@ paths:
                     type: string
                   description: 'Files to upload {"path/filename": "content"}'
                   example:
-                    value:
-                      SolcJsonInput.json: "{...}"
+                    SolcJsonInput.json: "{...}"
                 compilerVersion:
                   type: string
                   description: Compiler version
