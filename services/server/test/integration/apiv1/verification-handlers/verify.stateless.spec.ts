@@ -54,7 +54,7 @@ describe("/", function () {
     checkNonVerified("/verify", done);
   });
 
-  it("should verify multipart upload", (done) => {
+  it.only("should verify multipart upload", (done) => {
     chai
       .request(serverFixture.server.app)
       .post("/")

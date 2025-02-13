@@ -4,6 +4,7 @@ import {
   CompiledContractCborAuxdata,
   Metadata,
   LinkReferences,
+  CompilationLanguage,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
@@ -33,6 +34,7 @@ export abstract class AbstractCompilation {
   compilerOutput?: SolidityOutput | VyperOutput;
 
   abstract auxdataStyle: AuxdataStyle;
+  abstract language: CompilationLanguage;
 
   /** Marks the positions of the CborAuxdata parts in the bytecode */
   protected _creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;

@@ -3,7 +3,7 @@ import { Abi } from 'abitype';
 interface File {
   keccak256?: string;
   urls?: string[];
-  content?: string;
+  content: string;
 }
 
 export interface Sources {

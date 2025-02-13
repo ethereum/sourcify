@@ -2,7 +2,7 @@ import Path from "path";
 import fs from "fs";
 import { V1MatchLevelWithoutAny, MatchQuality, MatchLevel } from "../../types";
 import { getAddress } from "ethers";
-import { Match, Status } from "@ethereum-sourcify/lib-sourcify";
+import { Match, Status, Verification } from "@ethereum-sourcify/lib-sourcify";
 
 export const getFileRelativePath = (
   chainId: string,
@@ -91,6 +91,46 @@ export function isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
     getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) > 0 &&
     /** and newMatch.creationMatch is not worse */
     getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >= 0
+  ) {
+    return true;
+  }
+  return false;
+}
+
+/**
+ * Verify that either the newVerification runtime or creation match is better
+ * ensuring that neither the newVerification runtime nor creation is worse
+ * than the existing verification
+ */
+export function isBetterVerification(
+  newVerification: Verification,
+  existingMatch: Match,
+): boolean {
+  if (
+    /** if newMatch.creationMatch is better */
+    getStatusDiff(
+      newVerification.status.creationMatch,
+      existingMatch.creationMatch,
+    ) > 0 &&
+    /** and newMatch.runtimeMatch is not worse */
+    getStatusDiff(
+      newVerification.status.runtimeMatch,
+      existingMatch.runtimeMatch,
+    ) >= 0
+  ) {
+    return true;
+  }
+  if (
+    /** if newMatch.runtimeMatch is better */
+    getStatusDiff(
+      newVerification.status.runtimeMatch,
+      existingMatch.runtimeMatch,
+    ) > 0 &&
+    /** and newMatch.creationMatch is not worse */
+    getStatusDiff(
+      newVerification.status.creationMatch,
+      existingMatch.creationMatch,
+    ) >= 0
   ) {
     return true;
   }

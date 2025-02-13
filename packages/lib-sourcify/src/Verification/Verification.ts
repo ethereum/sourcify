@@ -24,6 +24,7 @@ import {
   BytecodeMatchingResult,
   SolidityBugType,
   VerificationError,
+  VerificationStatus,
 } from './VerificationTypes';
 import { SoliditySettings } from '../Compilation/SolidityTypes';
 
@@ -39,8 +40,8 @@ export class Verification {
   private creationTransformationValues: TransformationValues = {};
 
   // Match status
-  private runtimeMatch: 'perfect' | 'partial' | null = null;
-  private creationMatch: 'perfect' | 'partial' | null = null;
+  private runtimeMatch: VerificationStatus = null;
+  private creationMatch: VerificationStatus = null;
   private runtimeLibraryMap?: StringMap;
   private creationLibraryMap?: StringMap;
   private blockNumber?: number;
@@ -48,9 +49,9 @@ export class Verification {
   private deployer?: string;
 
   constructor(
-    private compilation: AbstractCompilation,
+    public compilation: AbstractCompilation,
     private sourcifyChain: SourcifyChain,
-    private address: string,
+    public address: string,
     private creatorTxHash?: string,
   ) {}
 
@@ -463,6 +464,7 @@ export class Verification {
       blockNumber: this.blockNumber,
       txIndex: this.txIndex,
       deployer: this.deployer,
+      txHash: this.creatorTxHash,
     };
   }
 
@@ -471,5 +473,9 @@ export class Verification {
       runtime: this.runtimeLibraryMap,
       creation: this.creationLibraryMap,
     };
+  }
+
+  get chainId() {
+    return this.sourcifyChain.chainId;
   }
 }

@@ -36,7 +36,7 @@ export function createSolidityCheckedContract(
 ) {
   return new SolidityCheckedContract(
     solc,
-    metadata,
+    metadata as any,
     solidity,
     missing,
     invalid,
@@ -249,7 +249,7 @@ export const checkContractsInSession = async (
     for (const contract of contracts) {
       newPendingContracts[generateId(JSON.stringify(contract.metadataRaw))] = {
         // Remove large (e.g. bytecodes) and unnecessary (e.g. `solidityCompiler`) fields in SolidityCheckedContract before saving to the session. Essentially a SolidityCheckedContract only needs a few fields to be generated.
-        contract: contract.exportConstructorArguments(),
+        contract: contract.exportConstructorArguments() as any,
       };
     }
 

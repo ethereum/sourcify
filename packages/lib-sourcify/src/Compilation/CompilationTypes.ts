@@ -121,3 +121,5 @@ export interface CompilationTarget {
   name: string;
   path: string;
 }
+
+export type CompilationLanguage = 'solidity' | 'vyper';

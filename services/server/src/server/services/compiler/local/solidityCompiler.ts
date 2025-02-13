@@ -5,7 +5,10 @@ import { exec, spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
 import semver from "semver";
 import { Worker, WorkerOptions } from "worker_threads";
-import { SolidityOutput, JsonInput } from "@ethereum-sourcify/lib-sourcify";
+import {
+  SolidityOutput,
+  SolidityJsonInput,
+} from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../../common/logger";
 import { asyncExec, fetchWithBackoff } from "./common";
 
@@ -41,7 +44,7 @@ export async function useSolidityCompiler(
   solcRepoPath: string,
   solJsonRepoPath: string,
   version: string,
-  solcJsonInput: JsonInput,
+  solcJsonInput: SolidityJsonInput,
   forceEmscripten = false,
 ): Promise<SolidityOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.

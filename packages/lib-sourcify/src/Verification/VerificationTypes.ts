@@ -31,3 +31,5 @@ export enum SolidityBugType {
   NONE,
   IR_OUTPUT_ORDERING_BUG,
 }
+
+export type VerificationStatus = 'perfect' | 'partial' | null;
