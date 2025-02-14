@@ -75,6 +75,37 @@ exports.up = function (db, callback) {
         ALTER TABLE "session" ADD CONSTRAINT "session_pkey" PRIMARY KEY ("sid") NOT DEFERRABLE INITIALLY IMMEDIATE;
         CREATE INDEX "IDX_session_expire" ON "session" ("expire");`,
       ),
+      // Add verification job tables
+      db.runSql.bind(
+        db,
+        `CREATE TABLE verification_jobs (
+            id BIGSERIAL NOT NULL,
+            status varchar NOT NULL,
+            started_at timestamptz NOT NULL DEFAULT NOW(),
+            completed_at timestamptz,
+            chain_id bigint NOT NULL,
+            contract_address bytea NOT NULL,
+            verified_contract_id BIGSERIAL,
+            error_code varchar,
+            error_id uuid,
+            verification_endpoint varchar NOT NULL,
+            hardware varchar,
+            compilation_time interval,
+            CONSTRAINT verification_jobs_pkey PRIMARY KEY (id),
+            CONSTRAINT verification_jobs_verified_contract_id_fk FOREIGN KEY (verified_contract_id) REFERENCES verified_contracts(id) ON DELETE RESTRICT ON UPDATE RESTRICT
+        );`,
+      ),
+      db.runSql.bind(
+        db,
+        `CREATE TABLE verification_jobs_ephemeral (
+            id BIGSERIAL NOT NULL,
+            recompiled_creation_code bytea,
+            recompiled_runtime_code bytea,
+            creator_transaction_hash bytea,
+            CONSTRAINT verification_jobs_ephemeral_pkey PRIMARY KEY (id),
+            CONSTRAINT verification_jobs_ephemeral_id_fk FOREIGN KEY (id) REFERENCES verification_jobs(id) ON DELETE CASCADE ON UPDATE CASCADE
+        );`,
+      ),
     ],
     callback,
   );
@@ -83,6 +114,8 @@ exports.up = function (db, callback) {
 exports.down = function (db, callback) {
   async.series(
     [
+      db.dropTable.bind(db, "verification_jobs_ephemeral"),
+      db.dropTable.bind(db, "verification_jobs"),
       db.dropTable.bind(db, "session"),
       db.dropTable.bind(db, "sourcify_sync"),
       db.dropTable.bind(db, "sourcify_matches"),
