@@ -21,7 +21,7 @@ jobs:
           command: npm install
       - run:
           name: build and test
-          command: npx lerna run build && npx lerna run test:chains          
+          command: npx lerna run build --scope=sourcify-server && cd services/server && npm run test:chains
           environment:
             DOCKER_HOST_POSTGRES_TEST_PORT: 5432
             SOURCIFY_POSTGRES_HOST: "localhost"
