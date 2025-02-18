@@ -363,11 +363,7 @@ describe("GET /v2/contract/:chainId/:address", function () {
             );
           }
           objectToExpect = {
-            sources: {
-              [contractPath]: {
-                id: 0,
-              },
-            },
+            sources: { [contractPath]: { id: 0 } },
             contracts: {
               [contractPath]: {
                 [chainFixture.defaultContractArtifact.contractName]: {
@@ -759,13 +755,13 @@ describe("GET /v2/contract/:chainId/:address", function () {
     );
   });
 
-  it("should support a special field '*' for returning all fields", async function () {
+  it("should support a special field 'all' for returning all fields", async function () {
     await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=*`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=all`,
       );
 
     assertGetContractResponse(
@@ -871,13 +867,13 @@ describe("GET /v2/contract/:chainId/:address", function () {
     chai.expect(res.body).to.have.property("message");
   });
 
-  it("should return a 400 when '*' is used with another field", async function () {
+  it("should return a 400 when 'all' is used with another field", async function () {
     await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=*,creationBytecode`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=all,creationBytecode`,
       );
 
     chai.expect(res.status).to.equal(400);
