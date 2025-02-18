@@ -204,11 +204,12 @@ describe("GET /v2/contract/:chainId/:address", function () {
     res: Response,
     deploymentInfo: DeploymentInfo,
     requestedFields: string[] = [],
+    hasCreationMatch: boolean = true,
   ) => {
     chai.expect(res.status).to.equal(200);
     chai.expect(res.body).to.include({
       match: "exact_match",
-      creationMatch: "exact_match",
+      creationMatch: hasCreationMatch ? "exact_match" : null,
       runtimeMatch: "exact_match",
       chainId: chainFixture.chainId,
       address: deploymentInfo.contractAddress,
@@ -822,6 +823,29 @@ describe("GET /v2/contract/:chainId/:address", function () {
     );
   });
 
+  it("should return minimal information for a contract for which no creation code is stored", async function () {
+    // Random tx hash to make sure creation code cannot be found
+    await verifyContract(
+      serverFixture,
+      chainFixture,
+      undefined,
+      "0x60b6dcfac48e31ebdba02f8b32759b66d2593ffa00b763761a22e25d55ace14e",
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      );
+
+    assertGetContractResponse(
+      res,
+      chainFixture.defaultContractDeploymentInfo,
+      [],
+      false,
+    );
+  });
+
   it("should return a 400 when unknown fields are requested", async function () {
     await verifyContract(serverFixture, chainFixture);
 
@@ -958,6 +982,24 @@ describe("GET /v2/contract/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(`/v2/contract/${chainFixture.chainId}/${contractAddress}`);
+
+    chai.expect(res.status).to.equal(404);
+    chai.expect(res.body).to.deep.equal({
+      match: null,
+      creationMatch: null,
+      runtimeMatch: null,
+      chainId: chainFixture.chainId,
+      address: contractAddress,
+    });
+  });
+
+  it("should not return any additional information when the contract is not verified even though all fields are requested", async function () {
+    const contractAddress = "0x0000000000000000000000000000000000000000";
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${contractAddress}?fields=all`,
+      );
 
     chai.expect(res.status).to.equal(404);
     chai.expect(res.body).to.deep.equal({
