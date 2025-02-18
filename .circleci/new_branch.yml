@@ -82,7 +82,7 @@ jobs:
             fi
       - run:
           name: install build and test
-          command: npm install && npx lerna run build --scope=sourcify-server && cd services/server && npm run postgres-test:migrate && npm run test:chains
+          command: npm install && npx lerna run build --scope=sourcify-server && cd services/server && npm run test:chains
           environment:
             DOCKER_HOST_POSTGRES_TEST_PORT: 5432
             SOURCIFY_POSTGRES_HOST: "localhost"
