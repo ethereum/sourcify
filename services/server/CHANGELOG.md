@@ -2,6 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.6.1 - 2025-02-18
+
+- add chain XDC Network (50)
+- GET `/v2/contract/{chainId}/{address}` API endpoint:
+   - rename `*` field to `all`
+   - fix contracts not retrievable if no creation code is stored
+   - fix proxy resolution to not run on unverified contracts
+
+
 ## sourcify-server@2.6.0 - 2025-02-06
 
 - add API v2 lookup endpoints:
