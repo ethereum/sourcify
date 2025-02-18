@@ -992,4 +992,22 @@ describe("GET /v2/contract/:chainId/:address", function () {
       address: contractAddress,
     });
   });
+
+  it("should not return any additional information when the contract is not verified even though all fields are requested", async function () {
+    const contractAddress = "0x0000000000000000000000000000000000000000";
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${contractAddress}?fields=all`,
+      );
+
+    chai.expect(res.status).to.equal(404);
+    chai.expect(res.body).to.deep.equal({
+      match: null,
+      creationMatch: null,
+      runtimeMatch: null,
+      chainId: chainFixture.chainId,
+      address: contractAddress,
+    });
+  });
 });
