@@ -14,6 +14,14 @@ export interface GenericErrorResponse {
   errorId: string;
 }
 
+export interface MatchingErrorResponse extends GenericErrorResponse {
+  recompiledCreationCode?: string;
+  recompiledRuntimeCode?: string;
+  onchainCreationCode?: string;
+  onchainRuntimeCode?: string;
+  creatorTransactionHash?: string;
+}
+
 export class ChainNotFoundError extends NotFoundError {
   payload: GenericErrorResponse;
 
@@ -55,7 +63,9 @@ export class JobNotFoundError extends NotFoundError {
 
 // TODO: Add sensible error codes here,
 // possibly from lib-sourcify after the verification flow refactoring
-export type VerificationError = "non_existing_contract";
+export type VerificationError =
+  | "non_existing_contract"
+  | "non_matching_bytecodes";
 
 export function getVerificationErrorMessage(
   code: VerificationError,
@@ -65,6 +75,8 @@ export function getVerificationErrorMessage(
   switch (code) {
     case "non_existing_contract":
       return `Contract ${address} does not exist on chain ${chainId}`;
+    case "non_matching_bytecodes":
+      return `The onchain and recompiled bytecodes don't match`;
     default:
       return `Unknown verification error`;
   }

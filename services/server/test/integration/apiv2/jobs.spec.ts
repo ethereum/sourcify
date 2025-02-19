@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import { LocalChainFixture } from "../../helpers/LocalChainFixture";
 import {
   getVerificationErrorMessage,
-  GenericErrorResponse,
+  MatchingErrorResponse,
 } from "../../../src/server/apiv2/errors";
 import { verifyContract } from "../../helpers/helpers";
 
@@ -59,16 +59,30 @@ describe("GET /v2/verify/:verificationId", function () {
     const finishTime = isCompleted
       ? new Date(startTime.getTime() + 1000)
       : null;
-    let error: GenericErrorResponse | null = null;
+    const compilationTime = isCompleted ? "1333" : null;
+    const creatorTransactionHash = chainFixture.defaultContractCreatorTx;
+    const recompiledCreationCode =
+      chainFixture.defaultContractArtifact.bytecode;
+    const recompiledRuntimeCode =
+      chainFixture.defaultContractArtifact.deployedBytecode;
+    const onchainCreationCode = chainFixture.defaultContractArtifact.bytecode;
+    const onchainRuntimeCode =
+      chainFixture.defaultContractArtifact.deployedBytecode;
+    let error: MatchingErrorResponse | null = null;
     if (hasError) {
       error = {
-        customCode: "non_existing_contract",
+        customCode: "non_matching_bytecodes",
         errorId: uuidv4(),
         message: getVerificationErrorMessage(
-          "non_existing_contract",
+          "non_matching_bytecodes",
           chainFixture.chainId,
           chainFixture.defaultContractAddress,
         ),
+        creatorTransactionHash,
+        recompiledCreationCode,
+        recompiledRuntimeCode,
+        onchainCreationCode,
+        onchainRuntimeCode,
       };
     }
 
@@ -78,23 +92,44 @@ describe("GET /v2/verify/:verificationId", function () {
         id,
         started_at,
         completed_at,
+        compilation_time,
         chain_id,
         contract_address,
         verified_contract_id,
         error_code,
         error_id,
         verification_endpoint
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
       [
         verificationId,
         startTime,
         finishTime,
+        compilationTime,
         chainFixture.chainId,
         Buffer.from(chainFixture.defaultContractAddress.substring(2), "hex"),
         verifiedContractId,
         error?.customCode || null,
         error?.errorId || null,
         "/verify",
+      ],
+    );
+
+    await serverFixture.sourcifyDatabase.query(
+      `INSERT INTO verification_jobs_ephemeral (
+        id,
+        recompiled_creation_code,
+        recompiled_runtime_code,
+        onchain_creation_code,
+        onchain_runtime_code,
+        creator_transaction_hash
+      ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        verificationId,
+        Buffer.from(recompiledCreationCode.substring(2), "hex"),
+        Buffer.from(recompiledRuntimeCode.substring(2), "hex"),
+        Buffer.from(onchainCreationCode.substring(2), "hex"),
+        Buffer.from(onchainRuntimeCode.substring(2), "hex"),
+        Buffer.from(creatorTransactionHash.substring(2), "hex"),
       ],
     );
 
@@ -105,6 +140,7 @@ describe("GET /v2/verify/:verificationId", function () {
       verificationId,
       jobStartTime,
       ...(jobFinishTime ? { jobFinishTime } : {}),
+      ...(compilationTime ? { compilationTime } : {}),
       contract: {
         match: isVerified ? "exact_match" : null,
         creationMatch: isVerified ? "exact_match" : null,

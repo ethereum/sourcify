@@ -224,10 +224,16 @@ export type GetVerificationJobByIdResult = {
   started_at: string;
   completed_at: string | null;
   chain_id: string;
-  conract_address: string;
+  contract_address: string;
   verified_contract_id: string | null;
   error_code: string | null;
   error_id: string | null;
+  compilation_time: string | null;
+  recompiled_creation_code: string | null;
+  recompiled_runtime_code: string | null;
+  onchain_creation_code: string | null;
+  onchain_runtime_code: string | null;
+  creator_transaction_hash: string | null;
   runtime_match: boolean | null;
   creation_match: boolean | null;
   runtime_metadata_match: boolean | null;

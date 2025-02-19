@@ -819,12 +819,13 @@ export class SourcifyDatabaseService
         : "partial"
       : null;
 
-    const address = getAddress(row.conract_address);
+    const address = getAddress(row.contract_address);
     const job: VerificationJob = {
       isJobCompleted: !!row.completed_at,
       verificationId,
       jobStartTime: row.started_at,
       jobFinishTime: row.completed_at || undefined,
+      compilationTime: row.compilation_time || undefined,
       contract: {
         match: getTotalMatchLevel(creationMatch, runtimeMatch),
         creationMatch: toMatchLevel(creationMatch),
@@ -845,6 +846,11 @@ export class SourcifyDatabaseService
           address,
         ),
         errorId: row.error_id,
+        recompiledCreationCode: row.recompiled_creation_code || undefined,
+        recompiledRuntimeCode: row.recompiled_runtime_code || undefined,
+        onchainCreationCode: row.onchain_creation_code || undefined,
+        onchainRuntimeCode: row.onchain_runtime_code || undefined,
+        creatorTransactionHash: row.creator_transaction_hash || undefined,
       };
     }
 

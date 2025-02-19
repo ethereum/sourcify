@@ -17,7 +17,7 @@ import {
 import { Response } from "express";
 import { Abi } from "abitype";
 import { ProxyDetectionResult } from "./services/utils/proxy-contract-util";
-import { GenericErrorResponse } from "./apiv2/errors";
+import { GenericErrorResponse, MatchingErrorResponse } from "./apiv2/errors";
 
 // Types used internally by the server.
 
@@ -103,7 +103,8 @@ export interface VerificationJob {
   verificationId: string;
   jobStartTime: string;
   jobFinishTime?: string;
-  error?: GenericErrorResponse;
+  compilationTime?: string;
+  error?: MatchingErrorResponse;
   contract: VerifiedContractMinimal;
 }
 
