@@ -9,6 +9,7 @@ import {
   SolidityDecodedObject,
 } from '@ethereum-sourcify/bytecode-utils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
+import { VyperCompilation } from '../Compilation/VyperCompilation';
 import { StringMap } from '../Compilation/CompilationTypes';
 
 import {
@@ -90,6 +91,24 @@ export class Verification {
       throw new VerificationError(
         `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`,
         'COMPILED_BYTECODE_IS_ZERO',
+      );
+    }
+
+    // Early bytecode length check:
+    // - For Solidity: bytecode lengths must match exactly
+    // - For Vyper: recompiled bytecode must not be longer than onchain as Vyper appends immutables at deployment
+    // We cannot do an early check for creation bytecode length mismatch because
+    // creation bytecode length can differ due to constructor arguments being appended at the end
+    if (
+      (this.compilation instanceof SolidityCompilation &&
+        compiledRuntimeBytecode.length !==
+          this.onchainRuntimeBytecode.length) ||
+      (this.compilation instanceof VyperCompilation &&
+        compiledRuntimeBytecode.length > this.onchainRuntimeBytecode.length)
+    ) {
+      throw new VerificationError(
+        `The recompiled bytecode length doesn't match the onchain bytecode length.`,
+        'BYTECODE_LENGTH_MISMATCH',
       );
     }
 
