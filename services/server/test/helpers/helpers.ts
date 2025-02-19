@@ -269,6 +269,8 @@ export async function resetDatabase(sourcifyDatabase: Pool) {
   if (!sourcifyDatabase) {
     chai.assert.fail("Database pool not configured");
   }
+  await sourcifyDatabase.query("DELETE FROM verification_jobs");
+  await sourcifyDatabase.query("DELETE FROM verification_jobs_ephemeral");
   await sourcifyDatabase.query("DELETE FROM sourcify_sync");
   await sourcifyDatabase.query("DELETE FROM sourcify_matches");
   // Needed for matchId to be deterministic in tests
