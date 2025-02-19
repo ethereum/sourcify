@@ -9,7 +9,7 @@ import {
   SolidityDecodedObject,
 } from '@ethereum-sourcify/bytecode-utils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
-import { VyperCompilation } from '../Compilation/VyperCompilation';
+// import { VyperCompilation } from '../Compilation/VyperCompilation';
 import { StringMap } from '../Compilation/CompilationTypes';
 
 import {
@@ -94,6 +94,7 @@ export class Verification {
       );
     }
 
+    /* 
     // Early bytecode length check:
     // - For Solidity: bytecode lengths must match exactly
     // - For Vyper: recompiled bytecode must not be longer than onchain as Vyper appends immutables at deployment
@@ -110,7 +111,8 @@ export class Verification {
         `The recompiled bytecode length doesn't match the onchain bytecode length.`,
         'BYTECODE_LENGTH_MISMATCH',
       );
-    }
+    } 
+    */
 
     // We need to manually generate the auxdata positions because they are not automatically produced during compilation
     // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
@@ -256,21 +258,14 @@ export class Verification {
       ? this.compilation.creationBytecodeCborAuxdata
       : this.compilation.runtimeBytecodeCborAuxdata;
 
-    const transformations = isCreation
-      ? this.creationTransformations
-      : this.runtimeTransformations;
-    const transformationValues = isCreation
-      ? this.creationTransformationValues
-      : this.runtimeTransformationValues;
-
     const linkReferences = isCreation
       ? this.compilation.creationLinkReferences
       : this.compilation.runtimeLinkReferences;
 
     const result: BytecodeMatchingResult = {
       match: null,
-      transformations: [...transformations],
-      transformationValues: { ...transformationValues },
+      transformations: [],
+      transformationValues: {},
       populatedRecompiledBytecode,
     };
 
@@ -314,14 +309,9 @@ export class Verification {
       }
 
       result.libraryMap = libraryMap;
-      result.transformations = [
-        ...result.transformations,
-        ...librariesTransformationResult.transformations,
-      ];
-      result.transformationValues = {
-        ...result.transformationValues,
-        ...librariesTransformationResult.transformationValues,
-      };
+      result.transformations = librariesTransformationResult.transformations;
+      result.transformationValues =
+        librariesTransformationResult.transformationValues;
       return result;
     }
 
@@ -388,13 +378,11 @@ export class Verification {
     );
 
     this.runtimeTransformations = [
-      ...this.runtimeTransformations,
       ...callProtectionTransformationResult.transformations,
       ...immutablesTransformationResult.transformations,
       ...matchBytecodesResult.transformations,
     ];
     this.runtimeTransformationValues = {
-      ...this.runtimeTransformationValues,
       ...callProtectionTransformationResult.transformationValues,
       ...immutablesTransformationResult.transformationValues,
       ...matchBytecodesResult.transformationValues,
