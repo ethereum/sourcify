@@ -19,7 +19,8 @@ export type VerificationErrorCode =
   | 'CREATION_BYTECODE_MATCH_ERROR'
   | 'NO_MATCH'
   | 'ONCHAIN_RUNTIME_BYTECODE_NOT_AVAILABLE'
-  | 'ONCHAIN_CREATION_BYTECODE_NOT_AVAILABLE';
+  | 'ONCHAIN_CREATION_BYTECODE_NOT_AVAILABLE'
+  | 'BYTECODE_LENGTH_MISMATCH';
 
 export class VerificationError extends SourcifyLibError {
   constructor(message: string, code: VerificationErrorCode) {
