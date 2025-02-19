@@ -84,12 +84,12 @@ export interface TransformationValues {
 
 // returns the full bytecode with the call protection replaced with the real address
 export function extractCallProtectionTransformation(
-  normalizedRecompiledBytecode: string,
+  populatedRecompiledBytecode: string,
   onchainRuntimeBytecode: string,
 ) {
   const transformations: Transformation[] = [];
   const transformationValues: TransformationValues = {};
-  const template = normalizedRecompiledBytecode;
+  const template = populatedRecompiledBytecode;
   const real = onchainRuntimeBytecode;
 
   const push20CodeOp = '73';
@@ -102,14 +102,14 @@ export function extractCallProtectionTransformation(
     transformationValues.callProtection = '0x' + callProtectionAddress;
 
     return {
-      normalizedRecompiledBytecode:
+      populatedRecompiledBytecode:
         replacedCallProtection + template.substring(callProtection.length),
       transformations,
       transformationValues,
     };
   }
   return {
-    normalizedRecompiledBytecode: template,
+    populatedRecompiledBytecode: template,
     transformations,
     transformationValues,
   };
@@ -121,7 +121,7 @@ export function extractCallProtectionTransformation(
  * Example immutableReferences: {"97":[{"length":32,"start":137}],"99":[{"length":32,"start":421}]} where 97 and 99 are the AST ids
  */
 export function extractImmutablesTransformation(
-  normalizedRecompiledBytecodeWith0x: string,
+  populatedRecompiledBytecodeWith0x: string,
   onchainRuntimeBytecodeWith0x: string,
   immutableReferences: ImmutableReferences,
   auxdataStyle: AuxdataStyle,
@@ -130,8 +130,7 @@ export function extractImmutablesTransformation(
   const transformationValues: TransformationValues = {};
   // Remove "0x" from the beginning of both bytecodes.
   const onchainRuntimeBytecode = onchainRuntimeBytecodeWith0x.slice(2);
-  let normalizedRecompiledBytecode =
-    normalizedRecompiledBytecodeWith0x.slice(2);
+  let populatedRecompiledBytecode = populatedRecompiledBytecodeWith0x.slice(2);
 
   Object.keys(immutableReferences).forEach((astId) => {
     immutableReferences[astId].forEach((reference) => {
@@ -160,45 +159,45 @@ export function extractImmutablesTransformation(
 
       if (auxdataStyle === AuxdataStyle.SOLIDITY) {
         // Replace the placeholder in the recompiled bytecode with the onchain immutable value.
-        normalizedRecompiledBytecode =
-          normalizedRecompiledBytecode.slice(0, start * 2) +
+        populatedRecompiledBytecode =
+          populatedRecompiledBytecode.slice(0, start * 2) +
           immutableValue +
-          normalizedRecompiledBytecode.slice(start * 2 + length * 2);
+          populatedRecompiledBytecode.slice(start * 2 + length * 2);
       } else if (auxdataStyle === AuxdataStyle.VYPER) {
         // For Vyper, insert the immutable value.
-        normalizedRecompiledBytecode =
-          normalizedRecompiledBytecode + immutableValue;
+        populatedRecompiledBytecode =
+          populatedRecompiledBytecode + immutableValue;
       }
     });
   });
   return {
-    normalizedRecompiledBytecode: '0x' + normalizedRecompiledBytecode,
+    populatedRecompiledBytecode: '0x' + populatedRecompiledBytecode,
     transformations,
     transformationValues,
   };
 }
 
 export function extractAbiEncodedConstructorArguments(
-  normalizedRecompiledBytecode: string,
+  populatedRecompiledBytecode: string,
   onchainCreationBytecode: string,
 ) {
-  if (onchainCreationBytecode.length === normalizedRecompiledBytecode.length)
+  if (onchainCreationBytecode.length === populatedRecompiledBytecode.length)
     return undefined;
 
   return (
-    '0x' + onchainCreationBytecode.slice(normalizedRecompiledBytecode.length)
+    '0x' + onchainCreationBytecode.slice(populatedRecompiledBytecode.length)
   );
 }
 
 export function extractConstructorArgumentsTransformation(
-  normalizedRecompiledBytecode: string,
+  populatedRecompiledBytecode: string,
   onchainCreationBytecode: string,
   metadata: Metadata,
 ) {
   const transformations: Transformation[] = [];
   const transformationValues: TransformationValues = {};
   const abiEncodedConstructorArguments = extractAbiEncodedConstructorArguments(
-    normalizedRecompiledBytecode,
+    populatedRecompiledBytecode,
     onchainCreationBytecode,
   );
   const constructorAbiParamInputs = (
@@ -231,13 +230,13 @@ export function extractConstructorArgumentsTransformation(
 
     transformations.push(
       ConstructorTransformation(
-        normalizedRecompiledBytecode.substring(2).length / 2,
+        populatedRecompiledBytecode.substring(2).length / 2,
       ),
     );
     transformationValues.constructorArguments = abiEncodedConstructorArguments;
   }
   return {
-    normalizedRecompiledBytecode: '0x' + normalizedRecompiledBytecode,
+    populatedRecompiledBytecode: '0x' + populatedRecompiledBytecode,
     transformations,
     transformationValues,
   };
@@ -299,7 +298,7 @@ export function extractLibrariesTransformation(
   }
 
   return {
-    normalizedRecompiledBytecode: template,
+    populatedRecompiledBytecode: template,
     libraryMap,
     transformations,
     transformationValues,
@@ -312,7 +311,7 @@ export function extractAuxdataTransformation(
   cborAuxdataPositions: CompiledContractCborAuxdata,
 ) {
   try {
-    let normalizedRecompiledBytecode = recompiledBytecode;
+    let populatedRecompiledBytecode = recompiledBytecode;
     const transformations: Transformation[] = [];
     const transformationValues: TransformationValues = {};
     // Instead of normalizing the onchain bytecode, we use its auxdata values to replace the corresponding sections in the recompiled bytecode.
@@ -322,10 +321,10 @@ export function extractAuxdataTransformation(
         auxdataValues.offset * 2 + 2 + auxdataValues.value.length - 2;
       // Instead of zeroing out this segment, get the value from the onchain bytecode.
       const onchainAuxdata = onchainBytecode.slice(offsetStart, offsetEnd);
-      normalizedRecompiledBytecode =
-        normalizedRecompiledBytecode.slice(0, offsetStart) +
+      populatedRecompiledBytecode =
+        populatedRecompiledBytecode.slice(0, offsetStart) +
         onchainAuxdata +
-        normalizedRecompiledBytecode.slice(offsetEnd);
+        populatedRecompiledBytecode.slice(offsetEnd);
       const transformationIndex = `${index + 1}`;
       transformations.push(
         AuxdataTransformation(auxdataValues.offset, transformationIndex),
@@ -337,12 +336,12 @@ export function extractAuxdataTransformation(
         `0x${onchainAuxdata}`;
     });
     return {
-      normalizedRecompiledBytecode,
+      populatedRecompiledBytecode,
       transformations,
       transformationValues,
     };
   } catch (error: any) {
-    logError('Cannot normalize bytecodes with the auxdata', { error });
-    throw new Error('Cannot normalize bytecodes with the auxdata');
+    logError('Cannot populate bytecodes with the auxdata', { error });
+    throw new Error('Cannot populate bytecodes with the auxdata');
   }
 }
