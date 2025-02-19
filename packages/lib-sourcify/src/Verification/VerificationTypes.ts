@@ -5,7 +5,7 @@ import { Transformation, TransformationValues } from './Transformations';
 export interface BytecodeMatchingResult {
   match: 'perfect' | 'partial' | null;
   libraryMap?: StringMap;
-  normalizedRecompiledBytecode: string;
+  populatedRecompiledBytecode: string;
   transformations: Transformation[];
   transformationValues: TransformationValues;
   message?: string;

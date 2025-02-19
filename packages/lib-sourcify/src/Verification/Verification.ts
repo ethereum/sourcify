@@ -99,7 +99,7 @@ export class Verification {
 
     // Try to match onchain runtime bytecode with compiled runtime bytecode
     try {
-      logDebug('Matching with deployed bytecode', {
+      logDebug('Matching with runtime bytecode', {
         chain: this.sourcifyChain.chainId,
         address: this.address,
       });
@@ -226,7 +226,7 @@ export class Verification {
 
   private async matchBytecodes(
     isCreation: boolean,
-    normalizedRecompiledBytecode: string,
+    populatedRecompiledBytecode: string,
   ): Promise<BytecodeMatchingResult> {
     // Here we use bytecodes from the context because they are already processed
     const onchainBytecode = isCreation
@@ -252,23 +252,23 @@ export class Verification {
       match: null,
       transformations: [...transformations],
       transformationValues: { ...transformationValues },
-      normalizedRecompiledBytecode,
+      populatedRecompiledBytecode,
     };
 
-    // Replace library placeholders
+    // Library transformations can be in both the runtime bytecode and creation bytecode, hence done here in `matchBytecodes` method.
     const librariesTransformationResult = extractLibrariesTransformation(
-      normalizedRecompiledBytecode,
+      populatedRecompiledBytecode,
       onchainBytecode,
       linkReferences,
     );
     const libraryMap = librariesTransformationResult.libraryMap;
-    normalizedRecompiledBytecode =
-      librariesTransformationResult.normalizedRecompiledBytecode;
+    populatedRecompiledBytecode =
+      librariesTransformationResult.populatedRecompiledBytecode;
 
     // Direct bytecode match
     const doBytecodesMatch = isCreation
-      ? onchainBytecode.startsWith(normalizedRecompiledBytecode)
-      : normalizedRecompiledBytecode === onchainBytecode;
+      ? onchainBytecode.startsWith(populatedRecompiledBytecode)
+      : populatedRecompiledBytecode === onchainBytecode;
 
     if (doBytecodesMatch) {
       // If there is perfect match but auxdata doesn't contain any metadata hash, return partial match
@@ -312,24 +312,24 @@ export class Verification {
     }
 
     const auxdataTransformationResult = extractAuxdataTransformation(
-      normalizedRecompiledBytecode,
+      populatedRecompiledBytecode,
       onchainBytecode,
       cborAuxdata,
     );
 
-    result.normalizedRecompiledBytecode =
-      auxdataTransformationResult.normalizedRecompiledBytecode;
+    result.populatedRecompiledBytecode =
+      auxdataTransformationResult.populatedRecompiledBytecode;
 
     /* eslint-disable indent */
-    const doNormalizedBytecodesMatch = isCreation
+    const doPopulatedBytecodesMatch = isCreation
       ? onchainBytecode.startsWith(
-          auxdataTransformationResult.normalizedRecompiledBytecode,
+          auxdataTransformationResult.populatedRecompiledBytecode,
         )
-      : auxdataTransformationResult.normalizedRecompiledBytecode ===
+      : auxdataTransformationResult.populatedRecompiledBytecode ===
         onchainBytecode;
     /* eslint-enable indent */
 
-    if (doNormalizedBytecodesMatch) {
+    if (doPopulatedBytecodesMatch) {
       result.match = 'partial';
       result.libraryMap = libraryMap;
       result.transformations = [
@@ -357,7 +357,7 @@ export class Verification {
 
     // Handle immutable references
     const immutablesTransformationResult = extractImmutablesTransformation(
-      callProtectionTransformationResult.normalizedRecompiledBytecode,
+      callProtectionTransformationResult.populatedRecompiledBytecode,
       this.onchainRuntimeBytecode,
       this.compilation.immutableReferences,
       this.compilation.auxdataStyle,
@@ -365,7 +365,7 @@ export class Verification {
 
     const matchBytecodesResult = await this.matchBytecodes(
       false,
-      immutablesTransformationResult.normalizedRecompiledBytecode,
+      immutablesTransformationResult.populatedRecompiledBytecode,
     );
 
     this.runtimeTransformations = [
@@ -403,7 +403,7 @@ export class Verification {
     ) {
       const constructorTransformationResult =
         extractConstructorArgumentsTransformation(
-          matchBytecodesResult.normalizedRecompiledBytecode,
+          matchBytecodesResult.populatedRecompiledBytecode,
           this.onchainCreationBytecode,
           this.compilation.metadata,
         );
