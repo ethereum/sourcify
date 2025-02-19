@@ -1,4 +1,4 @@
-import { logDebug, logError } from './logger';
+import { logDebug, logError } from '../logger';
 
 /**
  * Fetches a resource with an exponential timeout.

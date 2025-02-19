@@ -3,7 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import { exec, spawnSync } from 'child_process';
 import { StatusCodes } from 'http-status-codes';
-import { logDebug, logError, logInfo, logWarn } from '../../src/lib/logger';
+import { logDebug, logError, logInfo, logWarn } from '../../src/logger';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 import { fetchWithBackoff } from './common';

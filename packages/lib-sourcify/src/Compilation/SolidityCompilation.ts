@@ -7,7 +7,7 @@ import {
   SolidityOutput,
   SolidityOutputContract,
 } from './SolidityTypes';
-import { CompilationTarget } from './CompilationTypes';
+import { CompilationTarget, LinkReferences } from './CompilationTypes';
 import {
   findAuxdataPositions,
   findAuxdatasInLegacyAssembly,
@@ -22,7 +22,6 @@ export class SolidityCompilation extends AbstractCompilation {
   declare compileAndReturnCompilationTarget: (
     forceEmscripten: boolean,
   ) => Promise<SolidityOutputContract>;
-  declare getCompilationTarget: () => SolidityOutputContract;
 
   // Specify the auxdata style, used for extracting the auxdata from the compiler output
   readonly auxdataStyle: AuxdataStyle.SOLIDITY = AuxdataStyle.SOLIDITY;
@@ -91,31 +90,32 @@ export class SolidityCompilation extends AbstractCompilation {
   public async generateCborAuxdataPositions(forceEmscripten = false) {
     // Auxdata array extracted from the compiler's `legacyAssembly` field
     const auxdatasFromCompilerOutput = findAuxdatasInLegacyAssembly(
-      this.getCompilationTarget().evm.legacyAssembly,
+      (this.compilationTargetContract as SolidityOutputContract).evm
+        .legacyAssembly,
     );
 
     // Case: there is not auxadata
     if (auxdatasFromCompilerOutput.length === 0) {
-      this.creationBytecodeCborAuxdata = {};
-      this.runtimeBytecodeCborAuxdata = {};
+      this._creationBytecodeCborAuxdata = {};
+      this._runtimeBytecodeCborAuxdata = {};
       return true;
     }
 
-    // Case: there is only one auxdata, no need to recompile
+    // Case: there is only one auxdata, no need to recompile if we find both runtime and creation auxdata at the end of the bytecode (creation auxdata can be in a different place)
     if (auxdatasFromCompilerOutput.length === 1) {
       // Extract the auxdata from the end of the recompiled runtime bytecode
       const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
-        this.getRuntimeBytecode(),
+        this.runtimeBytecode,
         this.auxdataStyle,
       );
 
       const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
 
       // we divide by 2 because we store the length in bytes (without 0x)
-      this.runtimeBytecodeCborAuxdata = {
+      this._runtimeBytecodeCborAuxdata = {
         '1': {
           offset:
-            this.getRuntimeBytecode().substring(2).length / 2 -
+            this.runtimeBytecode.substring(2).length / 2 -
             parseInt(runtimeCborLengthHex, 16) -
             2, // bytecode has 2 bytes of cbor length prefix at the end
           value: `0x${auxdataFromRawRuntimeBytecode}`,
@@ -124,7 +124,7 @@ export class SolidityCompilation extends AbstractCompilation {
 
       // Try to extract the auxdata from the end of the recompiled creation bytecode
       const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
-        this.getCreationBytecode(),
+        this.creationBytecode,
         this.auxdataStyle,
       );
 
@@ -132,10 +132,10 @@ export class SolidityCompilation extends AbstractCompilation {
       if (creationAuxdataCbor) {
         const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
         // we divide by 2 because we store the length in bytes (without 0x)
-        this.creationBytecodeCborAuxdata = {
+        this._creationBytecodeCborAuxdata = {
           '1': {
             offset:
-              this.getCreationBytecode().substring(2).length / 2 -
+              this.creationBytecode.substring(2).length / 2 -
               parseInt(creationCborLengthHex, 16) -
               2, // bytecode has 2 bytes of cbor length prefix at the end
             value: `0x${auxdataFromRawCreationBytecode}`,
@@ -145,7 +145,7 @@ export class SolidityCompilation extends AbstractCompilation {
       }
     }
 
-    // Case: multiple auxdatas or failing creation auxdata,
+    // Case: multiple auxdatas or creation auxdata not found at the end of the bytecode,
     // we need to recompile with a slightly edited file to check the differences
     const editedContractCompilerOutput = await this.generateEditedContract({
       version: this.compilerVersion,
@@ -160,19 +160,19 @@ export class SolidityCompilation extends AbstractCompilation {
     const editedContractAuxdatasFromCompilerOutput =
       findAuxdatasInLegacyAssembly(editedContract.evm.legacyAssembly);
 
-    // Potentially we already found runtimeBytecodeCborAuxdata in the case of failing creation auxdata
+    // Potentially we already found runtimeBytecodeCborAuxdata in the case of creation auxdata not found at the end of the bytecode
     // so no need to call `findAuxdataPositions`
-    if (this.runtimeBytecodeCborAuxdata === undefined) {
-      this.runtimeBytecodeCborAuxdata = findAuxdataPositions(
-        this.getRuntimeBytecode(),
+    if (this._runtimeBytecodeCborAuxdata === undefined) {
+      this._runtimeBytecodeCborAuxdata = findAuxdataPositions(
+        this.runtimeBytecode,
         `0x${editedContract.evm.deployedBytecode.object}`,
         auxdatasFromCompilerOutput,
         editedContractAuxdatasFromCompilerOutput,
       );
     }
 
-    this.creationBytecodeCborAuxdata = findAuxdataPositions(
-      this.getCreationBytecode(),
+    this._creationBytecodeCborAuxdata = findAuxdataPositions(
+      this.creationBytecode,
       `0x${editedContract.evm.bytecode.object}`,
       auxdatasFromCompilerOutput,
       editedContractAuxdatasFromCompilerOutput,
@@ -184,11 +184,24 @@ export class SolidityCompilation extends AbstractCompilation {
   public async compile(forceEmscripten = false) {
     const contract =
       await this.compileAndReturnCompilationTarget(forceEmscripten);
-    this.metadata = JSON.parse(contract.metadata.trim());
+    this._metadata = JSON.parse(contract.metadata.trim());
   }
 
-  getImmutableReferences(): ImmutableReferences {
-    const compilationTarget = this.getCompilationTarget();
+  get immutableReferences(): ImmutableReferences {
+    const compilationTarget = this
+      .compilationTargetContract as SolidityOutputContract;
     return compilationTarget.evm.deployedBytecode.immutableReferences || {};
+  }
+
+  get runtimeLinkReferences(): LinkReferences {
+    const compilationTarget = this
+      .compilationTargetContract as SolidityOutputContract;
+    return compilationTarget.evm.deployedBytecode.linkReferences || {};
+  }
+
+  get creationLinkReferences(): LinkReferences {
+    const compilationTarget = this
+      .compilationTargetContract as SolidityOutputContract;
+    return compilationTarget.evm.bytecode.linkReferences || {};
   }
 }
