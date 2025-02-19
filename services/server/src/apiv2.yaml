@@ -22,9 +22,9 @@ info:
 servers:
   - url: 'http://localhost:3000'
     description: localhost
-  - url: 'https://staging.sourcify.dev/server/v2'
+  - url: 'https://staging.sourcify.dev/server'
     description: Staging
-  - url: 'https://sourcify.dev/server/v2'
+  - url: 'https://sourcify.dev/server'
     description: Production
 paths:
   '/v2/verify/{chainId}/{address}':
@@ -96,9 +96,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
   '/v2/verify/{verificationId}':
     get:
@@ -120,9 +120,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
   '/v2/contract/{chainId}/{address}':
     get:
@@ -132,12 +132,12 @@ paths:
       description: |-
         By default returns minimal information about the contract: `match`, `creation_match`, `runtime_match`, `chainId`, `address`, and `verifiedAt`
 
-        To get other details one can either list the fields requested in the `fields` query param or ask all fields but omit several with `omit`. To get everything just pass `fields=*`.
+        To get other details one can either list the fields requested in the `fields` query param or ask all fields but omit several with `omit`. To get everything just pass `fields=all`.
       operationId: get-contract
       parameters:
         - name: fields
           in: query
-          description: Comma seperated fields to include in the response. Can also take `*`
+          description: Comma seperated fields to include in the response. Can also take `all`
           allowReserved: true
           schema:
             type: string
@@ -168,9 +168,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
   '/v2/contracts/{chainId}':
     get:
@@ -193,7 +193,7 @@ paths:
               - asc
         - name: limit
           in: query
-          description: Number of contracts that should be returned per page
+          description: Number of contracts that should be returned per page. Maximum 200
           schema:
             type: number
             minimum: 1
@@ -219,9 +219,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server/v2'
+        - url: 'https://staging.sourcify.dev/server'
           description: Staging
-        - url: 'https://sourcify.dev/server/v2'
+        - url: 'https://sourcify.dev/server'
           description: Production
 tags:
   - name: Contract Lookup
@@ -366,13 +366,18 @@ components:
                     type: string
                     format: uuid
                   error:
-                    $ref: '#/components/schemas/GenericErrorResponse'
+                    $ref: '#/components/schemas/MatchingErrorResponse'
                     description: 'Optional, when the verification fails for some reason.'
                   jobStartTime:
                     type: string
                     format: date-time
                   jobFinishTime:
                     type: string
+                  compilationTime:
+                    type: string
+                    description: Time it took to compile the contract on the server in milliseconds.
+                    examples:
+                      - '1333'
                 required:
                   - isJobCompleted
                   - verificationId
@@ -387,6 +392,7 @@ components:
                 verificationId: 72d12273-0723-448e-a9f6-f7957128efa5
                 jobStartTime: '2024-07-24T11:00:00Z'
                 jobFinishTime: '2024-07-24T12:00:00Z'
+                compilationTime: '1333'
                 contract:
                   match: match
                   creationMatch: match
@@ -412,10 +418,16 @@ components:
                 verificationId: 72d12273-0723-448e-a9f6-f7957128efa5
                 jobStartTime: '2024-07-24T11:00:00Z'
                 jobFinishTime: '2024-07-24T12:00:00Z'
+                compilationTime: '1333'
                 error:
-                  custom_code: non_existing_contract
-                  message: Contract 0x2738d13E81e30bC615766A0410e7cF199FD59A83 does not exist on chain 11155111
-                  id: 1ac6b91a-0605-4459-93dc-18f210a70192
+                  customCode: non_matching_bytecodes
+                  message: The onchain and recompiled bytecodes don't match.
+                  errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
+                  recompiledCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+                  recompiledRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+                  onchainCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
+                  onchainRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
+                  creatorTransactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
                 contract:
                   match: null
                   creationMatch: null
@@ -863,9 +875,9 @@ components:
           examples:
             Example 1:
               value:
-                custom_code: unsupported_chain
+                customCode: unsupported_chain
                 message: The chain with chainId 9429413 is not supported
-                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+                errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
     TooManyRequestsResponse:
       description: You are sending too many requests to the server
       content:
@@ -875,9 +887,9 @@ components:
           examples:
             Example 1:
               value:
-                custom_code: too_many_requests
+                customCode: too_many_requests
                 message: You are sending too many requests
-                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+                errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
     ListVerifiedContracts:
       description: ''
       content:
@@ -905,13 +917,6 @@ components:
                     chainId: '11155111'
                     address: '0x2738d13E81e30bC615766A0410e7cF199FD59A83'
                     verifiedAt: '2024-07-24T12:00:00Z'
-                pagination:
-                  currentPage: 3
-                  totalPages: 243
-                  resultsPerPage: 5000
-                  totalResults: 24245
-                  hasNextPage: true
-                  hasPreviousPage: true
     InternalServerErrorResponse:
       description: ''
       content:
@@ -921,9 +926,9 @@ components:
           examples:
             Example 1:
               value:
-                custom_code: internal_error
+                customCode: internal_error
                 message: Something went wrong
-                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+                errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
     EtherscanLimitResponse:
       description: You've reached the API key limit for the Etherscan key.
       content:
@@ -933,9 +938,9 @@ components:
           examples:
             Example 1:
               value:
-                custom_code: etherscan_limit
+                customCode: etherscan_limit
                 message: Etherscan API key limit reached
-                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+                errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
     ContractNotVerifiedResponse:
       description: The contract is not verified on Sourcify
       content:
@@ -959,9 +964,9 @@ components:
           examples:
             Example 1:
               value:
-                custom_code: job_not_found
+                customCode: job_not_found
                 message: The verification job with id 461157eb-e4ea-4c5f-9aec-04c56924fd96 was not found
-                id: 1ac6b91a-0605-4459-93dc-18f210a70192
+                errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
   schemas:
     Language:
       type: string
@@ -976,6 +981,30 @@ components:
       pattern: 'v\d+\.\d+\.\d+(-nightly\.\d{4}\.\d+\.\d+)?\+commit\.[a-f0-9]{8}'
       examples:
         - 0.8.7+commit.e28d00a7
+    MatchingErrorResponse:
+      examples:
+        - customCode: non_matching_bytecodes
+          message: The onchain and recompiled bytecodes don't match.
+          errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
+          recompiledCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+          recompiledRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+          onchainCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
+          onchainRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
+          creatorTransactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+      allOf:
+        - $ref: '#/components/schemas/GenericErrorResponse'
+        - type: object
+          properties:
+            recompiledCreationCode:
+              $ref: '#/components/schemas/BytecodeString'
+            recompiledRuntimeCode:
+              $ref: '#/components/schemas/BytecodeString'
+            onchainCreationCode:
+              $ref: '#/components/schemas/BytecodeString'
+            onchainRuntimeCode:
+              $ref: '#/components/schemas/BytecodeString'
+            creatorTransactionHash:
+              $ref: '#/components/schemas/Keccak256'
     GenericErrorResponse:
       type: object
       title: GenericErrorResponse
@@ -994,11 +1023,25 @@ components:
           type: string
           format: uuid
       required:
+        - customCode
         - message
+        - errorId
       examples:
-        - custom_code: unsupported_chain
+        - customCode: unsupported_chain
           message: The chain with chainId 9429413 is not supported
-          id: 1ac6b91a-0605-4459-93dc-18f210a70192
+          errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
+    BytecodeString:
+      type: string
+      title: BytecodeString
+      pattern: '^0x([0-9|a-f][0-9|a-f])*$'
+      examples:
+        - '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+    Keccak256:
+      type: string
+      title: Keccak256
+      pattern: '(\b0x[a-f0-9]{64}\b)'
+      examples:
+        - '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
     VerifiedContractMinimal:
       type: object
       title: VerifiedContractMinimal
@@ -1069,12 +1112,6 @@ components:
           $ref: '#/components/schemas/CreationTransformations'
         transformationValues:
           $ref: '#/components/schemas/CreationTransformationValues'
-    BytecodeString:
-      type: string
-      title: BytecodeString
-      pattern: '^0x([0-9|a-f][0-9|a-f])*$'
-      examples:
-        - '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
     LinkReferences:
       type: object
       title: LinkReferences
@@ -1318,12 +1355,6 @@ components:
           cborAuxdata:
             '1': '0xa26469706673582212201c37bb166aa1bc4777a7471cda1bbba7ef75600cd859180fa30d503673b99f0264736f6c63430008190033'
           callProtection: '0x9deba23b95205127e906108f191a26f5d520896a'
-    Keccak256:
-      type: string
-      title: Keccak256
-      pattern: '(\b0x[a-f0-9]{64}\b)'
-      examples:
-        - '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
     HexStringWithout0x:
       type: string
       title: HexStringWithout0x
