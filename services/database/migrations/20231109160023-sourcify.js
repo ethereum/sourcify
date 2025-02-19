@@ -89,7 +89,7 @@ exports.up = function (db, callback) {
             error_id uuid,
             verification_endpoint varchar NOT NULL,
             hardware varchar,
-            compilation_time interval,
+            compilation_time BIGINT,
             CONSTRAINT verification_jobs_pkey PRIMARY KEY (id),
             CONSTRAINT verification_jobs_verified_contract_id_fk FOREIGN KEY (verified_contract_id) REFERENCES verified_contracts(id) ON DELETE RESTRICT ON UPDATE RESTRICT
         );`,
