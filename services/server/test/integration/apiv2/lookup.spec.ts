@@ -846,6 +846,34 @@ describe("GET /v2/contract/:chainId/:address", function () {
     );
   });
 
+  it("should return minimal information for a contract for which no deployer is stored", async function () {
+    await verifyContract(serverFixture, chainFixture);
+
+    await serverFixture.sourcifyDatabase.query(
+      `UPDATE contract_deployments SET deployer = NULL WHERE address = $1`,
+      [Buffer.from(chainFixture.defaultContractAddress.substring(2), "hex")],
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=deployment.deployer`,
+      );
+
+    chai.expect(res.status).to.equal(200);
+    chai.expect(res.body).to.include({
+      match: "exact_match",
+      creationMatch: "exact_match",
+      runtimeMatch: "exact_match",
+      chainId: chainFixture.chainId,
+      address: chainFixture.defaultContractAddress,
+      matchId: "1",
+    });
+    chai.expect(res.body).to.have.property("verifiedAt");
+
+    chai.expect(res.body.deployment.deployer).to.equal(null);
+  });
+
   it("should return a 400 when unknown fields are requested", async function () {
     await verifyContract(serverFixture, chainFixture);
 

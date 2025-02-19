@@ -230,11 +230,11 @@ export const STORED_PROPERTIES_TO_SELECTORS = {
   verified_at:
     'to_char(sourcify_matches.created_at, \'YYYY-MM-DD"T"HH24:MI:SS"Z"\') as verified_at',
   address:
-    "concat('0x',encode(contract_deployments.address, 'hex')) as address",
+    "nullif(concat('0x', encode(contract_deployments.address, 'hex')), '0x') as address",
   onchain_creation_code:
-    "concat('0x', encode(onchain_creation_code.code, 'hex')) as onchain_creation_code",
+    "nullif(concat('0x', encode(onchain_creation_code.code, 'hex')), '0x') as onchain_creation_code",
   recompiled_creation_code:
-    "concat('0x', encode(recompiled_creation_code.code, 'hex')) as recompiled_creation_code",
+    "nullif(concat('0x', encode(recompiled_creation_code.code, 'hex')), '0x') as recompiled_creation_code",
   creation_source_map:
     "compiled_contracts.creation_code_artifacts->'sourceMap' as creation_source_map",
   creation_link_references:
@@ -244,9 +244,9 @@ export const STORED_PROPERTIES_TO_SELECTORS = {
   creation_transformations: "verified_contracts.creation_transformations",
   creation_values: "verified_contracts.creation_values",
   onchain_runtime_code:
-    "concat('0x', encode(onchain_runtime_code.code, 'hex')) as onchain_runtime_code",
+    "nullif(concat('0x', encode(onchain_runtime_code.code, 'hex')), '0x') as onchain_runtime_code",
   recompiled_runtime_code:
-    "concat('0x', encode(recompiled_runtime_code.code, 'hex')) as recompiled_runtime_code",
+    "nullif(concat('0x', encode(recompiled_runtime_code.code, 'hex')), '0x') as recompiled_runtime_code",
   runtime_source_map:
     "compiled_contracts.runtime_code_artifacts->'sourceMap' as runtime_source_map",
   runtime_link_references:
@@ -258,11 +258,11 @@ export const STORED_PROPERTIES_TO_SELECTORS = {
   runtime_transformations: "verified_contracts.runtime_transformations",
   runtime_values: "verified_contracts.runtime_values",
   transaction_hash:
-    "concat('0x', encode(contract_deployments.transaction_hash, 'hex')) as transaction_hash",
+    "nullif(concat('0x', encode(contract_deployments.transaction_hash, 'hex')), '0x') as transaction_hash",
   block_number: "contract_deployments.block_number",
   transaction_index: "contract_deployments.transaction_index",
   deployer:
-    "concat('0x', encode(contract_deployments.deployer, 'hex')) as deployer",
+    "nullif(concat('0x', encode(contract_deployments.deployer, 'hex')), '0x') as deployer",
   sources: `${sourcesAggregation} as sources`,
   language: "INITCAP(compiled_contracts.language) as language",
   compiler: "compiled_contracts.compiler",
@@ -298,12 +298,12 @@ export const STORED_PROPERTIES_TO_SELECTORS = {
           'storageLayout', compiled_contracts.compilation_artifacts->'storageLayout',
           'evm', json_build_object(
             'bytecode', json_build_object(
-              'object', concat('0x', encode(recompiled_creation_code.code, 'hex')),
+              'object', nullif(concat('0x', encode(recompiled_creation_code.code, 'hex')), '0x'),
               'sourceMap', compiled_contracts.creation_code_artifacts->'sourceMap',
               'linkReferences', compiled_contracts.creation_code_artifacts->'linkReferences'
             ),
             'deployedBytecode', json_build_object(
-              'object', concat('0x', encode(recompiled_runtime_code.code, 'hex')),
+              'object', nullif(concat('0x', encode(recompiled_runtime_code.code, 'hex')), '0x'),
               'sourceMap', compiled_contracts.runtime_code_artifacts->'sourceMap',
               'linkReferences', compiled_contracts.runtime_code_artifacts->'linkReferences',
               'immutableReferences', compiled_contracts.runtime_code_artifacts->'immutableReferences'
