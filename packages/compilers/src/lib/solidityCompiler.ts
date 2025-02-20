@@ -2,13 +2,8 @@
 import path from 'path';
 import fs from 'fs';
 import { spawnSync } from 'child_process';
-import { StatusCodes } from 'http-status-codes';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
-import type {
-  SolidityOutput,
-  JsonInput,
-} from '@ethereum-sourcify/lib-sourcify';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
 import { asyncExec, fetchWithBackoff } from './common';
 
@@ -44,9 +39,9 @@ export async function useSolidityCompiler(
   solcRepoPath: string,
   solJsonRepoPath: string,
   version: string,
-  solcJsonInput: JsonInput,
+  solcJsonInput: any,
   forceEmscripten = false,
-): Promise<SolidityOutput> {
+): Promise<any> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');
@@ -181,7 +176,7 @@ async function fetchAndSaveSolc(
   let buffer;
 
   // handle case in which the response is a link to another version
-  if (status === StatusCodes.OK) {
+  if (status === 200) {
     buffer = await res.arrayBuffer();
     const responseText = Buffer.from(buffer).toString();
     if (
@@ -194,7 +189,7 @@ async function fetchAndSaveSolc(
     }
   }
 
-  if (status === StatusCodes.OK && buffer) {
+  if (status === 200 && buffer) {
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
     try {

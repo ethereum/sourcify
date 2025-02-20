@@ -2,11 +2,6 @@
 import path from 'path';
 import fs from 'fs';
 import { spawnSync } from 'child_process';
-import { StatusCodes } from 'http-status-codes';
-import type {
-  VyperJsonInput,
-  VyperOutput,
-} from '@ethereum-sourcify/lib-sourcify';
 import { asyncExec, fetchWithBackoff } from './common';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
 
@@ -40,8 +35,8 @@ export function findVyperPlatform(): string | false {
 export async function useVyperCompiler(
   vyperRepoPath: string,
   version: string,
-  vyperJsonInput: VyperJsonInput,
-): Promise<VyperOutput> {
+  vyperJsonInput: any,
+): Promise<any> {
   const vyperPlatform = findVyperPlatform();
   if (!vyperPlatform) {
     throw new Error('Vyper is not supported on this machine.');
@@ -181,7 +176,7 @@ async function fetchAndSaveVyper(
   const status = res.status;
   const buffer = await res.arrayBuffer();
 
-  if (status === StatusCodes.OK && buffer) {
+  if (status === 200 && buffer) {
     logDebug('Fetched vyper', { version, platform, vyperPath });
     fs.mkdirSync(path.dirname(vyperPath), { recursive: true });
 
