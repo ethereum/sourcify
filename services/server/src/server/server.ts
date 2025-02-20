@@ -21,7 +21,6 @@ import { asyncLocalStorage } from "../common/async-context";
 import logger from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "../common/errors/GenericErrorHandler";
-import { validateAddresses, validateSingleAddress } from "./common";
 import { initDeprecatedRoutes } from "./apiv1/deprecated.routes";
 import getSessionMiddleware from "./session";
 import { Services } from "./services/services";
@@ -34,6 +33,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { ChainRepository } from "../sourcify-chain-repository";
 import { SessionOptions } from "express-session";
+import { makeV1ValidatorFormats } from "./apiv1/validation";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -174,61 +174,13 @@ export class Server {
           },
         },
         formats: {
-          "comma-separated-addresses": {
-            type: "string",
-            validate: (addresses: string) => validateAddresses(addresses),
-          },
-          address: {
-            type: "string",
-            validate: (address: string) => validateSingleAddress(address),
-          },
-          "comma-separated-sourcify-chainIds": {
-            type: "string",
-            validate: (chainIds: string) =>
-              this.chainRepository.validateSourcifyChainIds(chainIds),
-          },
-          "supported-chainId": {
-            type: "string",
-            validate: (chainId: string) =>
-              this.chainRepository.checkSupportedChainId(chainId),
-          },
-          // "Sourcify chainIds" include the chains that are revoked verification support, but can have contracts in the repo.
-          "sourcify-chainId": {
-            type: "string",
-            validate: (chainId: string) =>
-              this.chainRepository.checkSourcifyChainId(chainId),
-          },
-          "match-type": {
-            type: "string",
-            validate: (matchType: string) =>
-              matchType === "full_match" || matchType === "partial_match",
-          },
+          ...makeV1ValidatorFormats(this.chainRepository),
         },
         $refParser: {
           mode: "dereference",
         },
       }),
     );
-    // checksum addresses in every request
-    this.app.use((req: any, res: any, next: any) => {
-      // stateless
-      if (req.body.address) {
-        req.body.address = getAddress(req.body.address);
-      }
-      // session
-      if (req.body.contracts) {
-        req.body.contracts.forEach((contract: any) => {
-          contract.address = getAddress(contract.address);
-        });
-      }
-      if (req.query.addresses) {
-        req.query.addresses = req.query.addresses
-          .split(",")
-          .map((address: string) => getAddress(address))
-          .join(",");
-      }
-      next();
-    });
 
     if (options.rateLimit.enabled) {
       const hideIpInLogs = options.rateLimit.hideIpInLogs;

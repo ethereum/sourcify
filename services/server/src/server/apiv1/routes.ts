@@ -6,8 +6,12 @@ import verifyRoutes from "./verification/verify/verify.routes";
 import solcJsonRoutes from "./verification/solc-json/solc-json.routes";
 import etherscanRoutes from "./verification/etherscan/etherscan.routes";
 import vyperRoutes from "./verification/vyper/vyper.routes";
+import { checksumAddresses } from "./controllers.common";
 
 const router: Router = Router();
+
+// checksum addresses in every request
+router.use(checksumAddresses);
 
 router.use("/chain-tests", testArtifactsRoutes);
 
