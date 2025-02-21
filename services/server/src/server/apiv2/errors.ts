@@ -1,7 +1,15 @@
-import { BadRequestError, NotFoundError } from "../../common/errors";
+import {
+  BadRequestError,
+  NotFoundError,
+  InternalServerError,
+} from "../../common/errors";
 import { v4 as uuidv4 } from "uuid";
+import { Request, Response, NextFunction } from "express";
+import { error as openApiValidatorErrors } from "express-openapi-validator";
 
 export type ErrorCode =
+  | "unknown_error"
+  | "route_not_found"
   | "unsupported_chain"
   | "invalid_parameter"
   | "proxy_resolution_error";
@@ -10,6 +18,32 @@ export interface GenericErrorResponse {
   customCode: ErrorCode;
   message: string;
   errorId: string;
+}
+
+export class UnknownError extends InternalServerError {
+  payload: GenericErrorResponse;
+
+  constructor(message: string) {
+    super(message);
+    this.payload = {
+      customCode: "unknown_error",
+      message,
+      errorId: uuidv4(),
+    };
+  }
+}
+
+export class RouteNotFoundError extends NotFoundError {
+  payload: GenericErrorResponse;
+
+  constructor(message: string) {
+    super(message);
+    this.payload = {
+      customCode: "route_not_found",
+      message,
+      errorId: uuidv4(),
+    };
+  }
 }
 
 export class ChainNotFoundError extends NotFoundError {
@@ -36,4 +70,37 @@ export class InvalidParametersError extends BadRequestError {
       errorId: uuidv4(),
     };
   }
+}
+
+// Maps OpenApiValidator errors to our custom error format
+export function errorHandler(
+  err: any,
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  // Let errors pass that already match the v2 error format
+  if (err.payload) {
+    next(err);
+    return;
+  }
+
+  if (
+    err instanceof openApiValidatorErrors.BadRequest ||
+    err instanceof openApiValidatorErrors.RequestEntityTooLarge ||
+    err instanceof openApiValidatorErrors.UnsupportedMediaType
+  ) {
+    next(new InvalidParametersError(err.message));
+    return;
+  }
+
+  if (
+    err instanceof openApiValidatorErrors.NotFound ||
+    err instanceof openApiValidatorErrors.MethodNotAllowed
+  ) {
+    next(new RouteNotFoundError(err.message));
+    return;
+  }
+
+  next(new UnknownError(err.message));
 }

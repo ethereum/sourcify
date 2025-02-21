@@ -996,13 +996,31 @@ describe("GET /v2/contract/:chainId/:address", function () {
     chainMap[unknownChainId] = chainToRestore;
   });
 
-  it("should return a 400 when the address is invalid", async function () {
+  it("should return a 400 when the address has the wrong length", async function () {
+    const wrongLengthAddress = "0xabc";
+
     const res = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contract/${chainFixture.chainId}/0xabc`);
+      .get(`/v2/contract/${chainFixture.chainId}/${wrongLengthAddress}`);
 
     chai.expect(res.status).to.equal(400);
-    // todo check error properties when #1855 is implemented
+    chai.expect(res.body.customCode).to.equal("invalid_parameter");
+    chai.expect(res.body).to.have.property("errorId");
+    chai.expect(res.body).to.have.property("message");
+  });
+
+  it("should return a 400 when the address is invalid", async function () {
+    const invalidAddress =
+      chainFixture.defaultContractAddress.slice(0, 41) + "G";
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(`/v2/contract/${chainFixture.chainId}/${invalidAddress}`);
+
+    chai.expect(res.status).to.equal(400);
+    chai.expect(res.body.customCode).to.equal("invalid_parameter");
+    chai.expect(res.body).to.have.property("errorId");
+    chai.expect(res.body).to.have.property("message");
   });
 
   it("should return a 404 when the contract is not verified", async function () {
