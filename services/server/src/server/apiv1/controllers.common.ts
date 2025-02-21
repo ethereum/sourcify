@@ -6,6 +6,30 @@ import { isContractAlreadyPerfect } from "./verification/verification.common";
 import { getResponseMatchFromMatch } from "../common";
 import { Services } from "../services/services";
 
+export function checksumAddresses(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  // stateless
+  if (req.body.address) {
+    req.body.address = getAddress(req.body.address);
+  }
+  // session
+  if (req.body.contracts) {
+    req.body.contracts.forEach((contract: any) => {
+      contract.address = getAddress(contract.address);
+    });
+  }
+  if (req.query.addresses) {
+    req.query.addresses = (req.query.addresses as string)
+      .split(",")
+      .map((address: string) => getAddress(address))
+      .join(",");
+  }
+  next();
+}
+
 export function validateAddress(
   req: Request,
   res: Response,
