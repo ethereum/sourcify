@@ -20,8 +20,10 @@ import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
 import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
-import { useSolidityCompiler } from './compiler/solidityCompiler';
-import { useVyperCompiler } from './compiler/vyperCompiler';
+import {
+  useSolidityCompiler,
+  useVyperCompiler,
+} from '@ethereum-sourcify/compilers';
 import {
   IVyperCompiler,
   VyperJsonInput,
@@ -65,7 +67,15 @@ class Solc implements ISolidityCompiler {
     solcJsonInput: JsonInput,
     forceEmscripten: boolean = false,
   ): Promise<SolidityOutput> {
-    return await useSolidityCompiler(version, solcJsonInput, forceEmscripten);
+    const compilersPath = path.join('/tmp', 'solc-repo');
+    const solJsonRepo = path.join('/tmp', 'soljson-repo');
+    return await useSolidityCompiler(
+      compilersPath,
+      solJsonRepo,
+      version,
+      solcJsonInput,
+      forceEmscripten,
+    );
   }
 }
 

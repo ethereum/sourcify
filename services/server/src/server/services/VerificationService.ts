@@ -14,7 +14,7 @@ import {
   findSolcPlatform,
   getSolcExecutable,
   getSolcJs,
-} from "./compiler/local/solidityCompiler";
+} from "@ethereum-sourcify/compilers";
 
 export interface VerificationServiceOptions {
   initCompilers?: boolean;

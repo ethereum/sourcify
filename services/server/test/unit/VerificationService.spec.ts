@@ -3,7 +3,7 @@ import nock from "nock";
 import fs from "fs";
 import path from "path";
 import { expect } from "chai";
-import { findSolcPlatform } from "@ethereum-sourcify/lib-sourcify/test/compiler/solidityCompiler";
+import { findSolcPlatform } from "@ethereum-sourcify/compilers";
 import config from "config";
 import rimraf from "rimraf";
 

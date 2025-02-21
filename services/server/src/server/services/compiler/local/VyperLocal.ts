@@ -3,7 +3,7 @@ import {
   VyperJsonInput,
   VyperOutput,
 } from "@ethereum-sourcify/lib-sourcify";
-import { useVyperCompiler } from "./vyperCompiler";
+import { useVyperCompiler } from "@ethereum-sourcify/compilers";
 
 export class VyperLocal implements IVyperCompiler {
   constructor(private vyperRepoPath: string) {}
