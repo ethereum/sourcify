@@ -105,10 +105,13 @@ function buildCustomRpcs(
       const apiKey =
         process.env[sourcifyRpc.apiKeyEnvName] || process.env["API_KEY"] || "";
       if (!apiKey) {
-        // API key is required for all APIKeyRPCs
-        if (process.env.CI === "true") {
+        // Just warn on CI or development
+        if (
+          process.env.CI === "true" ||
+          process.env.NODE_ENV !== "production"
+        ) {
           logger.warn(
-            `API key not found for ${sourcifyRpc.apiKeyEnvName}, skipping on CI`,
+            `API key not found for ${sourcifyRpc.apiKeyEnvName} on ${sourcifyRpc.url}, skipping on CI or development`,
           );
           return;
         } else {
