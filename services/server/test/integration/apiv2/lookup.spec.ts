@@ -204,11 +204,12 @@ describe("GET /v2/contract/:chainId/:address", function () {
     res: Response,
     deploymentInfo: DeploymentInfo,
     requestedFields: string[] = [],
+    hasCreationMatch: boolean = true,
   ) => {
     chai.expect(res.status).to.equal(200);
     chai.expect(res.body).to.include({
       match: "exact_match",
-      creationMatch: "exact_match",
+      creationMatch: hasCreationMatch ? "exact_match" : null,
       runtimeMatch: "exact_match",
       chainId: chainFixture.chainId,
       address: deploymentInfo.contractAddress,
@@ -363,11 +364,7 @@ describe("GET /v2/contract/:chainId/:address", function () {
             );
           }
           objectToExpect = {
-            sources: {
-              [contractPath]: {
-                id: 0,
-              },
-            },
+            sources: { [contractPath]: { id: 0 } },
             contracts: {
               [contractPath]: {
                 [chainFixture.defaultContractArtifact.contractName]: {
@@ -759,13 +756,13 @@ describe("GET /v2/contract/:chainId/:address", function () {
     );
   });
 
-  it("should support a special field '*' for returning all fields", async function () {
+  it("should support a special field 'all' for returning all fields", async function () {
     await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=*`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=all`,
       );
 
     assertGetContractResponse(
@@ -826,6 +823,57 @@ describe("GET /v2/contract/:chainId/:address", function () {
     );
   });
 
+  it("should return minimal information for a contract for which no creation code is stored", async function () {
+    // Random tx hash to make sure creation code cannot be found
+    await verifyContract(
+      serverFixture,
+      chainFixture,
+      undefined,
+      "0x60b6dcfac48e31ebdba02f8b32759b66d2593ffa00b763761a22e25d55ace14e",
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      );
+
+    assertGetContractResponse(
+      res,
+      chainFixture.defaultContractDeploymentInfo,
+      [],
+      false,
+    );
+  });
+
+  it("should return minimal information for a contract for which no deployer is stored", async function () {
+    await verifyContract(serverFixture, chainFixture);
+
+    await serverFixture.sourcifyDatabase.query(
+      `UPDATE contract_deployments SET deployer = NULL WHERE address = $1`,
+      [Buffer.from(chainFixture.defaultContractAddress.substring(2), "hex")],
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=deployment.deployer`,
+      );
+
+    chai.expect(res.status).to.equal(200);
+    chai.expect(res.body).to.include({
+      match: "exact_match",
+      creationMatch: "exact_match",
+      runtimeMatch: "exact_match",
+      chainId: chainFixture.chainId,
+      address: chainFixture.defaultContractAddress,
+      matchId: "1",
+    });
+    chai.expect(res.body).to.have.property("verifiedAt");
+
+    chai.expect(res.body.deployment.deployer).to.equal(null);
+  });
+
   it("should return a 400 when unknown fields are requested", async function () {
     await verifyContract(serverFixture, chainFixture);
 
@@ -871,13 +919,13 @@ describe("GET /v2/contract/:chainId/:address", function () {
     chai.expect(res.body).to.have.property("message");
   });
 
-  it("should return a 400 when '*' is used with another field", async function () {
+  it("should return a 400 when 'all' is used with another field", async function () {
     await verifyContract(serverFixture, chainFixture);
 
     const res = await chai
       .request(serverFixture.server.app)
       .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=*,creationBytecode`,
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=all,creationBytecode`,
       );
 
     chai.expect(res.status).to.equal(400);
@@ -962,6 +1010,24 @@ describe("GET /v2/contract/:chainId/:address", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .get(`/v2/contract/${chainFixture.chainId}/${contractAddress}`);
+
+    chai.expect(res.status).to.equal(404);
+    chai.expect(res.body).to.deep.equal({
+      match: null,
+      creationMatch: null,
+      runtimeMatch: null,
+      chainId: chainFixture.chainId,
+      address: contractAddress,
+    });
+  });
+
+  it("should not return any additional information when the contract is not verified even though all fields are requested", async function () {
+    const contractAddress = "0x0000000000000000000000000000000000000000";
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${contractAddress}?fields=all`,
+      );
 
     chai.expect(res.status).to.equal(404);
     chai.expect(res.body).to.deep.equal({

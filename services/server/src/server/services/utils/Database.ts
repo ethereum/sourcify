@@ -186,10 +186,10 @@ ${
           AND contract_deployments.chain_id = $1 
           AND contract_deployments.address = $2
         JOIN ${this.schema}.contracts ON contracts.id = contract_deployments.contract_id
-        JOIN ${this.schema}.code as onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
-        JOIN ${this.schema}.code as onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
-        JOIN ${this.schema}.code as recompiled_runtime_code ON recompiled_runtime_code.code_hash = compiled_contracts.runtime_code_hash
-        JOIN ${this.schema}.code as recompiled_creation_code ON recompiled_creation_code.code_hash = compiled_contracts.creation_code_hash
+        LEFT JOIN ${this.schema}.code as onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
+        LEFT JOIN ${this.schema}.code as onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
+        LEFT JOIN ${this.schema}.code as recompiled_runtime_code ON recompiled_runtime_code.code_hash = compiled_contracts.runtime_code_hash
+        LEFT JOIN ${this.schema}.code as recompiled_creation_code ON recompiled_creation_code.code_hash = compiled_contracts.creation_code_hash
 ${
   properties.includes("sources") || properties.includes("std_json_input")
     ? `JOIN ${this.schema}.compiled_contracts_sources ON compiled_contracts_sources.compilation_id = compiled_contracts.id

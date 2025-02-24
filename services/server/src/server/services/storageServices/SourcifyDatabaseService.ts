@@ -374,6 +374,10 @@ export class SourcifyDatabaseService
       );
 
     if (sourcifyMatchResult.rowCount === 0) {
+      logger.debug("No sourcify match found for contract", {
+        chainId,
+        address,
+      });
       return {
         match: null,
         creationMatch: null,

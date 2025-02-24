@@ -1,6 +1,6 @@
 {
   "name": "sourcify-database",
-  "version": "2.2.0",
+  "version": "2.2.1",
   "private": true,
   "description": "The Sourcify database",
   "main": "index.js",
@@ -18,7 +18,7 @@
     "db-migrate-pg": "1.5.2",
     "dotenv": "16.4.7",
     "ethers": "6.13.5",
-    "pg": "8.13.1",
+    "pg": "8.13.3",
     "readdirp": "3.6.0"
   }
 }

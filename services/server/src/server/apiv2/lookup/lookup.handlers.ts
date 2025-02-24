@@ -91,6 +91,10 @@ export async function getContractEndpoint(
     [req.params.chainId, req.params.address, fields, omit],
   );
 
+  if (!contract.match) {
+    return res.status(StatusCodes.NOT_FOUND).json(contract);
+  }
+
   // TODO:
   // The proxy detection will be integrated into the verification process,
   // and the proxy detection result will be stored in the database.
@@ -154,7 +158,5 @@ export async function getContractEndpoint(
     contract.proxyResolution = proxyResolution;
   }
 
-  return res
-    .status(contract.match ? StatusCodes.OK : StatusCodes.NOT_FOUND)
-    .json(contract);
+  return res.status(StatusCodes.OK).json(contract);
 }

@@ -84,11 +84,13 @@ export function validateFieldsAndOmit(
     }
   };
 
-  if (fields?.includes("*")) {
+  if (fields?.includes("all")) {
     if (fields.length > 1) {
-      throw new InvalidParametersError("Cannot specify '*' with other fields");
+      throw new InvalidParametersError(
+        "Cannot specify 'all' with other fields",
+      );
     }
-    // If * is requested, overwrite the requested fields with all existing ones
+    // If all is requested, overwrite the requested fields with all existing ones
     req.query.fields = Object.keys(FIELDS_TO_STORED_PROPERTIES).join(",");
   } else {
     fields?.forEach(validateField);

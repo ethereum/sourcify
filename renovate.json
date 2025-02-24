@@ -5,6 +5,7 @@
   "packageRules": [
     {
       "matchUpdateTypes": [
+        "minor",
         "patch",
         "pin",
         "digest",
@@ -12,13 +13,8 @@
         "rollback",
         "bump"
       ],
-      "groupName": "all patch dependencies",
-      "groupSlug": "all-patch"
-    },
-    {
-      "matchUpdateTypes": ["minor"],
-      "groupName": "all minor dependencies",
-      "groupSlug": "all-minor"
+      "groupName": "all patch and minor dependencies",
+      "groupSlug": "all-patch-and-minor"
     }
   ],
   "ignoreDeps": ["node", "cimg/node"],

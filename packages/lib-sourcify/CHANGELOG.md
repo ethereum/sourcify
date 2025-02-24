@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.12.1 - 2025-02-18
+
+- update dependencies
+
 ## @ethereum-sourcify/lib-sourcify@1.12.0 - 2025-02-06
 
 - Fix perfect creation matching when CBOR is not at the end

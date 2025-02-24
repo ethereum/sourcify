@@ -1,7 +1,7 @@
 {
   "name": "sourcify-monorepo",
   "private": true,
-  "version": "1.4.6",
+  "version": "1.4.7",
   "description": "Monorepo containing all Sourcify packages, and services",
   "workspaces": [
     "packages/*",
@@ -13,7 +13,6 @@
     "server:start": "cd services/server && node ./dist/server/cli.js",
     "monitor:start": "node ./services/monitor/dist/index.js",
     "update-chains": "node --experimental-fetch scripts/updateChains.mjs && prettier --write services/server/src/chains.json",
-    "test:chains": "cd services/server && npm run test:chains",
     "lerna-test": "lerna run test --stream",
     "lerna-lint": "lerna run check",
     "lerna-fix": "lerna run fix",
@@ -42,7 +41,7 @@
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
     "lerna": "8.1.9",
-    "prettier": "3.4.2",
+    "prettier": "3.5.1",
     "ts-node": "10.9.2",
     "typescript": "5.7.3"
   },

@@ -22,9 +22,9 @@ info:
 servers:
   - url: 'http://localhost:3000'
     description: localhost
-  - url: 'https://staging.sourcify.dev/server'
+  - url: 'https://staging.sourcify.dev/server/'
     description: Staging
-  - url: 'https://sourcify.dev/server'
+  - url: 'https://sourcify.dev/server/'
     description: Production
 paths:
   '/v2/verify/{chainId}/{address}':
@@ -96,9 +96,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server'
+        - url: 'https://staging.sourcify.dev/server/'
           description: Staging
-        - url: 'https://sourcify.dev/server'
+        - url: 'https://sourcify.dev/server/'
           description: Production
   '/v2/verify/{verificationId}':
     get:
@@ -120,9 +120,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server'
+        - url: 'https://staging.sourcify.dev/server/'
           description: Staging
-        - url: 'https://sourcify.dev/server'
+        - url: 'https://sourcify.dev/server/'
           description: Production
   '/v2/contract/{chainId}/{address}':
     get:
@@ -132,12 +132,12 @@ paths:
       description: |-
         By default returns minimal information about the contract: `match`, `creation_match`, `runtime_match`, `chainId`, `address`, and `verifiedAt`
 
-        To get other details one can either list the fields requested in the `fields` query param or ask all fields but omit several with `omit`. To get everything just pass `fields=*`.
+        To get other details one can either list the fields requested in the `fields` query param or ask all fields but omit several with `omit`. To get everything just pass `fields=all`.
       operationId: get-contract
       parameters:
         - name: fields
           in: query
-          description: Comma seperated fields to include in the response. Can also take `*`
+          description: Comma seperated fields to include in the response. Can also take `all`
           allowReserved: true
           schema:
             type: string
@@ -168,9 +168,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server'
+        - url: 'https://staging.sourcify.dev/server/'
           description: Staging
-        - url: 'https://sourcify.dev/server'
+        - url: 'https://sourcify.dev/server/'
           description: Production
   '/v2/contracts/{chainId}':
     get:
@@ -193,7 +193,7 @@ paths:
               - asc
         - name: limit
           in: query
-          description: Number of contracts that should be returned per page
+          description: Number of contracts that should be returned per page. Maximum 200
           schema:
             type: number
             minimum: 1
@@ -219,9 +219,9 @@ paths:
       servers:
         - url: 'http://localhost:3000'
           description: localhost
-        - url: 'https://staging.sourcify.dev/server'
+        - url: 'https://staging.sourcify.dev/server/'
           description: Staging
-        - url: 'https://sourcify.dev/server'
+        - url: 'https://sourcify.dev/server/'
           description: Production
 tags:
   - name: Contract Lookup
@@ -905,13 +905,6 @@ components:
                     chainId: '11155111'
                     address: '0x2738d13E81e30bC615766A0410e7cF199FD59A83'
                     verifiedAt: '2024-07-24T12:00:00Z'
-                pagination:
-                  currentPage: 3
-                  totalPages: 243
-                  resultsPerPage: 5000
-                  totalResults: 24245
-                  hasNextPage: true
-                  hasPreviousPage: true
     InternalServerErrorResponse:
       description: ''
       content:
