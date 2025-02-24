@@ -1161,7 +1161,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('no_match');
+        expect(err.code).to.equal('bytecode_length_mismatch');
       }
 
       expectVerification(verification, {
