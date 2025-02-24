@@ -95,14 +95,6 @@ export function errorHandler(
     return;
   }
 
-  if (
-    err instanceof openApiValidatorErrors.NotFound ||
-    err instanceof openApiValidatorErrors.MethodNotAllowed
-  ) {
-    next(new RouteNotFoundError(err.message));
-    return;
-  }
-
   logger.error("Unknown server error: ", err);
   next(new UnknownError("The server encountered an unexpected error."));
 }
