@@ -9,6 +9,7 @@ import {
   SolidityDecodedObject,
 } from '@ethereum-sourcify/bytecode-utils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
+import { VyperCompilation } from '../Compilation/VyperCompilation';
 import { StringMap } from '../Compilation/CompilationTypes';
 
 import {
@@ -70,14 +71,14 @@ export class Verification {
     } catch (e: any) {
       throw new VerificationError(
         `Cannot fetch bytecode for chain #${this.sourcifyChain.chainId} and address ${this.address}`,
-        'CANT_FETCH_BYTECODE',
+        'cant_fetch_bytecode',
       );
     }
 
     if (this.onchainRuntimeBytecode === '0x') {
       throw new VerificationError(
         `Chain #${this.sourcifyChain.chainId} does not have a contract deployed at ${this.address}.`,
-        'CONTRACT_NOT_DEPLOYED',
+        'contract_not_deployed',
       );
     }
 
@@ -90,7 +91,35 @@ export class Verification {
     if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
       throw new VerificationError(
         `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`,
-        'COMPILED_BYTECODE_IS_ZERO',
+        'compiled_bytecode_is_zero',
+      );
+    }
+
+    // Early bytecode length check:
+    // - For Solidity: bytecode lengths must match exactly
+    // - For Vyper: recompiled bytecode must not be longer than onchain as Vyper appends immutables at deployment
+    // We cannot do an early check for creation bytecode length mismatch because
+    // creation bytecode length can differ due to constructor arguments being appended at the end
+    if (
+      (this.compilation instanceof SolidityCompilation &&
+        compiledRuntimeBytecode.length !==
+          this.onchainRuntimeBytecode.length) ||
+      (this.compilation instanceof VyperCompilation &&
+        compiledRuntimeBytecode.length > this.onchainRuntimeBytecode.length)
+    ) {
+      // Before throwing the bytecode length mismatch error, check for Solidity extra file input bug
+      if (this.compilation instanceof SolidityCompilation) {
+        const solidityBugType = this.handleSolidityExtraFileInputBug();
+        if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
+          throw new VerificationError(
+            "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+            'extra_file_input_bug',
+          );
+        }
+      }
+      throw new VerificationError(
+        `The recompiled bytecode length doesn't match the onchain bytecode length.`,
+        'bytecode_length_mismatch',
       );
     }
 
@@ -100,7 +129,7 @@ export class Verification {
 
     // Try to match onchain runtime bytecode with compiled runtime bytecode
     try {
-      logDebug('Matching with deployed bytecode', {
+      logDebug('Matching with runtime bytecode', {
         chain: this.sourcifyChain.chainId,
         address: this.address,
       });
@@ -117,10 +146,18 @@ export class Verification {
       this.compilation instanceof SolidityCompilation &&
       this.runtimeMatch === null
     ) {
-      const solidityBugType = await this.handleSolidityBugCases(
-        forceEmscripten,
-        compiledRuntimeBytecode,
-      );
+      // Handle Solidity extra file input bug
+      let solidityBugType = this.handleSolidityExtraFileInputBug();
+      if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
+        throw new VerificationError(
+          "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+          'extra_file_input_bug',
+        );
+      }
+
+      // Handle Solidity IR output ordering bug
+      solidityBugType =
+        await this.handleSolidityIROutputOrderingBug(forceEmscripten);
       if (solidityBugType === SolidityBugType.IR_OUTPUT_ORDERING_BUG) {
         return await this.verify({ forceEmscripten: true });
       }
@@ -172,13 +209,37 @@ export class Verification {
 
     throw new VerificationError(
       "The deployed and recompiled bytecode don't match.",
-      'NO_MATCH',
+      'no_match',
     );
   }
 
-  async handleSolidityBugCases(
+  handleSolidityExtraFileInputBug(): SolidityBugType {
+    // Case when extra unused files in compiler input cause different bytecode
+    // See issues:
+    //   https://github.com/ethereum/sourcify/issues/618
+    //   https://github.com/ethereum/solidity/issues/14250
+    //   https://github.com/ethereum/solidity/issues/14494
+    const [, deployedAuxdata] = splitAuxdata(
+      this.onchainRuntimeBytecode,
+      AuxdataStyle.SOLIDITY,
+    );
+    const [, recompiledAuxdata] = splitAuxdata(
+      this.compilation.runtimeBytecode,
+      AuxdataStyle.SOLIDITY,
+    );
+    // Metadata hashes match but bytecodes don't match.
+    if (
+      deployedAuxdata === recompiledAuxdata &&
+      (this.compilation.jsonInput.settings as SoliditySettings).optimizer
+        ?.enabled
+    ) {
+      return SolidityBugType.EXTRA_FILE_INPUT_BUG;
+    }
+    return SolidityBugType.NONE;
+  }
+
+  async handleSolidityIROutputOrderingBug(
     forceEmscripten: boolean,
-    compiledRuntimeBytecode: string,
   ): Promise<SolidityBugType> {
     // Handle Solidity specific verification bug cases
     const settings = this.compilation.jsonInput.settings as SoliditySettings;
@@ -201,33 +262,12 @@ export class Verification {
       return SolidityBugType.IR_OUTPUT_ORDERING_BUG;
     }
 
-    // Case when extra unused files in compiler input cause different bytecode
-    // See issues:
-    //   https://github.com/ethereum/sourcify/issues/618
-    //   https://github.com/ethereum/solidity/issues/14250
-    //   https://github.com/ethereum/solidity/issues/14494
-    const [, deployedAuxdata] = splitAuxdata(
-      this.onchainRuntimeBytecode,
-      AuxdataStyle.SOLIDITY,
-    );
-    const [, recompiledAuxdata] = splitAuxdata(
-      compiledRuntimeBytecode,
-      AuxdataStyle.SOLIDITY,
-    );
-    // Metadata hashes match but bytecodes don't match.
-    if (deployedAuxdata === recompiledAuxdata && settings.optimizer?.enabled) {
-      throw new VerificationError(
-        "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-        'EXTRA_FILE_INPUT_BUG',
-      );
-    }
-
     return SolidityBugType.NONE;
   }
 
   private async matchBytecodes(
     isCreation: boolean,
-    normalizedRecompiledBytecode: string,
+    populatedRecompiledBytecode: string,
   ): Promise<BytecodeMatchingResult> {
     // Here we use bytecodes from the context because they are already processed
     const onchainBytecode = isCreation
@@ -238,38 +278,31 @@ export class Verification {
       ? this.compilation.creationBytecodeCborAuxdata
       : this.compilation.runtimeBytecodeCborAuxdata;
 
-    const transformations = isCreation
-      ? this.creationTransformations
-      : this.runtimeTransformations;
-    const transformationValues = isCreation
-      ? this.creationTransformationValues
-      : this.runtimeTransformationValues;
-
     const linkReferences = isCreation
       ? this.compilation.creationLinkReferences
       : this.compilation.runtimeLinkReferences;
 
     const result: BytecodeMatchingResult = {
       match: null,
-      transformations: [...transformations],
-      transformationValues: { ...transformationValues },
-      normalizedRecompiledBytecode,
+      transformations: [],
+      transformationValues: {},
+      populatedRecompiledBytecode,
     };
 
-    // Replace library placeholders
+    // Library transformations can be in both the runtime bytecode and creation bytecode, hence done here in `matchBytecodes` method.
     const librariesTransformationResult = extractLibrariesTransformation(
-      normalizedRecompiledBytecode,
+      populatedRecompiledBytecode,
       onchainBytecode,
       linkReferences,
     );
     const libraryMap = librariesTransformationResult.libraryMap;
-    normalizedRecompiledBytecode =
-      librariesTransformationResult.normalizedRecompiledBytecode;
+    populatedRecompiledBytecode =
+      librariesTransformationResult.populatedRecompiledBytecode;
 
     // Direct bytecode match
     const doBytecodesMatch = isCreation
-      ? onchainBytecode.startsWith(normalizedRecompiledBytecode)
-      : normalizedRecompiledBytecode === onchainBytecode;
+      ? onchainBytecode.startsWith(populatedRecompiledBytecode)
+      : populatedRecompiledBytecode === onchainBytecode;
 
     if (doBytecodesMatch) {
       // If there is perfect match but auxdata doesn't contain any metadata hash, return partial match
@@ -296,14 +329,9 @@ export class Verification {
       }
 
       result.libraryMap = libraryMap;
-      result.transformations = [
-        ...result.transformations,
-        ...librariesTransformationResult.transformations,
-      ];
-      result.transformationValues = {
-        ...result.transformationValues,
-        ...librariesTransformationResult.transformationValues,
-      };
+      result.transformations = librariesTransformationResult.transformations;
+      result.transformationValues =
+        librariesTransformationResult.transformationValues;
       return result;
     }
 
@@ -313,24 +341,24 @@ export class Verification {
     }
 
     const auxdataTransformationResult = extractAuxdataTransformation(
-      normalizedRecompiledBytecode,
+      populatedRecompiledBytecode,
       onchainBytecode,
       cborAuxdata,
     );
 
-    result.normalizedRecompiledBytecode =
-      auxdataTransformationResult.normalizedRecompiledBytecode;
+    result.populatedRecompiledBytecode =
+      auxdataTransformationResult.populatedRecompiledBytecode;
 
     /* eslint-disable indent */
-    const doNormalizedBytecodesMatch = isCreation
+    const doPopulatedBytecodesMatch = isCreation
       ? onchainBytecode.startsWith(
-          auxdataTransformationResult.normalizedRecompiledBytecode,
+          auxdataTransformationResult.populatedRecompiledBytecode,
         )
-      : auxdataTransformationResult.normalizedRecompiledBytecode ===
+      : auxdataTransformationResult.populatedRecompiledBytecode ===
         onchainBytecode;
     /* eslint-enable indent */
 
-    if (doNormalizedBytecodesMatch) {
+    if (doPopulatedBytecodesMatch) {
       result.match = 'partial';
       result.libraryMap = libraryMap;
       result.transformations = [
@@ -358,7 +386,7 @@ export class Verification {
 
     // Handle immutable references
     const immutablesTransformationResult = extractImmutablesTransformation(
-      callProtectionTransformationResult.normalizedRecompiledBytecode,
+      callProtectionTransformationResult.populatedRecompiledBytecode,
       this.onchainRuntimeBytecode,
       this.compilation.immutableReferences,
       this.compilation.auxdataStyle,
@@ -366,17 +394,15 @@ export class Verification {
 
     const matchBytecodesResult = await this.matchBytecodes(
       false,
-      immutablesTransformationResult.normalizedRecompiledBytecode,
+      immutablesTransformationResult.populatedRecompiledBytecode,
     );
 
     this.runtimeTransformations = [
-      ...this.runtimeTransformations,
       ...callProtectionTransformationResult.transformations,
       ...immutablesTransformationResult.transformations,
       ...matchBytecodesResult.transformations,
     ];
     this.runtimeTransformationValues = {
-      ...this.runtimeTransformationValues,
       ...callProtectionTransformationResult.transformationValues,
       ...immutablesTransformationResult.transformationValues,
       ...matchBytecodesResult.transformationValues,
@@ -404,7 +430,7 @@ export class Verification {
     ) {
       const constructorTransformationResult =
         extractConstructorArgumentsTransformation(
-          matchBytecodesResult.normalizedRecompiledBytecode,
+          matchBytecodesResult.populatedRecompiledBytecode,
           this.onchainCreationBytecode,
           this.compilation.metadata,
         );
@@ -430,7 +456,7 @@ export class Verification {
     if (!this._onchainRuntimeBytecode) {
       throw new VerificationError(
         'Onchain runtime bytecode not available',
-        'ONCHAIN_RUNTIME_BYTECODE_NOT_AVAILABLE',
+        'onchain_runtime_bytecode_not_available',
       );
     }
     return this._onchainRuntimeBytecode;
@@ -440,7 +466,7 @@ export class Verification {
     if (!this._onchainCreationBytecode) {
       throw new VerificationError(
         'Onchain creation bytecode not available',
-        'ONCHAIN_CREATION_BYTECODE_NOT_AVAILABLE',
+        'onchain_creation_bytecode_not_available',
       );
     }
     return this._onchainCreationBytecode;

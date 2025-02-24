@@ -217,7 +217,7 @@ describe('Verification Class Tests', () => {
       try {
         await verification.verify();
       } catch (err: any) {
-        expect(err.code).to.equal('CONTRACT_NOT_DEPLOYED');
+        expect(err.code).to.equal('contract_not_deployed');
       }
     });
 
@@ -369,7 +369,7 @@ describe('Verification Class Tests', () => {
 
       Object.defineProperty(compilation, 'runtimeBytecode', {
         get: () =>
-          '0x1234567890123456789012345678901234567890123456789012345678901234',
+          '0x6080604052348015600f57600080fd5b506004361060325760003560e01c80633fa4f24514603757806355241077146051575b600080fd5b603d6069565b604051604891906090565b60405180910390f35b606760048036038101906063919060d5565b606f565b005b60005481565b8060008190555050565b6000819050919050565b608a816079565b82525050565b600060208201905060a360008301846083565b92915050565b600080fd5b60b5816079565b811460bf57600080fd5b50565b60008135905060cf8160ae565b92915050565b60006020828403121560e85760e760a9565b5b600060f48482850160c2565b9150509291505055',
       });
 
       const verification = new Verification(
@@ -456,7 +456,7 @@ describe('Verification Class Tests', () => {
       try {
         await failingVerification.verify();
       } catch (err: any) {
-        expect(err.code).to.equal('EXTRA_FILE_INPUT_BUG');
+        expect(err.code).to.equal('extra_file_input_bug');
       }
 
       // Read all files from the sources directory
@@ -525,7 +525,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('CANT_FETCH_BYTECODE');
+        expect(err.code).to.equal('cant_fetch_bytecode');
       }
     });
   });
@@ -977,7 +977,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('NO_MATCH');
+        expect(err.code).to.equal('no_match');
       }
     });
 
@@ -1161,7 +1161,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('NO_MATCH');
+        expect(err.code).to.equal('bytecode_length_mismatch');
       }
 
       expectVerification(verification, {
@@ -1206,7 +1206,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('COMPILED_BYTECODE_IS_ZERO');
+        expect(err.code).to.equal('compiled_bytecode_is_zero');
       }
     });
   });

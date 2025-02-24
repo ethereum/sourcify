@@ -76,6 +76,8 @@ export interface MetadataOutput {
   userdoc: Userdoc;
 }
 
+// Metadata JSON's "settings" does have extra "compilationTarget" and its "libraries" field is in a different format
+// ( libraries["MyContract.sol:Mycontract"]:"0xab..cd" vs libraries["MyContract.sol"]["MyContract"]:"0xab..cd")
 export interface MetadataCompilerSettings
   extends Omit<SoliditySettings, 'libraries' | 'outputSelection'> {
   compilationTarget: {
