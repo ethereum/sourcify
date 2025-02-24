@@ -217,7 +217,7 @@ describe('Verification Class Tests', () => {
       try {
         await verification.verify();
       } catch (err: any) {
-        expect(err.code).to.equal('CONTRACT_NOT_DEPLOYED');
+        expect(err.code).to.equal('contract_not_deployed');
       }
     });
 
@@ -456,7 +456,7 @@ describe('Verification Class Tests', () => {
       try {
         await failingVerification.verify();
       } catch (err: any) {
-        expect(err.code).to.equal('EXTRA_FILE_INPUT_BUG');
+        expect(err.code).to.equal('extra_file_input_bug');
       }
 
       // Read all files from the sources directory
@@ -525,7 +525,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('CANT_FETCH_BYTECODE');
+        expect(err.code).to.equal('cant_fetch_bytecode');
       }
     });
   });
@@ -977,7 +977,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('NO_MATCH');
+        expect(err.code).to.equal('no_match');
       }
     });
 
@@ -1161,7 +1161,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('NO_MATCH');
+        expect(err.code).to.equal('no_match');
       }
 
       expectVerification(verification, {
@@ -1206,7 +1206,7 @@ describe('Verification Class Tests', () => {
         await verification.verify();
         throw new Error('Should have failed');
       } catch (err: any) {
-        expect(err.code).to.equal('COMPILED_BYTECODE_IS_ZERO');
+        expect(err.code).to.equal('compiled_bytecode_is_zero');
       }
     });
   });
