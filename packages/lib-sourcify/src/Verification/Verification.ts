@@ -9,7 +9,7 @@ import {
   SolidityDecodedObject,
 } from '@ethereum-sourcify/bytecode-utils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
-// import { VyperCompilation } from '../Compilation/VyperCompilation';
+import { VyperCompilation } from '../Compilation/VyperCompilation';
 import { StringMap } from '../Compilation/CompilationTypes';
 
 import {
@@ -70,14 +70,14 @@ export class Verification {
     } catch (e: any) {
       throw new VerificationError(
         `Cannot fetch bytecode for chain #${this.sourcifyChain.chainId} and address ${this.address}`,
-        'CANT_FETCH_BYTECODE',
+        'cant_fetch_bytecode',
       );
     }
 
     if (this.onchainRuntimeBytecode === '0x') {
       throw new VerificationError(
         `Chain #${this.sourcifyChain.chainId} does not have a contract deployed at ${this.address}.`,
-        'CONTRACT_NOT_DEPLOYED',
+        'contract_not_deployed',
       );
     }
 
@@ -90,11 +90,10 @@ export class Verification {
     if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
       throw new VerificationError(
         `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`,
-        'COMPILED_BYTECODE_IS_ZERO',
+        'compiled_bytecode_is_zero',
       );
     }
 
-    /* 
     // Early bytecode length check:
     // - For Solidity: bytecode lengths must match exactly
     // - For Vyper: recompiled bytecode must not be longer than onchain as Vyper appends immutables at deployment
@@ -107,12 +106,21 @@ export class Verification {
       (this.compilation instanceof VyperCompilation &&
         compiledRuntimeBytecode.length > this.onchainRuntimeBytecode.length)
     ) {
+      // Before throwing the bytecode length mismatch error, check for Solidity extra file input bug
+      if (this.compilation instanceof SolidityCompilation) {
+        const solidityBugType = this.handleSolidityExtraFileInputBug();
+        if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
+          throw new VerificationError(
+            "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+            'extra_file_input_bug',
+          );
+        }
+      }
       throw new VerificationError(
         `The recompiled bytecode length doesn't match the onchain bytecode length.`,
-        'BYTECODE_LENGTH_MISMATCH',
+        'bytecode_length_mismatch',
       );
-    } 
-    */
+    }
 
     // We need to manually generate the auxdata positions because they are not automatically produced during compilation
     // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
@@ -137,10 +145,18 @@ export class Verification {
       this.compilation instanceof SolidityCompilation &&
       this.runtimeMatch === null
     ) {
-      const solidityBugType = await this.handleSolidityBugCases(
-        forceEmscripten,
-        compiledRuntimeBytecode,
-      );
+      // Handle Solidity extra file input bug
+      let solidityBugType = this.handleSolidityExtraFileInputBug();
+      if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
+        throw new VerificationError(
+          "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+          'extra_file_input_bug',
+        );
+      }
+
+      // Handle Solidity IR output ordering bug
+      solidityBugType =
+        await this.handleSolidityIROutputOrderingBug(forceEmscripten);
       if (solidityBugType === SolidityBugType.IR_OUTPUT_ORDERING_BUG) {
         return await this.verify({ forceEmscripten: true });
       }
@@ -192,13 +208,37 @@ export class Verification {
 
     throw new VerificationError(
       "The deployed and recompiled bytecode don't match.",
-      'NO_MATCH',
+      'no_match',
     );
   }
 
-  async handleSolidityBugCases(
+  handleSolidityExtraFileInputBug(): SolidityBugType {
+    // Case when extra unused files in compiler input cause different bytecode
+    // See issues:
+    //   https://github.com/ethereum/sourcify/issues/618
+    //   https://github.com/ethereum/solidity/issues/14250
+    //   https://github.com/ethereum/solidity/issues/14494
+    const [, deployedAuxdata] = splitAuxdata(
+      this.onchainRuntimeBytecode,
+      AuxdataStyle.SOLIDITY,
+    );
+    const [, recompiledAuxdata] = splitAuxdata(
+      this.compilation.runtimeBytecode,
+      AuxdataStyle.SOLIDITY,
+    );
+    // Metadata hashes match but bytecodes don't match.
+    if (
+      deployedAuxdata === recompiledAuxdata &&
+      (this.compilation.jsonInput.settings as SoliditySettings).optimizer
+        ?.enabled
+    ) {
+      return SolidityBugType.EXTRA_FILE_INPUT_BUG;
+    }
+    return SolidityBugType.NONE;
+  }
+
+  async handleSolidityIROutputOrderingBug(
     forceEmscripten: boolean,
-    compiledRuntimeBytecode: string,
   ): Promise<SolidityBugType> {
     // Handle Solidity specific verification bug cases
     const settings = this.compilation.jsonInput.settings as SoliditySettings;
@@ -219,27 +259,6 @@ export class Verification {
 
       // Try to verify again with Emscripten
       return SolidityBugType.IR_OUTPUT_ORDERING_BUG;
-    }
-
-    // Case when extra unused files in compiler input cause different bytecode
-    // See issues:
-    //   https://github.com/ethereum/sourcify/issues/618
-    //   https://github.com/ethereum/solidity/issues/14250
-    //   https://github.com/ethereum/solidity/issues/14494
-    const [, deployedAuxdata] = splitAuxdata(
-      this.onchainRuntimeBytecode,
-      AuxdataStyle.SOLIDITY,
-    );
-    const [, recompiledAuxdata] = splitAuxdata(
-      compiledRuntimeBytecode,
-      AuxdataStyle.SOLIDITY,
-    );
-    // Metadata hashes match but bytecodes don't match.
-    if (deployedAuxdata === recompiledAuxdata && settings.optimizer?.enabled) {
-      throw new VerificationError(
-        "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-        'EXTRA_FILE_INPUT_BUG',
-      );
     }
 
     return SolidityBugType.NONE;
@@ -436,7 +455,7 @@ export class Verification {
     if (!this._onchainRuntimeBytecode) {
       throw new VerificationError(
         'Onchain runtime bytecode not available',
-        'ONCHAIN_RUNTIME_BYTECODE_NOT_AVAILABLE',
+        'onchain_runtime_bytecode_not_available',
       );
     }
     return this._onchainRuntimeBytecode;
@@ -446,7 +465,7 @@ export class Verification {
     if (!this._onchainCreationBytecode) {
       throw new VerificationError(
         'Onchain creation bytecode not available',
-        'ONCHAIN_CREATION_BYTECODE_NOT_AVAILABLE',
+        'onchain_creation_bytecode_not_available',
       );
     }
     return this._onchainCreationBytecode;
