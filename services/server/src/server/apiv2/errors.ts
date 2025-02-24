@@ -6,6 +6,7 @@ import {
 import { v4 as uuidv4 } from "uuid";
 import { Request, Response, NextFunction } from "express";
 import { error as openApiValidatorErrors } from "express-openapi-validator";
+import logger from "../../common/logger";
 
 export type ErrorCode =
   | "unknown_error"
@@ -102,5 +103,6 @@ export function errorHandler(
     return;
   }
 
-  next(new UnknownError(err.message));
+  logger.error("Unknown server error: ", err);
+  next(new UnknownError("The server encountered an unexpected error."));
 }
