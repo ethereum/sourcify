@@ -49,10 +49,10 @@ export async function verifyVyper(
 
     checkedContract = new VyperCheckedContract(
       vyperCompiler,
-      req.body.compilerVersion,
-      req.body.contractPath,
-      req.body.contractName,
-      req.body.compilerSettings,
+      req.body?.compilerVersion,
+      req.body?.contractPath,
+      req.body?.contractName,
+      req.body?.compilerSettings,
       sources,
     );
   } catch (error: any) {
@@ -66,9 +66,9 @@ export async function verifyVyper(
 
   const match = await services.verification.verifyDeployed(
     checkedContract,
-    chainRepository.sourcifyChainMap[req.body.chain],
-    req.body.address,
-    req.body.creatorTxHash,
+    chainRepository.sourcifyChainMap[req.body?.chain],
+    req.body?.address,
+    req.body?.creatorTxHash,
   );
   if (match.runtimeMatch || match.creationMatch) {
     await services.storage.storeMatch(checkedContract, match);

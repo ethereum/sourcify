@@ -31,15 +31,15 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const vyper = req.app.get("vyper") as IVyperCompiler;
 
   logger.info("sessionVerifyFromEtherscan", {
-    chainId: req.body.chain,
-    address: req.body.address,
+    chainId: req.body?.chain,
+    address: req.body?.address,
   });
 
-  chainRepository.checkSupportedChainId(req.body.chain);
+  chainRepository.checkSupportedChainId(req.body?.chain);
 
-  const chain = req.body.chain;
-  const address = req.body.address;
-  const apiKey = req.body.apiKey;
+  const chain = req.body?.chain;
+  const address = req.body?.address;
+  const apiKey = req.body?.apiKey;
   const sourcifyChain = chainRepository.supportedChainMap[chain];
 
   const { vyperResult, solidityResult } = await processRequestFromEtherscan(

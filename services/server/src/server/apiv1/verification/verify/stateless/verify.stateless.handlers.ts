@@ -57,7 +57,7 @@ export async function legacyVerifyEndpoint(
     );
   }
 
-  if (checkedContracts.length !== 1 && !req.body.chosenContract) {
+  if (checkedContracts.length !== 1 && !req.body?.chosenContract) {
     const contractNames = checkedContracts.map((c) => c.name).join(", ");
     const msg = `Detected ${checkedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
     const contractsToChoose = checkedContracts.map((contract) => ({
@@ -69,36 +69,36 @@ export async function legacyVerifyEndpoint(
       .send({ error: msg, contractsToChoose });
   }
 
-  const contract: SolidityCheckedContract = req.body.chosenContract
+  const contract: SolidityCheckedContract = req.body?.chosenContract
     ? checkedContracts[req.body.chosenContract]
     : checkedContracts[0];
 
   if (!contract) {
     throw new NotFoundError(
       "Chosen contract not found. Received chosenContract: " +
-        req.body.chosenContract,
+        req.body?.chosenContract,
     );
   }
 
   const match = await services.verification.verifyDeployed(
     contract,
-    chainRepository.sourcifyChainMap[req.body.chain],
-    req.body.address,
-    req.body.creatorTxHash,
+    chainRepository.sourcifyChainMap[req.body?.chain],
+    req.body?.address,
+    req.body?.creatorTxHash,
   );
   // Send to verification again with all source files.
   if (match.runtimeMatch === "extra-file-input-bug") {
     logger.info("Found extra-file-input-bug", {
       contract: contract.name,
-      chain: req.body.chain,
-      address: req.body.address,
+      chain: req.body?.chain,
+      address: req.body?.address,
     });
     const contractWithAllSources = await useAllSources(contract, inputFiles);
     const tempMatch = await services.verification.verifyDeployed(
       contractWithAllSources,
-      chainRepository.sourcifyChainMap[req.body.chain],
-      req.body.address,
-      req.body.creatorTxHash,
+      chainRepository.sourcifyChainMap[req.body?.chain],
+      req.body?.address,
+      req.body?.creatorTxHash,
     );
     if (
       tempMatch.runtimeMatch === "perfect" ||
@@ -153,7 +153,7 @@ export async function verifyDeprecated(
     );
   }
 
-  if (checkedContracts.length !== 1 && !req.body.chosenContract) {
+  if (checkedContracts.length !== 1 && !req.body?.chosenContract) {
     const contractNames = checkedContracts.map((c) => c.name).join(", ");
     const msg = `Detected ${checkedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
     const contractsToChoose = checkedContracts.map((contract) => ({
@@ -165,20 +165,20 @@ export async function verifyDeprecated(
       .send({ error: msg, contractsToChoose });
   }
 
-  const contract: SolidityCheckedContract = req.body.chosenContract
+  const contract: SolidityCheckedContract = req.body?.chosenContract
     ? checkedContracts[req.body.chosenContract]
     : checkedContracts[0];
 
   if (!contract) {
     throw new NotFoundError(
       "Chosen contract not found. Received chosenContract: " +
-        req.body.chosenContract,
+        req.body?.chosenContract,
     );
   }
 
   const match: Match = {
-    address: req.body.address,
-    chainId: req.body.chain,
+    address: req.body?.address,
+    chainId: req.body?.chain,
     runtimeMatch: null,
     creationMatch: null,
     runtimeTransformations: [],
@@ -222,8 +222,8 @@ export async function verifyDeprecated(
     }
 
     // Override match properties
-    match.runtimeMatch = req.body.match;
-    match.creationMatch = req.body.match;
+    match.runtimeMatch = req.body?.match;
+    match.creationMatch = req.body?.match;
     // hex for !!!!!!!!!!! - chain was deprecated at the time of verification";
     match.onchainRuntimeBytecode =
       "0x2121212121212121212121202d20636861696e207761732064657072656361746564206174207468652074696d65206f6620766572696669636174696f6e";

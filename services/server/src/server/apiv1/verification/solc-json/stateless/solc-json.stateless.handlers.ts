@@ -33,10 +33,10 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       `Couldn't parse JSON ${inputFiles[0].path}. Make sure the contents of the file are syntaxed correctly.`,
     );
   }
-  const compilerVersion = req.body.compilerVersion;
-  const contractName = req.body.contractName;
-  const chain = req.body.chain;
-  const address = req.body.address;
+  const compilerVersion = req.body?.compilerVersion;
+  const contractName = req.body?.contractName;
+  const chain = req.body?.chain;
+  const address = req.body?.address;
 
   const metadataAndSourcesPathBuffers =
     await services.verification.getAllMetadataAndSourcesFromSolcJson(
@@ -63,7 +63,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     contractToVerify,
     chainRepository.sourcifyChainMap[chain],
     address,
-    req.body.creatorTxHash,
+    req.body?.creatorTxHash,
   );
   // Send to verification again with all source files.
   if (match.runtimeMatch === "extra-file-input-bug") {
@@ -75,7 +75,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       contractWithAllSources,
       chainRepository.sourcifyChainMap[chain],
       address, // Due to the old API taking an array of addresses.
-      req.body.creatorTxHash,
+      req.body?.creatorTxHash,
     );
     if (
       tempMatch.runtimeMatch === "perfect" ||
