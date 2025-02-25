@@ -116,7 +116,7 @@ export class RepositoryV2Service implements WStorageService {
         matchQuality,
         verification.chainId.toString(),
         verification.address,
-        verification.compilation.jsonInput.sources,
+        verification.compilation.sources,
       );
 
       // Store metadata
@@ -128,63 +128,63 @@ export class RepositoryV2Service implements WStorageService {
         verification.compilation.metadata,
       );
 
-      if (
-        verification.transformations.creation.values
-          .abiEncodedConstructorArguments
-      ) {
+      if (verification.transformations.creation.values.constructorArguments) {
         await this.storeTxt(
           matchQuality,
           verification.chainId.toString(),
           verification.address,
           "constructor-args.txt",
-          verification.abiEncodedConstructorArguments,
+          verification.transformations.creation.values.constructorArguments,
         );
       }
 
-      if (match.creatorTxHash) {
+      if (verification.deploymentInfo.txHash) {
         await this.storeTxt(
           matchQuality,
-          match.chainId,
-          match.address,
+          verification.chainId.toString(),
+          verification.address,
           "creator-tx-hash.txt",
-          match.creatorTxHash,
-        );
-      }
-
-      if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        await this.storeJSON(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "library-map.json",
-          match.libraryMap,
+          verification.deploymentInfo.txHash,
         );
       }
 
       if (
-        match.immutableReferences &&
-        Object.keys(match.immutableReferences).length > 0
+        verification.libraryMap &&
+        Object.keys(verification.libraryMap).length
       ) {
         await this.storeJSON(
           matchQuality,
-          match.chainId,
-          match.address,
+          verification.chainId.toString(),
+          verification.address,
+          "library-map.json",
+          verification.libraryMap,
+        );
+      }
+
+      if (
+        verification.compilation.immutableReferences &&
+        Object.keys(verification.compilation.immutableReferences).length > 0
+      ) {
+        await this.storeJSON(
+          matchQuality,
+          verification.chainId.toString(),
+          verification.address,
           "immutable-references.json",
-          match.immutableReferences,
+          verification.compilation.immutableReferences,
         );
       }
 
       logger.info(`Stored contract to ${this.IDENTIFIER}`, {
-        address: match.address,
-        chainId: match.chainId,
-        runtimeMatch: match.runtimeMatch,
-        creationMatch: match.creationMatch,
-        name: contract.name,
+        address: verification.address,
+        chainId: verification.chainId.toString(),
+        runtimeMatch: verification.status.runtimeMatch,
+        creationMatch: verification.status.creationMatch,
+        name: verification.compilation.compilationTarget.name,
       });
-    } else if (match.runtimeMatch === "extra-file-input-bug") {
-      return match;
     } else {
-      throw new Error(`Unknown match status: ${match.runtimeMatch}`);
+      throw new Error(
+        `Unknown match status: ${verification.status.runtimeMatch}`,
+      );
     }
   }
 

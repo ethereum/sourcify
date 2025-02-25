@@ -5,6 +5,7 @@ import {
   Metadata,
   LinkReferences,
   CompilationLanguage,
+  StringMap,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
@@ -146,5 +147,12 @@ export abstract class AbstractCompilation {
       throw new Error('Runtime bytecode cbor auxdata is not set');
     }
     return this._runtimeBytecodeCborAuxdata;
+  }
+
+  get sources() {
+    return Object.keys(this.jsonInput.sources).reduce((acc, source) => {
+      acc[source] = this.jsonInput.sources[source].content;
+      return acc;
+    }, {} as StringMap);
   }
 }

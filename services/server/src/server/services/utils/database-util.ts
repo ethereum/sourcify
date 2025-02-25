@@ -16,6 +16,8 @@ import {
   VyperOutput,
   Verification,
   SolidityOutputContract,
+  SoliditySettings,
+  VyperSettings,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Abi } from "abitype";
 import {
@@ -65,7 +67,10 @@ export namespace Tables {
       storageLayout: Nullable<StorageLayout>;
       sources: Nullable<CompilationArtifactsSources>;
     };
-    compiler_settings: Object;
+    compiler_settings: Omit<
+      SoliditySettings | VyperSettings,
+      "outputSelection"
+    >;
     creation_code_hash?: BytesSha;
     runtime_code_hash: BytesSha;
     creation_code_artifacts: {
@@ -741,18 +746,14 @@ export const withVerification = {
     }
 
     const sourcesInformation = Object.keys(
-      verification.compilation.jsonInput.sources,
+      verification.compilation.sources,
     ).map((path) => {
       return {
         path,
         source_hash_keccak: bytesFromString<BytesKeccak>(
-          keccak256(
-            Buffer.from(
-              verification.compilation.jsonInput.sources[path].content,
-            ),
-          ),
+          keccak256(Buffer.from(verification.compilation.sources[path])),
         ),
-        content: verification.compilation.jsonInput.sources[path].content,
+        content: verification.compilation.sources[path],
       };
     });
 
@@ -785,7 +786,8 @@ export const withVerification = {
           verification.compilation.language.toLocaleLowerCase() === "solidity"
             ? "solc"
             : "vyper",
-        compiler_settings: verification.compilation.jsonInput.settings,
+        compiler_settings:
+          prepareCompilerSettingsFromVerification(verification),
         name: verification.compilation.compilationTarget.name,
         version: verification.compilation.compilerVersion,
         fully_qualified_name: `${compilationTargetPath}:${compilationTargetName}`,
@@ -842,5 +844,14 @@ export function prepareCompilerSettings(
     {} as Libraries,
   ) as any;
 
+  return restSettings;
+}
+
+export function prepareCompilerSettingsFromVerification(
+  verification: Verification,
+): Omit<SoliditySettings | VyperSettings, "outputSelection"> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { outputSelection, ...restSettings } =
+    verification.compilation.jsonInput.settings;
   return restSettings;
 }
