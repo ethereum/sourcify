@@ -21,7 +21,7 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
   const solc = req.app.get("solc") as ISolidityCompiler;
   const vyper = req.app.get("vyper") as IVyperCompiler;
   const { verification } = req.app.get("services") as Services;
-  const compilerVersion = req.body.compilerVersion;
+  const compilerVersion = req.body?.compilerVersion;
 
   for (const inputFile of inputFiles) {
     let solcJson;

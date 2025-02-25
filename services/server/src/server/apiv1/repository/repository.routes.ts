@@ -133,7 +133,7 @@ router
 
 // This route covers constructor-args.txt, creator-tx-hash.txt, library-map.json, immutable-references.json files
 router
-  .route("/repository/contracts/:match/:chain/:address/*")
+  .route("/repository/contracts/:match/:chain/:address/*filePath")
   .get(validateAddress, safeHandler(getFileEndpoint));
 
 router
