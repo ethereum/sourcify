@@ -1,5 +1,5 @@
 import { describe, it, before, after } from 'mocha';
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import { Verification } from '../../src/Verification/Verification';
 import SourcifyChain from '../../src/SourcifyChain';
 import { ChildProcess } from 'child_process';
@@ -24,6 +24,9 @@ import { findSolcPlatform } from '../compiler/solidityCompiler';
 import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { PathContent } from '../../src/Validation/ValidationTypes';
+import chaiAsPromised from 'chai-as-promised';
+
+use(chaiAsPromised);
 
 class TestSolidityCompiler implements ISolidityCompiler {
   async compile(
@@ -214,11 +217,9 @@ describe('Verification Class Tests', () => {
         UNUSED_ADDRESS,
       );
 
-      try {
-        await verification.verify();
-      } catch (err: any) {
-        expect(err.code).to.equal('contract_not_deployed');
-      }
+      await expect(verification.verify())
+        .to.eventually.be.rejectedWith()
+        .and.have.property('code', 'contract_not_deployed');
     });
 
     it('should verify a contract with multiple auxdata with wrong auxdata leading to a partial match', async () => {
@@ -353,7 +354,7 @@ describe('Verification Class Tests', () => {
       });
     });
 
-    it('should return null match when there is no perfect match and no auxdata', async () => {
+    it('should throw an error when there is no perfect match and no auxdata', async () => {
       const contractFolderPath = path.join(
         __dirname,
         '..',
@@ -377,13 +378,10 @@ describe('Verification Class Tests', () => {
         sourcifyChainHardhat,
         contractAddress,
       );
-      try {
-        await verification.verify();
-      } catch (e: any) {
-        expect(e.message).to.equal(
-          "The deployed and recompiled bytecode don't match.",
-        );
-      }
+
+      await expect(verification.verify())
+        .to.eventually.be.rejectedWith()
+        .and.have.property('code', 'no_match');
     });
 
     it('should add constructor transformation with correct offset and arguments', async () => {
@@ -453,11 +451,9 @@ describe('Verification Class Tests', () => {
         contractAddress,
       );
 
-      try {
-        await failingVerification.verify();
-      } catch (err: any) {
-        expect(err.code).to.equal('extra_file_input_bug');
-      }
+      await expect(failingVerification.verify())
+        .to.eventually.be.rejectedWith()
+        .and.have.property('code', 'extra_file_input_bug');
 
       // Read all files from the sources directory
       const sourcesPath = path.join(contractFolderPath, 'complete_sources');
@@ -501,7 +497,7 @@ describe('Verification Class Tests', () => {
       });
     });
 
-    it('should fail when chain is temporarily unavailable', async () => {
+    it('should fail when bytecode could not be fetched', async () => {
       const contractFolderPath = path.join(
         __dirname,
         '..',
@@ -521,12 +517,9 @@ describe('Verification Class Tests', () => {
         UNUSED_ADDRESS,
       );
 
-      try {
-        await verification.verify();
-        throw new Error('Should have failed');
-      } catch (err: any) {
-        expect(err.code).to.equal('cant_fetch_bytecode');
-      }
+      await expect(verification.verify())
+        .to.eventually.be.rejectedWith()
+        .and.have.property('code', 'cant_fetch_bytecode');
     });
   });
 
@@ -593,6 +586,36 @@ describe('Verification Class Tests', () => {
         status: {
           runtimeMatch: 'perfect',
           creationMatch: 'perfect',
+        },
+        transformations: {
+          runtime: {
+            list: [
+              {
+                type: 'replace',
+                reason: 'immutable',
+                offset: 608,
+                id: '3',
+              },
+            ],
+            values: {
+              immutables: {
+                '3': '0x0000000000000000000000000000000000000000000000000000000000003039',
+              },
+            },
+          },
+          creation: {
+            list: [
+              {
+                type: 'insert',
+                reason: 'constructorArguments',
+                offset: 970,
+              },
+            ],
+            values: {
+              constructorArguments:
+                '0x0000000000000000000000000000000000000000000000000000000000003039',
+            },
+          },
         },
       });
     });
@@ -973,12 +996,9 @@ describe('Verification Class Tests', () => {
         contractAddress,
       );
 
-      try {
-        await verification.verify();
-        throw new Error('Should have failed');
-      } catch (err: any) {
-        expect(err.code).to.equal('no_match');
-      }
+      await expect(verification.verify())
+        .to.eventually.be.rejectedWith()
+        .and.have.property('code', 'no_match');
     });
 
     it('should handle Vyper contracts with different auxdata versions', async () => {
@@ -1157,12 +1177,9 @@ describe('Verification Class Tests', () => {
         txHash,
       );
 
-      try {
-        await verification.verify();
-        throw new Error('Should have failed');
-      } catch (err: any) {
-        expect(err.code).to.equal('bytecode_length_mismatch');
-      }
+      await expect(verification.verify())
+        .to.eventually.be.rejectedWith()
+        .and.have.property('code', 'bytecode_length_mismatch');
 
       expectVerification(verification, {
         status: {
@@ -1202,12 +1219,9 @@ describe('Verification Class Tests', () => {
         txHash,
       );
 
-      try {
-        await verification.verify();
-        throw new Error('Should have failed');
-      } catch (err: any) {
-        expect(err.code).to.equal('compiled_bytecode_is_zero');
-      }
+      await expect(verification.verify())
+        .to.eventually.be.rejectedWith()
+        .and.have.property('code', 'compiled_bytecode_is_zero');
     });
   });
 });
