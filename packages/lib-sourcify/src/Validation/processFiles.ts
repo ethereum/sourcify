@@ -1,8 +1,9 @@
 // Tools to assemble SolidityMetadataContract(s) from files.
 
-import { logDebug, logInfo } from '../lib/logger';
-import { Metadata, PathBuffer, PathContent } from '../lib/types';
+import { Metadata } from '../Compilation/CompilationTypes';
+import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
+import { PathBuffer, PathContent } from './ValidationTypes';
 import { unzipFiles } from './zipUtils';
 import fs from 'fs';
 import Path from 'path';

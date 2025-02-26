@@ -1,20 +1,18 @@
-import {
-  InvalidSources,
-  Metadata,
-  MissingSources,
-  PathContent,
-  StringMap,
-  Settings,
-  Libraries,
-} from '..';
 import { id as keccak256str } from 'ethers';
 import semver from 'semver';
 import { getIpfsGateway, performFetch } from './fetchUtils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import {
   ISolidityCompiler,
+  Libraries,
   SolidityJsonInput,
 } from '../Compilation/SolidityTypes';
+import {
+  Metadata,
+  MetadataCompilerSettings,
+  StringMap,
+} from '../Compilation/CompilationTypes';
+import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
 
 const CONTENT_VARIATORS = [
   (content: string) => content.replace(/\r?\n/g, '\r\n'),
@@ -281,15 +279,22 @@ export class SolidityMetadataContract {
 
     this.solcJsonInput = {} as SolidityJsonInput;
     // Clone the settings object to avoid mutating the original metadata
-    this.solcJsonInput.settings = JSON.parse(
+    const settings = JSON.parse(
       JSON.stringify(this.metadata.settings),
-    ) as Settings;
+    ) as MetadataCompilerSettings;
 
-    if (
-      !this.metadata.settings ||
-      !this.metadata.settings.compilationTarget ||
-      Object.keys(this.metadata.settings.compilationTarget).length != 1
-    ) {
+    // Remove libraries and compilationTarget before assigning
+    const {
+      libraries: metadataLibraries,
+      compilationTarget,
+      ...settingsWithoutLibraries
+    } = settings;
+    this.solcJsonInput.settings = {
+      ...settingsWithoutLibraries,
+      outputSelection: {}, // Output selection can be set to empty object because it's overwritten by SolidityCompilation
+    };
+
+    if (!compilationTarget || Object.keys(compilationTarget).length != 1) {
       throw new Error(
         `Can't create JsonInput from metadata: Invalid compilationTarget in metadata: ${Object.keys(
           this.metadata.settings.compilationTarget,
@@ -298,8 +303,6 @@ export class SolidityMetadataContract {
     }
 
     this.handleInlinerBug();
-    // Standard JSON does not have compilationTarget, only in metadata.json
-    delete this.solcJsonInput.settings.compilationTarget;
 
     this.solcJsonInput.sources = {};
     for (const source in this.metadata.sources) {
@@ -313,28 +316,29 @@ export class SolidityMetadataContract {
     // Convert the libraries from the metadata format to the compiler_settings format
     // metadata format: "contracts/1_Storage.sol:Journal": "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b"
     // settings format: "contracts/1_Storage.sol": { Journal: "0x7d53f102f4d4aa014db4e10d6deec2009b3cda6b" }
-    const metadataLibraries = this.metadata.settings.libraries || {};
-    this.solcJsonInput.settings.libraries = Object.keys(
-      metadataLibraries,
-    ).reduce((libraries, libraryKey) => {
-      // Before Solidity v0.7.5: { "ERC20": "0x..."}
-      if (!libraryKey.includes(':')) {
-        if (!libraries['']) {
-          libraries[''] = {};
+    if (metadataLibraries) {
+      this.solcJsonInput.settings.libraries = Object.keys(
+        metadataLibraries,
+      ).reduce((libraries, libraryKey) => {
+        // Before Solidity v0.7.5: { "ERC20": "0x..."}
+        if (!libraryKey.includes(':')) {
+          if (!libraries['']) {
+            libraries[''] = {};
+          }
+          // try using the global method, available for pre 0.7.5 versions
+          libraries[''][libraryKey] = metadataLibraries[libraryKey];
+          return libraries;
         }
-        // try using the global method, available for pre 0.7.5 versions
-        libraries[''][libraryKey] = metadataLibraries[libraryKey];
-        return libraries;
-      }
 
-      // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
-      const [contractPath, contractName] = libraryKey.split(':');
-      if (!libraries[contractPath]) {
-        libraries[contractPath] = {};
-      }
-      libraries[contractPath][contractName] = metadataLibraries[libraryKey];
-      return libraries;
-    }, {} as Libraries);
+        // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
+        const [contractPath, contractName] = libraryKey.split(':');
+        if (!libraries[contractPath]) {
+          libraries[contractPath] = {};
+        }
+        libraries[contractPath][contractName] = metadataLibraries[libraryKey];
+        return libraries;
+      }, {} as Libraries);
+    }
   }
 
   handleInlinerBug() {

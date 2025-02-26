@@ -3,6 +3,7 @@ import {
   CompilationTarget,
   CompiledContractCborAuxdata,
   Metadata,
+  LinkReferences,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
@@ -17,7 +18,7 @@ import {
   VyperOutput,
   VyperOutputContract,
 } from './VyperTypes';
-import { logInfo, logSilly, logWarn } from '../lib/logger';
+import { logInfo, logSilly, logWarn } from '../logger';
 
 export abstract class AbstractCompilation {
   /**
@@ -28,14 +29,14 @@ export abstract class AbstractCompilation {
   abstract compilationTarget: CompilationTarget;
   abstract jsonInput: SolidityJsonInput | VyperJsonInput;
 
-  metadata?: Metadata;
+  protected _metadata?: Metadata;
   compilerOutput?: SolidityOutput | VyperOutput;
 
   abstract auxdataStyle: AuxdataStyle;
 
   /** Marks the positions of the CborAuxdata parts in the bytecode */
-  creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
-  runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
+  protected _creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
+  protected _runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
 
   /**
    * Recompiles the contract with the specified compiler settings
@@ -73,7 +74,7 @@ export abstract class AbstractCompilation {
     }
 
     // We call getCompilationTarget() before logging because it can throw an error
-    const compilationTarget = this.getCompilationTarget();
+    const compilationTarget = this.compilationTargetContract;
 
     const compilationEndTime = Date.now();
     const compilationDuration = compilationEndTime - compilationStartTime;
@@ -89,7 +90,9 @@ export abstract class AbstractCompilation {
     return compilationTarget;
   }
 
-  getCompilationTarget(): SolidityOutputContract | VyperOutputContract {
+  get compilationTargetContract():
+    | SolidityOutputContract
+    | VyperOutputContract {
     if (!this.compilerOutput) {
       logWarn('Compiler output is undefined');
       throw new Error('Compiler output is undefined');
@@ -110,20 +113,36 @@ export abstract class AbstractCompilation {
     ];
   }
 
-  getCreationBytecode() {
-    return `0x${this.getCompilationTarget().evm.bytecode.object}`;
+  get creationBytecode() {
+    return `0x${this.compilationTargetContract.evm.bytecode.object}`;
   }
 
-  getRuntimeBytecode() {
-    return `0x${this.getCompilationTarget().evm.deployedBytecode.object}`;
+  get runtimeBytecode() {
+    return `0x${this.compilationTargetContract.evm.deployedBytecode.object}`;
   }
 
-  getMetadata(): Metadata {
-    if (!this.metadata) {
+  get metadata() {
+    if (!this._metadata) {
       throw new Error('Metadata is not set');
     }
-    return this.metadata;
+    return this._metadata;
   }
 
-  abstract getImmutableReferences(): ImmutableReferences;
+  abstract get immutableReferences(): ImmutableReferences;
+  abstract get runtimeLinkReferences(): LinkReferences;
+  abstract get creationLinkReferences(): LinkReferences;
+
+  get creationBytecodeCborAuxdata(): CompiledContractCborAuxdata {
+    if (!this._creationBytecodeCborAuxdata) {
+      throw new Error('Creation bytecode cbor auxdata is not set');
+    }
+    return this._creationBytecodeCborAuxdata;
+  }
+
+  get runtimeBytecodeCborAuxdata(): CompiledContractCborAuxdata {
+    if (!this._runtimeBytecodeCborAuxdata) {
+      throw new Error('Runtime bytecode cbor auxdata is not set');
+    }
+    return this._runtimeBytecodeCborAuxdata;
+  }
 }
