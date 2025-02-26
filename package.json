@@ -40,8 +40,8 @@
     "@typescript-eslint/parser": "6.21.0",
     "eslint": "8.57.1",
     "eslint-config-prettier": "9.1.0",
-    "lerna": "8.1.9",
-    "prettier": "3.5.1",
+    "lerna": "8.2.0",
+    "prettier": "3.5.2",
     "ts-node": "10.9.2",
     "typescript": "5.7.3"
   },

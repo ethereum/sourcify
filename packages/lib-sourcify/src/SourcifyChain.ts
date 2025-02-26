@@ -90,8 +90,6 @@ export default class SourcifyChain {
           provider.url = rpc;
         } else {
           // Do not use WebSockets because of not being able to catch errors on websocket initialization. Most networks don't support WebSockets anyway. See https://github.com/ethers-io/ethers.js/discussions/2896
-          // provider = new WebSocketProvider(rpc);
-          logDebug("Won't create a WebSocketProvider", { rpc });
         }
       } else {
         provider = new JsonRpcProvider(rpc, ethersNetwork, {
