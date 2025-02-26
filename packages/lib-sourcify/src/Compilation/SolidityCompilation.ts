@@ -7,7 +7,6 @@ import {
   SolidityOutput,
   SolidityOutputContract,
 } from './SolidityTypes';
-import { CompilationTarget, LinkReferences } from './CompilationTypes';
 import {
   CompilationLanguage,
   CompilationTarget,

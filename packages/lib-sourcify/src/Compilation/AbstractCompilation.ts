@@ -4,6 +4,8 @@ import {
   CompiledContractCborAuxdata,
   Metadata,
   CompilationLanguage,
+  StringMap,
+  LinkReferences,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
@@ -134,5 +136,23 @@ export abstract class AbstractCompilation {
       acc[source] = this.jsonInput.sources[source].content;
       return acc;
     }, {} as StringMap);
+  }
+
+  abstract get immutableReferences(): ImmutableReferences;
+  abstract get runtimeLinkReferences(): LinkReferences;
+  abstract get creationLinkReferences(): LinkReferences;
+
+  get creationBytecodeCborAuxdata(): CompiledContractCborAuxdata {
+    if (!this._creationBytecodeCborAuxdata) {
+      throw new Error('Creation bytecode cbor auxdata is not set');
+    }
+    return this._creationBytecodeCborAuxdata;
+  }
+
+  get runtimeBytecodeCborAuxdata(): CompiledContractCborAuxdata {
+    if (!this._runtimeBytecodeCborAuxdata) {
+      throw new Error('Runtime bytecode cbor auxdata is not set');
+    }
+    return this._runtimeBytecodeCborAuxdata;
   }
 }
