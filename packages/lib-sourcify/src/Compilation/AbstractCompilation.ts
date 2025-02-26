@@ -3,9 +3,7 @@ import {
   CompilationTarget,
   CompiledContractCborAuxdata,
   Metadata,
-  LinkReferences,
   CompilationLanguage,
-  StringMap,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
@@ -129,24 +127,6 @@ export abstract class AbstractCompilation {
       throw new Error('Metadata is not set');
     }
     return this._metadata;
-  }
-
-  abstract get immutableReferences(): ImmutableReferences;
-  abstract get runtimeLinkReferences(): LinkReferences;
-  abstract get creationLinkReferences(): LinkReferences;
-
-  get creationBytecodeCborAuxdata(): CompiledContractCborAuxdata {
-    if (!this._creationBytecodeCborAuxdata) {
-      throw new Error('Creation bytecode cbor auxdata is not set');
-    }
-    return this._creationBytecodeCborAuxdata;
-  }
-
-  get runtimeBytecodeCborAuxdata(): CompiledContractCborAuxdata {
-    if (!this._runtimeBytecodeCborAuxdata) {
-      throw new Error('Runtime bytecode cbor auxdata is not set');
-    }
-    return this._runtimeBytecodeCborAuxdata;
   }
 
   get sources() {
