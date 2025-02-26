@@ -252,13 +252,17 @@ export default abstract class AbstractDatabaseService {
       | Omit<DatabaseUtil.Tables.Code, "bytecode_hash">
       | undefined;
 
-    if (match.onchainCreationBytecode && keccak256OnchainCreationBytecode) {
-      onchainCreationCode = {
-        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
-          keccak256OnchainCreationBytecode,
-        ),
-        bytecode: bytesFromString<Bytes>(match.onchainCreationBytecode),
-      };
+    try {
+      if (match.onchainCreationBytecode && keccak256OnchainCreationBytecode) {
+        onchainCreationCode = {
+          bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+            keccak256OnchainCreationBytecode,
+          ),
+          bytecode: bytesFromString<Bytes>(match.onchainCreationBytecode),
+        };
+      }
+    } catch (e) {
+      // If the onchain creation bytecode is undefined, we don't store it
     }
 
     const sourcesInformation = Object.keys(recompiledContract.sources).map(

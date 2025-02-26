@@ -726,6 +726,18 @@ export class SourcifyDatabaseService
     return true;
   }
 
+  validateVerificationBeforeStoring(verification: Verification): boolean {
+    if (
+      verification.compilation.runtimeBytecode === undefined &&
+      verification.compilation.creationBytecode === undefined
+    ) {
+      throw new Error(
+        `can only store contracts with at least runtimeBytecode or creationBytecode address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
+    return true;
+  }
+
   async storeMatch(recompiledContract: AbstractCheckedContract, match: Match) {
     const { type, verifiedContractId, oldVerifiedContractId } =
       await super.insertOrUpdateVerifiedContract(recompiledContract, match);

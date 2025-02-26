@@ -10,10 +10,12 @@ import {
   Match,
   checkFilesWithMetadata,
   matchWithRuntimeBytecode,
-  useAllSources,
   IVyperCompiler,
   SolidityMetadataContract,
   createMetadataContractsFromFiles,
+  VerificationError,
+  Verification,
+  useAllSourcesAndReturnCompilation,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
@@ -22,10 +24,10 @@ import {
   getResponseMatchFromMatch,
   getResponseMatchFromVerification,
 } from "../../../../common";
-import logger from "../../../../../common/logger";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import { AuxdataStyle } from "@ethereum-sourcify/bytecode-utils";
+import logger from "../../../../../common/logger";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -33,7 +35,6 @@ export async function legacyVerifyEndpoint(
 ): Promise<any> {
   const services = req.app.get("services") as Services;
   const solc = req.app.get("solc") as ISolidityCompiler;
-  const vyper = req.app.get("vyper") as IVyperCompiler;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const inputFiles = extractFiles(req);
@@ -57,7 +58,7 @@ export async function legacyVerifyEndpoint(
   );
   if (errors.length) {
     throw new BadRequestError(
-      "Invalid or missing sources in:\n" + errors.join("\n"),
+      "Invalid or missing sources in:\n" + errors.map((e) => e.name).join("\n"),
     );
   }
 
@@ -86,12 +87,41 @@ export async function legacyVerifyEndpoint(
 
   const compilation = await contract.createCompilation(solc);
 
-  const verification = await services.verification.verifyFromCompilation(
-    compilation,
-    chainRepository.sourcifyChainMap[req.body.chain],
-    req.body.address,
-    req.body.creatorTxHash,
-  );
+  let verification: Verification;
+  try {
+    verification = await services.verification.verifyFromCompilation(
+      compilation,
+      chainRepository.sourcifyChainMap[req.body.chain],
+      req.body.address,
+      req.body.creatorTxHash,
+    );
+  } catch (e) {
+    if (e instanceof VerificationError) {
+      if (e.code === "extra_file_input_bug") {
+        logger.info("Found extra-file-input-bug", {
+          contract: contract.name,
+          chain: req.body.chain,
+          address: req.body.address,
+        });
+        const contractWithAllSources = await useAllSourcesAndReturnCompilation(
+          compilation,
+          inputFiles,
+        );
+        verification = await services.verification.verifyFromCompilation(
+          contractWithAllSources,
+          chainRepository.sourcifyChainMap[req.body.chain],
+          req.body.address,
+          req.body.creatorTxHash,
+        );
+      } else {
+        // TODO: log warn
+        throw e;
+      }
+    } else {
+      // TODO: log warn
+      throw e;
+    }
+  }
 
   await services.storage.storeVerification(verification);
   return res.send({ result: [getResponseMatchFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)

@@ -575,9 +575,17 @@ export const withVerification = {
     if (verification.onchainRuntimeBytecode === undefined) {
       throw new Error("onchainRuntimeBytecode cannot be undefined");
     }
+
+    let onchainCreationBytecode = undefined;
+    try {
+      onchainCreationBytecode = verification.onchainCreationBytecode;
+    } catch (e) {
+      // If the onchain creation bytecode is undefined, we don't store it
+    }
+
     return {
-      keccak256OnchainCreationBytecode: verification.onchainCreationBytecode
-        ? keccak256(bytesFromString(verification.onchainCreationBytecode))
+      keccak256OnchainCreationBytecode: onchainCreationBytecode
+        ? keccak256(bytesFromString(onchainCreationBytecode))
         : undefined,
       keccak256OnchainRuntimeBytecode: keccak256(
         bytesFromString(verification.onchainRuntimeBytecode),
@@ -733,16 +741,22 @@ export const withVerification = {
 
     let onchainCreationCode: Omit<Tables.Code, "bytecode_hash"> | undefined;
 
-    if (
-      verification.onchainCreationBytecode &&
-      keccak256OnchainCreationBytecode
-    ) {
-      onchainCreationCode = {
-        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
-          keccak256OnchainCreationBytecode,
-        ),
-        bytecode: bytesFromString<Bytes>(verification.onchainCreationBytecode),
-      };
+    try {
+      if (
+        verification.onchainCreationBytecode &&
+        keccak256OnchainCreationBytecode
+      ) {
+        onchainCreationCode = {
+          bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+            keccak256OnchainCreationBytecode,
+          ),
+          bytecode: bytesFromString<Bytes>(
+            verification.onchainCreationBytecode,
+          ),
+        };
+      }
+    } catch (e) {
+      // If the onchain creation bytecode is undefined, we don't store it
     }
 
     const sourcesInformation = Object.keys(

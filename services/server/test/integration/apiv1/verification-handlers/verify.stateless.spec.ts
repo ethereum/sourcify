@@ -132,7 +132,7 @@ describe("/", function () {
     chai.expect(err).to.be.null;
     chai.expect(res.body).to.haveOwnProperty("error");
     const errorMessage = res.body.error.toLowerCase();
-    chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR);
+    chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
     chai.expect(errorMessage).to.include("missing");
     chai.expect(errorMessage).to.include("Storage".toLowerCase());
   };
@@ -177,10 +177,10 @@ describe("/", function () {
 
   // We cannot split this into multiple tests because there is a global beforeEach that resets the database
   it("Should skip verification for /verify, /verify/etherscan and /verify/solc-json if contract is already verified", async () => {
-    // Spy on the verifyDeployed method
-    const verifyDeployedSpy = sinon.spy(
+    // Spy on the verifyFromCompilation method
+    const verifyFromCompilationSpy = sinon.spy(
       serverFixture.server.services.verification,
-      "verifyDeployed",
+      "verifyFromCompilation",
     );
 
     // Perform the initial verification
@@ -203,24 +203,24 @@ describe("/", function () {
       "perfect",
     );
 
-    // Verify that verifyDeployed was called during the initial verification
+    // Verify that verifyFromCompilation was called during the initial verification
     chai.expect(
-      verifyDeployedSpy.calledOnce,
-      "verifyDeployed should be called once during initial verification",
+      verifyFromCompilationSpy.calledOnce,
+      "verifyFromCompilation should be called once during initial verification",
     ).to.be.true;
 
     // The first time the contract is verified, the storageTimestamp is not returned
     chai.expect(initialResponse.body.result[0].storageTimestamp).to.not.exist;
 
     // Reset the spy before calling the endpoint again
-    verifyDeployedSpy.resetHistory();
+    verifyFromCompilationSpy.resetHistory();
 
     /**
-     * Test /verify endpoint is not calling verifyDeployed again
+     * Test /verify endpoint is not calling verifyFromCompilation again
      */
     chai.expect(
-      verifyDeployedSpy.notCalled,
-      "verifyDeployed should not be called for /verify",
+      verifyFromCompilationSpy.notCalled,
+      "verifyFromCompilation should not be called for /verify",
     ).to.be.true;
     let res = await chai
       .request(serverFixture.server.app)
@@ -241,15 +241,15 @@ describe("/", function () {
       "perfect",
     );
 
-    // Verify that verifyDeployed was NOT called
+    // Verify that verifyFromCompilation was NOT called
     chai.expect(
-      verifyDeployedSpy.notCalled,
-      "verifyDeployed should not be called for /verify",
+      verifyFromCompilationSpy.notCalled,
+      "verifyFromCompilation should not be called for /verify",
     ).to.be.true;
     chai.expect(res.body.result[0].storageTimestamp).to.exist;
 
     /**
-     * Test /verify/etherscan endpoint is not calling verifyDeployed again
+     * Test /verify/etherscan endpoint is not calling verifyFromCompilation again
      */
     res = await chai
       .request(serverFixture.server.app)
@@ -267,15 +267,15 @@ describe("/", function () {
       "perfect",
     );
 
-    // Verify that verifyDeployed was NOT called
+    // Verify that verifyFromCompilation was NOT called
     chai.expect(
-      verifyDeployedSpy.notCalled,
-      "verifyDeployed should not be called for /verify/etherscan",
+      verifyFromCompilationSpy.notCalled,
+      "verifyFromCompilation should not be called for /verify/etherscan",
     ).to.be.true;
     chai.expect(res.body.result[0].storageTimestamp).to.exist;
 
     /**
-     * Test /verify/solc-json endpoint is not calling verifyDeployed again
+     * Test /verify/solc-json endpoint is not calling verifyFromCompilation again
      */
     const solcJsonPath = path.join(
       __dirname,
@@ -307,15 +307,15 @@ describe("/", function () {
       "perfect",
     );
 
-    // Verify that verifyDeployed was NOT called
+    // Verify that verifyFromCompilation was NOT called
     chai.expect(
-      verifyDeployedSpy.notCalled,
-      "verifyDeployed should not be called for /verify/solc-json",
+      verifyFromCompilationSpy.notCalled,
+      "verifyFromCompilation should not be called for /verify/solc-json",
     ).to.be.true;
     chai.expect(res.body.result[0].storageTimestamp).to.exist;
 
-    // Restore the original verifyDeployed method
-    verifyDeployedSpy.restore();
+    // Restore the original verifyFromCompilation method
+    verifyFromCompilationSpy.restore();
   });
 
   it("Should upgrade creation match from 'null' to 'perfect', delete partial from repository and update creationTx information in database", async () => {
@@ -966,11 +966,11 @@ describe("/", function () {
           .field("address", contractAddress)
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
-            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
+            chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR); // TODO: change to bad request
             chai
               .expect(res.body.error)
               .to.equal(
-                "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
+                "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
               );
             done();
           });

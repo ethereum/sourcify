@@ -151,6 +151,7 @@ export function getMatchStatusFromVerification(
   return null;
 }
 
+// TODO: implement this
 export function getResponseMatchFromVerification(
   verification: Verification,
 ): ResponseMatch {
@@ -160,7 +161,6 @@ export function getResponseMatchFromVerification(
     chainId: verification.chainId.toString(),
     runtimeMatch: verification.status.runtimeMatch,
     creationMatch: verification.status.creationMatch,
-    storageTimestamp: new Date(),
     message: "",
     abiEncodedConstructorArguments: "",
     create2Args: {

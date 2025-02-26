@@ -5,14 +5,28 @@ import {
   SolidityJsonInput,
   Metadata,
   SourcifyChain,
-  VyperCheckedContract,
   VyperJsonInput,
-  findContractPathFromContractName,
+  SolidityCompilation,
+  VyperCompilation,
+  CompilationTarget,
+  SolidityMetadataContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
 import logger from "../../../../common/logger";
-import { createSolidityCheckedContract } from "../verification.common";
+
+const findContractPathFromContractName = (
+  contracts: any,
+  contractName: string,
+): string | null => {
+  for (const key of Object.keys(contracts)) {
+    const contractsList = contracts[key];
+    if (Object.keys(contractsList).includes(contractName)) {
+      return key;
+    }
+  }
+  return null;
+};
 
 interface VyperVersion {
   compiler_version: string;
@@ -452,6 +466,8 @@ export async function processEtherscanSolidityContract(
   solcJsonInput: SolidityJsonInput,
   contractName: string,
 ) {
+  // TODO: we need to find a way to skip recompilation
+  // the problem is that I don't know how to get the contract path from the etherscan result
   const metadata = await getMetadataFromCompiler(
     solc,
     compilerVersion,
@@ -459,8 +475,15 @@ export async function processEtherscanSolidityContract(
     contractName,
   );
 
-  const mappedSources = getMappedSourcesFromJsonInput(solcJsonInput);
-  return createSolidityCheckedContract(solc, metadata, mappedSources);
+  const solidityMetadataContract = new SolidityMetadataContract(
+    metadata,
+    Object.keys(solcJsonInput.sources).map((source) => ({
+      path: source,
+      content: solcJsonInput.sources[source].content,
+    })),
+  );
+
+  return await solidityMetadataContract.createCompilation(solc);
 }
 
 export async function processEtherscanVyperContract(
@@ -475,19 +498,18 @@ export async function processEtherscanVyperContract(
       "Couldn't get Vyper compiler settings from Etherscan",
     );
   }
-  const sourceMap = Object.fromEntries(
-    Object.entries(vyperJsonInput.sources).map(([path, content]) => [
-      path,
-      content.content,
-    ]),
-  );
 
-  return new VyperCheckedContract(
+  // Create compilation target
+  const compilationTarget: CompilationTarget = {
+    path: contractPath,
+    name: contractName,
+  };
+
+  // Create and return VyperCompilation directly
+  return new VyperCompilation(
     vyperCompiler,
     compilerVersion,
-    contractPath,
-    contractName,
-    vyperJsonInput.settings,
-    sourceMap,
+    vyperJsonInput,
+    compilationTarget,
   );
 }

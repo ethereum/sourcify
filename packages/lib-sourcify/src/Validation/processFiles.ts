@@ -1,6 +1,9 @@
 // Tools to assemble SolidityMetadataContract(s) from files.
 
 import { Metadata } from '../Compilation/CompilationTypes';
+import { SolidityCompilation } from '../Compilation/SolidityCompilation';
+import { Sources, SolidityJsonInput } from '../Compilation/SolidityTypes';
+import { pathContentArrayToStringMap } from '../lib/validation';
 import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
 import { PathBuffer, PathContent } from './ValidationTypes';
@@ -241,4 +244,48 @@ function assertCompilationTarget(metadata: Metadata) {
       `Metadata must have exactly one compilation target. Found: ${Object.keys(metadata.settings.compilationTarget).join(', ')}`,
     );
   }
+}
+
+export async function useAllSourcesAndReturnCompilation(
+  solidityCompilation: SolidityCompilation,
+  files: PathBuffer[],
+) {
+  await unzipFiles(files);
+  const parsedFiles = files.map((pathBuffer) => ({
+    content: pathBuffer.buffer.toString(),
+    path: pathBuffer.path,
+  }));
+  const { sourceFiles } = splitFiles(parsedFiles);
+  const stringMapSourceFiles = pathContentArrayToStringMap(sourceFiles);
+
+  // Create a proper Sources object from the StringMap
+  const sourcesObject: Sources = {};
+
+  // First add all sources from the string map
+  for (const path in stringMapSourceFiles) {
+    sourcesObject[path] = {
+      content: stringMapSourceFiles[path],
+    };
+  }
+
+  // Then add all sources from the solidityCompilation (which are already hash matched)
+  // These will override any duplicates from the string map
+  for (const path in solidityCompilation.jsonInput.sources) {
+    sourcesObject[path] = solidityCompilation.jsonInput.sources[path];
+  }
+
+  // Create a new SolidityJsonInput with the combined sources
+  const newJsonInput: SolidityJsonInput = {
+    language: solidityCompilation.jsonInput.language,
+    sources: sourcesObject,
+    settings: solidityCompilation.jsonInput.settings,
+  };
+
+  const solidityCompilationWithAllSources = new SolidityCompilation(
+    solidityCompilation.compiler,
+    solidityCompilation.compilerVersion,
+    newJsonInput,
+    solidityCompilation.compilationTarget,
+  );
+  return solidityCompilationWithAllSources;
 }

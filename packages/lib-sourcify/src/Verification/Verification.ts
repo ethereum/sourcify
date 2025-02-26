@@ -194,6 +194,7 @@ export class Verification {
           creatorTxHash: this.creatorTxHash,
           error: e.message,
         });
+        this.creatorTxHash = undefined;
       }
     }
 
