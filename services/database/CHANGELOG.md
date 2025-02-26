@@ -1,5 +1,14 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.2.1 - 2025-02-18
+
+- Make Dune namespace configurable
+
+## sourcify-database@2.2.0 - 2025-02-06
+
+- Add Dune upload script
+- Reorganize database migrations
+
 ## sourcify-database@2.1.0 - 2025-01-08
 
 - Add missing creation-tx backfill scripts

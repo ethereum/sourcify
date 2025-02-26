@@ -12,10 +12,12 @@ export type ProxyType =
   | "ZeppelinOSProxy"
   | "SequenceWalletProxy";
 
+export type Implementation = { address: string; name?: string };
+
 export interface ProxyDetectionResult {
   isProxy: boolean;
   proxyType: ProxyType | null;
-  implementations: string[];
+  implementations: Implementation[];
 }
 
 export async function detectAndResolveProxy(
@@ -64,7 +66,7 @@ export async function detectAndResolveProxy(
     return {
       isProxy: true,
       proxyType: "EIP1167Proxy",
-      implementations: [fixedProxy.resolvedAddress],
+      implementations: [{ address: fixedProxy.resolvedAddress }],
     };
   }
 
@@ -86,7 +88,7 @@ export async function detectAndResolveProxy(
       return {
         isProxy: true,
         proxyType: "DiamondProxy",
-        implementations: facets,
+        implementations: facets.map((facet: string) => ({ address: facet })),
       };
     } catch (error) {
       // Falsely detected as a diamond proxy,
@@ -113,7 +115,7 @@ export async function detectAndResolveProxy(
       return {
         isProxy: true,
         proxyType: proxy.name as ProxyType,
-        implementations: [resolvedAddress],
+        implementations: [{ address: resolvedAddress }],
       };
     }
 

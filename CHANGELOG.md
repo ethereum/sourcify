@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.4.7 - 2025-02-18
+
+- Update CI chain tests commands
+
+## sourcify-monorepo@1.4.6 - 2025-02-06
+
+- Fix not publishing to npm and throw on errors in the bash scripts
+
 ## sourcify-monorepo@1.4.5 - 2025-01-08
 
 - Add Vyper descriptions to README

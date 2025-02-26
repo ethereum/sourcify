@@ -3,8 +3,12 @@ import { Bytes } from "../../types";
 import {
   bytesFromString,
   GetSourcifyMatchByChainAddressResult,
+  GetSourcifyMatchByChainAddressWithPropertiesResult,
+  GetSourcifyMatchesByChainResult,
   GetVerifiedContractByChainAndAddressResult,
   SourceInformation,
+  STORED_PROPERTIES_TO_SELECTORS,
+  StoredProperties,
   Tables,
 } from "./database-util";
 import { createHash } from "crypto";
@@ -157,6 +161,55 @@ ${
     );
   }
 
+  async getSourcifyMatchByChainAddressWithProperties(
+    chain: number,
+    address: Bytes,
+    properties: StoredProperties[],
+  ): Promise<QueryResult<GetSourcifyMatchByChainAddressWithPropertiesResult>> {
+    if (properties.length === 0) {
+      throw new Error("No properties specified");
+    }
+
+    const selectors = properties.map(
+      (property) => STORED_PROPERTIES_TO_SELECTORS[property],
+    );
+
+    return await this.pool.query(
+      `
+        SELECT
+          ${selectors.join(", ")}
+        FROM ${this.schema}.sourcify_matches
+        JOIN ${this.schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+        JOIN ${this.schema}.compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
+        JOIN ${this.schema}.contract_deployments ON 
+          contract_deployments.id = verified_contracts.deployment_id 
+          AND contract_deployments.chain_id = $1 
+          AND contract_deployments.address = $2
+        JOIN ${this.schema}.contracts ON contracts.id = contract_deployments.contract_id
+        LEFT JOIN ${this.schema}.code as onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
+        LEFT JOIN ${this.schema}.code as onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
+        LEFT JOIN ${this.schema}.code as recompiled_runtime_code ON recompiled_runtime_code.code_hash = compiled_contracts.runtime_code_hash
+        LEFT JOIN ${this.schema}.code as recompiled_creation_code ON recompiled_creation_code.code_hash = compiled_contracts.creation_code_hash
+${
+  properties.includes("sources") || properties.includes("std_json_input")
+    ? `JOIN ${this.schema}.compiled_contracts_sources ON compiled_contracts_sources.compilation_id = compiled_contracts.id
+      LEFT JOIN ${this.schema}.sources ON sources.source_hash = compiled_contracts_sources.source_hash
+      GROUP BY sourcify_matches.id, 
+        verified_contracts.id, 
+        compiled_contracts.id, 
+        contract_deployments.id,
+        contracts.id, 
+        onchain_runtime_code.code_hash, 
+        onchain_creation_code.code_hash,
+        recompiled_runtime_code.code_hash,
+        recompiled_creation_code.code_hash`
+    : ""
+}
+        `,
+      [chain, address],
+    );
+  }
+
   async getCompiledContractSources(
     compilation_id: string,
   ): Promise<
@@ -202,7 +255,7 @@ ${
     runtime_match,
     creation_match,
     metadata,
-  }: Omit<Tables.SourcifyMatch, "created_at">) {
+  }: Omit<Tables.SourcifyMatch, "created_at" | "id">) {
     await this.pool.query(
       `INSERT INTO ${this.schema}.sourcify_matches (
         verified_contract_id,
@@ -223,7 +276,7 @@ ${
       runtime_match,
       creation_match,
       metadata,
-    }: Omit<Tables.SourcifyMatch, "created_at">,
+    }: Omit<Tables.SourcifyMatch, "created_at" | "id">,
     oldVerifiedContractId: number,
   ) {
     await this.pool.query(
@@ -265,6 +318,49 @@ ${
   WHERE contract_deployments.chain_id = $1
   GROUP BY contract_deployments.chain_id;`,
       [chain],
+    );
+  }
+
+  async getSourcifyMatchesByChain(
+    chain: number,
+    limit: number,
+    descending: boolean,
+    afterId?: string,
+  ): Promise<QueryResult<GetSourcifyMatchesByChainResult>> {
+    const values: Array<number | string> = [chain, limit];
+    const orderBy = descending
+      ? "ORDER BY sourcify_matches.id DESC"
+      : "ORDER BY sourcify_matches.id ASC";
+
+    let queryWhere = "";
+    if (afterId) {
+      queryWhere = descending
+        ? "WHERE sourcify_matches.id < $3"
+        : "WHERE sourcify_matches.id > $3";
+      values.push(afterId);
+    }
+
+    const selectors = [
+      STORED_PROPERTIES_TO_SELECTORS["id"],
+      STORED_PROPERTIES_TO_SELECTORS["creation_match"],
+      STORED_PROPERTIES_TO_SELECTORS["runtime_match"],
+      STORED_PROPERTIES_TO_SELECTORS["address"],
+      STORED_PROPERTIES_TO_SELECTORS["verified_at"],
+    ];
+    return await this.pool.query(
+      `
+    SELECT
+      ${selectors.join(", ")}
+    FROM ${this.schema}.sourcify_matches
+    JOIN ${this.schema}.verified_contracts ON verified_contracts.id = sourcify_matches.verified_contract_id
+    JOIN ${this.schema}.contract_deployments ON 
+        contract_deployments.id = verified_contracts.deployment_id
+        AND contract_deployments.chain_id = $1
+    ${queryWhere}
+    ${orderBy}
+    LIMIT $2
+    `,
+      values,
     );
   }
 
@@ -373,7 +469,7 @@ ${
       transaction_hash,
       contract_id,
       block_number,
-      txindex,
+      transaction_index,
       deployer,
     }: Omit<Tables.ContractDeployment, "id">,
   ): Promise<QueryResult<Pick<Tables.ContractDeployment, "id">>> {
@@ -394,7 +490,7 @@ ${
         transaction_hash,
         contract_id,
         block_number,
-        txindex,
+        transaction_index,
         deployer,
       ],
     );
@@ -650,7 +746,7 @@ ${
       id,
       transaction_hash,
       block_number,
-      txindex,
+      transaction_index,
       deployer,
       contract_id,
     }: Omit<Tables.ContractDeployment, "chain_id" | "address">,
@@ -664,7 +760,14 @@ ${
          deployer = $5,
          contract_id = $6
        WHERE id = $1`,
-      [id, transaction_hash, block_number, txindex, deployer, contract_id],
+      [
+        id,
+        transaction_hash,
+        block_number,
+        transaction_index,
+        deployer,
+        contract_id,
+      ],
     );
   }
 }

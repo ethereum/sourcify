@@ -1,17 +1,10 @@
 import { Router } from "express"; // static is a reserved word
-import testArtifactsRoutes from "./controllers/testartifacts/testartifacts.routes";
-import repositoryRoutes from "./controllers/repository/repository.routes";
-import sessionStateRoutes from "./controllers/verification/session-state/session-state.routes";
-import verifyRoutes from "./controllers/verification/verify/verify.routes";
-import solcJsonRoutes from "./controllers/verification/solc-json/solc-json.routes";
-import etherscanRoutes from "./controllers/verification/etherscan/etherscan.routes";
 import logger, { setLogLevel } from "../common/logger";
 import { ChainRepository } from "../sourcify-chain-repository";
-import vyperRoutes from "./controllers/verification/vyper/vyper.routes";
+import apiV2Routes from "./apiv2/routes";
+import apiV1Routes from "./apiv1/routes";
 
 const router: Router = Router();
-
-router.use("/chain-tests", testArtifactsRoutes);
 
 router.get("/health", (_req, res) =>
   res.status(200).send("Alive and kicking!"),
@@ -61,12 +54,7 @@ router.get("/chains", (_req, res) => {
   res.status(200).json(sourcifyChains);
 });
 
-router.use("/", repositoryRoutes);
-
-router.use("/", sessionStateRoutes);
-router.use("/", verifyRoutes);
-router.use("/", solcJsonRoutes);
-router.use("/", etherscanRoutes);
-router.use("/", vyperRoutes);
+router.use("/", apiV1Routes);
+router.use("/v2", apiV2Routes);
 
 export default router;

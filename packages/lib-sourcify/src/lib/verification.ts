@@ -610,10 +610,25 @@ export async function matchWithCreationTx(
   // The reason why this uses `startsWith` instead of `===` is that creationTxData may contain constructor arguments at the end part.
   if (match.onchainCreationBytecode.startsWith(recompiledCreationBytecode)) {
     // if the bytecode doesn't end with metadata then "partial" match
+    // endsWithMetadataHash checks the metadata hash, not only the CBOR auxdata
     if (endsWithMetadataHash(recompiledCreationBytecode)) {
       match.creationMatch = 'perfect';
     } else {
-      match.creationMatch = 'partial';
+      // CBOR auxdata could be somewhere else in the bytecode
+      const cborAuxdataPositions = await generateCborAuxdataPositions();
+      const allCborAuxdataHaveMetadataHash =
+        Object.keys(cborAuxdataPositions).length > 0 &&
+        Object.values(cborAuxdataPositions).every(({ offset, value }) => {
+          const cborAuxdataExtracted = recompiledCreationBytecode.slice(
+            offset * 2,
+            offset * 2 + value.length,
+          );
+          // REMEMBER! CBORAuxdata !== metadata hash. We need the metadata hash. endsWithMetadataHash checks the metadata hash
+          return endsWithMetadataHash(cborAuxdataExtracted);
+        });
+      match.creationMatch = allCborAuxdataHaveMetadataHash
+        ? 'perfect'
+        : 'partial';
     }
     logDebug('Found creation match', {
       chainId: match.chainId,
@@ -629,12 +644,7 @@ export async function matchWithCreationTx(
 
     // We call generateCborAuxdataPositions only here because in the case of double auxdata it will
     // trigger a second compilation. We don't want to run the compiler twice if not strictly needed
-    const cborAuxdataPositions = await generateCborAuxdataPositions().catch(
-      (error) => {
-        logError('cannot generate contract artifacts', error);
-        throw new Error('cannot generate contract artifacts');
-      },
-    );
+    const cborAuxdataPositions = await generateCborAuxdataPositions();
 
     // We use normalizeBytecodesAuxdata to replace all the auxdatas in both bytecodes with zeros
     const {

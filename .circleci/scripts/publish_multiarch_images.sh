@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Based on: https://www.docker.com/blog/multi-arch-build-and-images-the-simple-way/
 # Images are built for each architecture (amd64, arm64) and pushed to Github Container Registry under their arch e.g. ghcr.io/ethereum/sourcify/server:staging-amd64

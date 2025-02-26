@@ -11,8 +11,8 @@ import {
   ContractData,
   FileObject,
   FilesInfo,
-  MatchLevel,
-  MatchLevelWithoutAny,
+  V1MatchLevel,
+  V1MatchLevelWithoutAny,
   MatchQuality,
   PathConfig,
 } from "../../types";
@@ -41,7 +41,7 @@ export class RepositoryV1Service implements RWStorageService {
   async getFile(
     chainId: string,
     address: string,
-    match: MatchLevelWithoutAny,
+    match: V1MatchLevelWithoutAny,
     path: string,
   ): Promise<string | false> {
     return await readFile(this.repositoryPath, match, chainId, address, path);
@@ -151,7 +151,7 @@ export class RepositoryV1Service implements RWStorageService {
   getTree = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<string[]>> => {
     const fullMatchesTree = this.fetchAllFileUrls(
       chainId,
@@ -169,7 +169,7 @@ export class RepositoryV1Service implements RWStorageService {
   getContent = async (
     chainId: string,
     address: string,
-    match: MatchLevel,
+    match: V1MatchLevel,
   ): Promise<FilesInfo<Array<FileObject>>> => {
     const fullMatchesFiles = await this.fetchAllFileContents(
       chainId,
