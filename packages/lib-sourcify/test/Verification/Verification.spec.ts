@@ -49,17 +49,25 @@ async function getCompilationFromMetadata(contractFolderPath: string) {
   const sourcesPath = path.join(contractFolderPath, 'sources');
   const sources: PathContent[] = [];
 
-  // Get all source files from metadata
-  for (const [sourcePath] of Object.entries(metadata.sources)) {
-    // Extract filename from source path (e.g. "contracts/Storage.sol" -> "Storage.sol")
-    const fileName = sourcePath.split('/').pop() || sourcePath;
-    const filePath = path.join(sourcesPath, fileName);
-    const content = fs.readFileSync(filePath, 'utf8');
-    sources.push({
-      path: sourcePath,
-      content,
-    });
-  }
+  // Recursively read all files from the sources directory
+  const readDirRecursively = (dir: string, baseDir: string = '') => {
+    const files = fs.readdirSync(dir);
+    for (const file of files) {
+      const fullPath = path.join(dir, file);
+      const relativePath = path.join(baseDir, file);
+      if (fs.statSync(fullPath).isDirectory()) {
+        readDirRecursively(fullPath, relativePath);
+      } else {
+        const content = fs.readFileSync(fullPath, 'utf8');
+        sources.push({
+          path: relativePath,
+          content,
+        });
+      }
+    }
+  };
+
+  readDirRecursively(sourcesPath);
 
   // Create metadata contract
   const metadataContract = new SolidityMetadataContract(metadata, sources);
@@ -354,7 +362,7 @@ describe('Verification Class Tests', () => {
       });
     });
 
-    it('should throw an error when there is no perfect match and no auxdata', async () => {
+    it('should throw an error when bytecodes dont match and no auxdata to ignore for a partial match', async () => {
       const contractFolderPath = path.join(
         __dirname,
         '..',

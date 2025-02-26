@@ -334,7 +334,7 @@ export class Verification {
       return result;
     }
 
-    // If there is no perfect match and no auxdata, return null
+    // If bytecodes don't match and no auxdata to ignore, return null
     if (!cborAuxdata || Object.keys(cborAuxdata).length === 0) {
       return result;
     }
