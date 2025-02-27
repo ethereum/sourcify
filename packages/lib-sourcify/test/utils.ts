@@ -19,7 +19,7 @@ import {
   IVyperCompiler,
   VyperJsonInput,
   VyperOutput,
-} from '../src/lib/IVyperCompiler';
+} from '../src/Compilation/VyperTypes';
 import {
   ISolidityCompiler,
   SolidityJsonInput,
