@@ -53,15 +53,6 @@ export async function legacyVerifyEndpoint(
     throw new BadRequestError(error.message);
   }
 
-  const errors = metadataContracts.filter(
-    (contract) => !contract.isCompilable(),
-  );
-  if (errors.length) {
-    throw new BadRequestError(
-      "Invalid or missing sources in:\n" + errors.map((e) => e.name).join("\n"),
-    );
-  }
-
   if (metadataContracts.length !== 1 && !req.body.chosenContract) {
     const contractNames = metadataContracts.map((c) => c.name).join(", ");
     const msg = `Detected ${metadataContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
@@ -82,6 +73,19 @@ export async function legacyVerifyEndpoint(
     throw new NotFoundError(
       "Chosen contract not found. Received chosenContract: " +
         req.body.chosenContract,
+    );
+  }
+
+  // Fetch missing files
+  try {
+    await contract.fetchMissing();
+  } catch (error: any) {
+    // TODO: log warn
+  }
+
+  if (!contract.isCompilable()) {
+    throw new BadRequestError(
+      "Invalid or missing sources in:\n" + contract.name,
     );
   }
 
