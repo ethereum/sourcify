@@ -3,7 +3,7 @@
 import { Metadata } from '../Compilation/CompilationTypes';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import { Sources, SolidityJsonInput } from '../Compilation/SolidityTypes';
-import { pathContentArrayToStringMap } from '../lib/validation';
+import { pathContentArrayToStringMap, extractUnused } from '../lib/validation';
 import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
 import { PathBuffer, PathContent } from './ValidationTypes';
@@ -22,6 +22,7 @@ const HARDHAT_OUTPUT_FORMAT_REGEX = /"hh-sol-build-info-1"/;
 export function createMetadataContractsFromPaths(
   paths: string[],
   ignoring?: string[],
+  unused?: string[],
 ) {
   const files: PathBuffer[] = [];
   paths.forEach((path) => {
@@ -36,10 +37,13 @@ export function createMetadataContractsFromPaths(
     }
   });
 
-  return createMetadataContractsFromFiles(files);
+  return createMetadataContractsFromFiles(files, unused);
 }
 
-export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
+export async function createMetadataContractsFromFiles(
+  files: PathBuffer[],
+  unused?: string[],
+) {
   logInfo('Creating metadata contracts from files', {
     numberOfFiles: files.length,
   });
@@ -51,6 +55,7 @@ export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
   const { metadataFiles, sourceFiles } = splitFiles(parsedFiles);
 
   const metadataContracts: SolidityMetadataContract[] = [];
+  const usedFiles: string[] = [];
 
   metadataFiles.forEach((metadata) => {
     if (metadata.language === 'Solidity') {
@@ -59,12 +64,25 @@ export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
         sourceFiles,
       );
       metadataContracts.push(metadataContract);
+
+      // Track used files
+      if (metadataContract.metadataPathToProvidedFilePath) {
+        const currentUsedFiles = Object.values(
+          metadataContract.metadataPathToProvidedFilePath,
+        );
+        usedFiles.push(...currentUsedFiles);
+      }
     } else if (metadata.language === 'Vyper') {
       throw new Error('Can only handle Solidity metadata files');
     } else {
       throw new Error('Unsupported language');
     }
   });
+
+  // Track unused files if the parameter is provided
+  if (unused) {
+    extractUnused(sourceFiles, usedFiles, unused);
+  }
 
   logInfo('SolidityMetadataContracts', {
     contracts: metadataContracts.map((c) => c.name),
@@ -75,7 +93,7 @@ export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
 /**
  * Splits the files into metadata and source files using heuristics.
  */
-function splitFiles(files: PathContent[]): {
+export function splitFiles(files: PathContent[]): {
   metadataFiles: Metadata[];
   sourceFiles: PathContent[];
 } {

@@ -646,16 +646,15 @@ export class RepositoryV1Service implements RWStorageService {
         );
       }
 
-      if (
-        verification.libraryMap &&
-        Object.keys(verification.libraryMap).length
-      ) {
+      const libraryMap =
+        verification.libraryMap.creation || verification.libraryMap.runtime;
+      if (libraryMap && Object.keys(libraryMap).length) {
         await this.storeJSON(
           matchQuality,
           verification.chainId.toString(),
           verification.address,
           "library-map.json",
-          verification.libraryMap,
+          libraryMap,
         );
       }
 

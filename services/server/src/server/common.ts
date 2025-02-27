@@ -46,17 +46,19 @@ export type ContractMeta = {
   storageTimestamp?: Date;
 };
 
+export type ContractWrapperData = {
+  language: Language;
+  metadata: Metadata;
+  sources: StringMap;
+  missing: MissingSources;
+  invalid: InvalidSources;
+  creationBytecode?: string;
+  compiledPath?: string;
+  name?: string;
+};
+
 export type ContractWrapper = ContractMeta & {
-  contract: {
-    language: Language;
-    metadata: Metadata;
-    sources: StringMap;
-    missing: MissingSources;
-    invalid: InvalidSources;
-    creationBytecode?: string;
-    compiledPath?: string;
-    name?: string;
-  };
+  contract: ContractWrapperData;
 };
 
 export interface ContractWrapperMap {

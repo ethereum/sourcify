@@ -41,6 +41,7 @@ export async function verifyVyper(
     throw new NotFoundError(msg);
   }
 
+  let compilation: VyperCompilation;
   try {
     const sources = inputFiles.reduce((files, file) => {
       files[file.path] = file.buffer.toString();
@@ -63,34 +64,34 @@ export async function verifyVyper(
     };
 
     // Create VyperCompilation
-    const compilation = new VyperCompilation(
+    compilation = new VyperCompilation(
       vyperCompiler,
       req.body.compilerVersion,
       vyperJsonInput,
       compilationTarget,
     );
-
-    // Verify using the new verification flow
-    const verification = await services.verification.verifyFromCompilation(
-      compilation,
-      chainRepository.sourcifyChainMap[req.body.chain],
-      req.body.address,
-      req.body.creatorTxHash,
-    );
-
-    // Store verification result
-    await services.storage.storeVerification(verification);
-
-    // Return the result
-    return res.send({
-      result: [getResponseMatchFromVerification(verification)],
-    });
   } catch (error: any) {
-    logger.warn("Error during Vyper verification", {
+    logger.warn("Error initializing Vyper compiler input", {
       error: error,
     });
     throw new BadRequestError(
-      "Error during Vyper verification: " + error.message,
+      "Error initializing Vyper compiler input, please check files and settings",
     );
   }
+
+  // Verify using the new verification flow
+  const verification = await services.verification.verifyFromCompilation(
+    compilation,
+    chainRepository.sourcifyChainMap[req.body.chain],
+    req.body.address,
+    req.body.creatorTxHash,
+  );
+
+  // Store verification result
+  await services.storage.storeVerification(verification);
+
+  // Return the result
+  return res.send({
+    result: [getResponseMatchFromVerification(verification)],
+  });
 }

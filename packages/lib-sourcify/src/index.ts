@@ -9,6 +9,7 @@ export { default as SourcifyChain } from './SourcifyChain';
 export const setLibSourcifyLogger = setLogger;
 export const setLibSourcifyLoggerLevel = setLevel;
 export type ILibSourcifyLogger = ILogger;
+export * from './Compilation/AbstractCompilation';
 export * from './Compilation/SolidityCompilation';
 export * from './Compilation/VyperCompilation';
 export * from './Compilation/VyperTypes';
@@ -42,3 +43,5 @@ export {
 export * from './Verification/Transformations';
 export { findContractPathFromContractName } from './lib/SolidityCheckedContract';
 export * from './Validation/fetchUtils';
+export { unzipFiles } from './Validation/zipUtils';
+export { rearrangeSources, storeByHash } from './lib/validation';
