@@ -38,7 +38,6 @@ import { StorageService } from "../../services/StorageService";
 import logger from "../../../common/logger";
 import { createHash } from "crypto";
 import { ChainRepository } from "../../../sourcify-chain-repository";
-import { id as keccak256str } from "ethers";
 
 export function createSolidityCheckedContract(
   solc: ISolidityCompiler,

@@ -39,6 +39,7 @@ export {
   BaseRPC,
   TraceSupportedRPC,
   ContractCreationFetcher,
+  FetchContractCreationTxMethod,
 } from './lib/types';
 export * from './Verification/Transformations';
 export { findContractPathFromContractName } from './lib/SolidityCheckedContract';

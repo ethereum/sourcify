@@ -1,9 +1,7 @@
 import { Response, Request } from "express";
 import {
-  ContractWrapperMap,
   SendableContract,
   getSessionJSON,
-  isVerifiable,
   verifyContractsInSession,
 } from "../../verification.common";
 import {

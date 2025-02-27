@@ -1,9 +1,7 @@
 import { Response, Request } from "express";
 import {
-  ContractWrapperMap,
   checkContractsInSession,
   getSessionJSON,
-  isVerifiable,
   saveFilesToSession,
   verifyContractsInSession,
 } from "../../verification.common";

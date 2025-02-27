@@ -6,7 +6,6 @@ import {
   Metadata,
   SourcifyChain,
   VyperJsonInput,
-  SolidityCompilation,
   VyperCompilation,
   CompilationTarget,
   SolidityMetadataContract,

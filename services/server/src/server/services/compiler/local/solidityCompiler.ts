@@ -1,7 +1,7 @@
 // TODO: Handle nodejs only dependencies
 import path from "path";
 import fs from "fs";
-import { exec, spawnSync } from "child_process";
+import { spawnSync } from "child_process";
 import { StatusCodes } from "http-status-codes";
 import semver from "semver";
 import { Worker, WorkerOptions } from "worker_threads";
