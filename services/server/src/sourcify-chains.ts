@@ -170,15 +170,16 @@ for (const i in allChains) {
   const chain = allChains[i];
   const chainId = chain.chainId;
   if (chainId in sourcifyChainsMap) {
-    // Don't throw on local chains in development, override the chain.json item
+    // Don't throw on test chains in development, override the chain.json item as test chains are found in chains.json.
     if (
       process.env.NODE_ENV !== "production" &&
       LOCAL_CHAINS.map((c) => c.chainId).includes(chainId)
     ) {
-      continue;
+      // do nothing.
+    } else {
+      const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
+      throw new Error(err);
     }
-    const err = `Corrupt chains file (chains.json): multiple chains have the same chainId: ${chainId}`;
-    throw new Error(err);
   }
 
   if (chainId in sourcifyChainsExtensions) {
