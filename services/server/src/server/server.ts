@@ -37,6 +37,7 @@ import {
   RouteNotFoundError,
   errorHandler as v2ErrorHandler,
 } from "./apiv2/errors";
+import swaggerUi from "swagger-ui-express";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -70,40 +71,52 @@ export class Server {
   chainRepository: ChainRepository;
 
   constructor(
-    options: ServerOptions,
+    port: string | number,
+    chains: SourcifyChainMap,
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
-    this.port = options.port;
+    this.port = port;
     logger.info("Server port set", { port: this.port });
     this.app = express();
-
-    this.chainRepository = new ChainRepository(options.chains);
-
+    this.chainRepository = new ChainRepository(chains);
     this.services = new Services(
       verificationServiceOptions,
       storageServiceOptions,
     );
+  }
 
-    this.app.set("chainRepository", this.chainRepository);
-    this.app.set("solc", options.solc);
-    this.app.set("vyper", options.vyper);
-    this.app.set("verifyDeprecated", options.verifyDeprecated);
-    this.app.set("services", this.services);
+  static async create(
+    options: ServerOptions,
+    verificationServiceOptions: VerificationServiceOptions,
+    storageServiceOptions: StorageServiceOptions,
+  ): Promise<Server> {
+    const server = new Server(
+      options.port,
+      options.chains,
+      verificationServiceOptions,
+      storageServiceOptions,
+    );
 
-    this.app.use(
+    server.app.set("chainRepository", server.chainRepository);
+    server.app.set("solc", options.solc);
+    server.app.set("vyper", options.vyper);
+    server.app.set("verifyDeprecated", options.verifyDeprecated);
+    server.app.set("services", server.services);
+
+    server.app.use(
       bodyParser.urlencoded({
         limit: options.maxFileSize,
         extended: true,
       }),
     );
-    this.app.use(bodyParser.json({ limit: options.maxFileSize }));
+    server.app.use(bodyParser.json({ limit: options.maxFileSize }));
 
     // Init deprecated routes before OpenApiValidator so that it can handle the request with the defined paths.
     // initDeprecatedRoutes is a middleware that replaces the deprecated paths with the real ones.
-    initDeprecatedRoutes(this.app);
+    initDeprecatedRoutes(server.app);
 
-    this.app.use(
+    server.app.use(
       fileUpload({
         limits: { fileSize: options.maxFileSize },
         abortOnLimit: true,
@@ -111,7 +124,7 @@ export class Server {
     );
 
     // Inject the traceId to the AsyncLocalStorage to be logged.
-    this.app.use((req, res, next) => {
+    server.app.use((req, res, next) => {
       let traceId;
       // GCP uses the standard `traceparent` header https://www.w3.org/TR/trace-context/
       if (req.headers["traceparent"]) {
@@ -138,21 +151,21 @@ export class Server {
     });
 
     // Log all requests in trace mode
-    this.app.use((req, res, next) => {
+    server.app.use((req, res, next) => {
       const { method, path, params, headers, body } = req;
       logger.silly("Request", { method, path, params, headers, body });
       next();
     });
 
     // In every request support both chain and chainId
-    this.app.use((req: any, res: any, next: any) => {
+    server.app.use((req: any, res: any, next: any) => {
       if (req.body.chainId) {
         req.body.chain = req.body.chainId;
       }
       next();
     });
 
-    this.app.use(
+    server.app.use(
       OpenApiValidator.middleware({
         apiSpec: path.join(__dirname, "..", "openapi.yaml"),
         validateRequests: {
@@ -177,7 +190,7 @@ export class Server {
           },
         },
         formats: {
-          ...makeV1ValidatorFormats(this.chainRepository),
+          ...makeV1ValidatorFormats(server.chainRepository),
         },
         $refParser: {
           mode: "dereference",
@@ -223,9 +236,9 @@ export class Server {
         },
       });
 
-      this.app.all("/session/verify*", limiter);
-      this.app.all("/verify*", limiter);
-      this.app.post("/", limiter);
+      server.app.all("/session/verify*", limiter);
+      server.app.all("/verify*", limiter);
+      server.app.post("/", limiter);
     }
 
     // Session API endpoints require non "*" origins because of the session cookies
@@ -236,7 +249,7 @@ export class Server {
       "/restart-session",
       "/verify-validated",
     ];
-    this.app.use((req, res, next) => {
+    server.app.use((req, res, next) => {
       // startsWith to match /session*
       if (sessionPaths.some((substr) => req.path.startsWith(substr))) {
         return cors({
@@ -254,21 +267,39 @@ export class Server {
     // true means the leftmost IP in the X-Forwarded-* header is used
     // Assuming the client ip is 2.2.2.2, reverse proxy 192.168.1.5
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
-    this.app.set("trust proxy", true);
+    server.app.set("trust proxy", true);
     // Enable session only for session endpoints
-    this.app.use("/*session*", getSessionMiddleware(options.sessionOptions));
+    server.app.use("/*session*", getSessionMiddleware(options.sessionOptions));
 
-    this.app.use("/", routes);
+    server.app.use("/", routes);
+
+    // Generate the swagger.json and serve it with SwaggerUI at /api-docs
+    const swaggerDocument = await server.loadSwagger(
+      yamljs.load(path.join(__dirname, "..", "openapi.yaml")),
+    ); // load the openapi file with the $refs resolved
+    server.app.get("/api-docs/swagger.json", (req, res) =>
+      res.json(swaggerDocument),
+    );
+    server.app.use(
+      "/api-docs",
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument, {
+        customSiteTitle: "Sourcify API",
+        customfavIcon: "https://sourcify.dev/favicon.ico",
+      }),
+    );
 
     // Any request that could not be handled by a route earlier will match this
-    this.app.use((req, res, next) => {
+    server.app.use((req, res, next) => {
       next(new RouteNotFoundError("The requested resource was not found"));
     });
 
     // Error handlers cannot be registered on the routes, so we need to register them here
-    this.app.use("/v2", v2ErrorHandler);
+    server.app.use("/v2", v2ErrorHandler);
 
-    this.app.use(genericErrorHandler);
+    server.app.use(genericErrorHandler);
+
+    return server;
   }
 
   async listen(callback?: () => void) {

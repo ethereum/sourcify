@@ -8,8 +8,6 @@ dotenv.config({ path: path.resolve(__dirname, "..", "..", ".env") });
 // Make sure config is relative to index.ts and not where the server is run from
 process.env["NODE_CONFIG_DIR"] = path.resolve(__dirname, "..", "config");
 import config from "config";
-import swaggerUi from "swagger-ui-express";
-import yamljs from "yamljs";
 import expressSession from "express-session";
 import createMemoryStore from "memorystore";
 import { Pool } from "pg";
@@ -61,7 +59,8 @@ Object.defineProperty(RegExp.prototype, "toJSON", {
 logger.info("Starting server with config", {
   config: JSON.stringify(config.util.toObject(), null, 2),
 });
-const server = new Server(
+
+Server.create(
   {
     port: config.get("server.port"),
     maxFileSize: config.get("server.maxFileSize"),
@@ -142,28 +141,12 @@ const server = new Server(
       schema: process.env.ALLIANCE_POSTGRES_SCHEMA as string,
     },
   },
-);
-
-// Generate the swagger.json and serve it with SwaggerUI at /api-docs
-server.services.init().then(() => {
-  server
-    .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
-    .then((swaggerDocument: any) => {
-      server.app.get("/api-docs/swagger.json", (req, res) =>
-        res.json(swaggerDocument),
-      );
-      server.app.use(
-        "/api-docs",
-        swaggerUi.serve,
-        swaggerUi.setup(swaggerDocument, {
-          customSiteTitle: "Sourcify API",
-          customfavIcon: "https://sourcify.dev/favicon.ico",
-        }),
-      );
-      server.app.listen(server.port, () => {
-        logger.info("Server listening", { port: server.port });
-      });
+).then((server) => {
+  server.services.init().then(() => {
+    server.app.listen(server.port, () => {
+      logger.info("Server listening", { port: server.port });
     });
+  });
 });
 
 function initMemoryStore() {
