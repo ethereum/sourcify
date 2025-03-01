@@ -117,7 +117,7 @@ export class ServerFixture {
         },
       };
 
-      this._server = new Server(
+      this._server = await Server.create(
         serverOptions,
         {
           solcRepoPath: config.get("solcRepo"),
