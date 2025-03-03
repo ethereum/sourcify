@@ -87,7 +87,7 @@ export namespace Tables {
   }
 
   export interface VerifiedContract {
-    id: string;
+    id: number;
     compilation_id: string;
     deployment_id: string;
     creation_transformations: Nullable<Transformation[]>;
@@ -115,7 +115,7 @@ export namespace Tables {
 
   export interface SourcifyMatch {
     id: string;
-    verified_contract_id: string;
+    verified_contract_id: number;
     runtime_match: Status | null;
     creation_match: Status | null;
     metadata: Metadata;

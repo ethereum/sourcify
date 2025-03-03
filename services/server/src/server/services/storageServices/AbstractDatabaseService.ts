@@ -331,7 +331,7 @@ export default abstract class AbstractDatabaseService {
 
   async insertNewVerifiedContract(
     databaseColumns: DatabaseUtil.DatabaseColumns,
-  ): Promise<string> {
+  ): Promise<number> {
     // Get a client from the pool, so that we can execute all the insert queries within the same transaction
     const client = await this.database.pool.connect();
 
@@ -425,7 +425,7 @@ export default abstract class AbstractDatabaseService {
   async updateExistingVerifiedContract(
     existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
     databaseColumns: DatabaseUtil.DatabaseColumns,
-  ): Promise<string | false> {
+  ): Promise<number | false> {
     // runtime bytecodes must exist
     if (databaseColumns.recompiledRuntimeCode.bytecode === undefined) {
       throw new Error("Missing normalized runtime bytecode");
@@ -537,8 +537,8 @@ export default abstract class AbstractDatabaseService {
     match: Match,
   ): Promise<{
     type: "update" | "insert";
-    verifiedContractId: string | false;
-    oldVerifiedContractId?: string;
+    verifiedContractId: number | false;
+    oldVerifiedContractId?: number;
   }> {
     this.validateBeforeStoring(recompiledContract, match);
 
