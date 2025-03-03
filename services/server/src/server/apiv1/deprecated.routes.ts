@@ -30,8 +30,13 @@ export function initDeprecatedRoutes(app: express.Application) {
     app[method as HTTPMethod](
       deprecatedRoute,
       (req: Request, res: Response, next: NextFunction) => {
-        req.url = path;
-        req.originalUrl = path;
+        let url = path;
+        if (req.originalUrl.includes("?")) {
+          const query = req.originalUrl.split("?")[1];
+          url += `?${query}`;
+        }
+        req.url = url;
+        req.originalUrl = url;
         next();
       },
     );

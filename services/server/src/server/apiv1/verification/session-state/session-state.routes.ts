@@ -5,16 +5,13 @@ import {
   restartSessionEndpoint,
   addInputContractEndpoint,
 } from "./session-state.handlers";
-import { safeHandler } from "../../../common";
 
 const router: Router = Router();
 
-router.route("/session/data").get(safeHandler(getSessionDataEndpoint));
-router.route("/session/input-files").post(safeHandler(addInputFilesEndpoint));
-router.route("/session/clear").post(safeHandler(restartSessionEndpoint));
-router
-  .route("/session/input-contract")
-  .post(safeHandler(addInputContractEndpoint));
+router.route("/session/data").get(getSessionDataEndpoint);
+router.route("/session/input-files").post(addInputFilesEndpoint);
+router.route("/session/clear").post(restartSessionEndpoint);
+router.route("/session/input-contract").post(addInputContractEndpoint);
 
 export const deprecatedRoutesSessionState = {
   "/session-data": {

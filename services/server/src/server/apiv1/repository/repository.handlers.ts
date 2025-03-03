@@ -18,6 +18,7 @@ import {
 } from "../../services/utils/proxy-contract-util";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { getAddress } from "ethers";
+import path from "path";
 
 type RetrieveMethod = (
   services: Services,
@@ -58,7 +59,7 @@ export function createEndpoint(
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }
-    return res
+    res
       .status(StatusCodes.OK)
       .json(reportMatchStatus ? retrieved : retrieved.files);
   };
@@ -77,7 +78,7 @@ export function createContractEndpoint(
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }
-    return res.status(StatusCodes.OK).json(retrieved);
+    res.status(StatusCodes.OK).json(retrieved);
   };
 }
 
@@ -100,7 +101,7 @@ export function createPaginatedContractEndpoint(
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }
-    return res.status(StatusCodes.OK).json(retrieved);
+    res.status(StatusCodes.OK).json(retrieved);
   };
 }
 
@@ -235,13 +236,13 @@ export async function getFileEndpoint(
   res: Response,
   next: NextFunction,
 ) {
-  const { match, chain, address } = req.params;
+  const { match, chain, address, filePath } = req.params;
   const services = req.app.get("services") as Services;
   const file = await services.storage.performServiceOperation("getFile", [
     chain,
     address,
     match as V1MatchLevelWithoutAny,
-    req.params[0],
+    path.join(...filePath),
   ]);
   if (file === false) {
     return next(new NotFoundError());

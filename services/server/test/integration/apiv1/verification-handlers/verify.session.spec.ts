@@ -780,7 +780,7 @@ describe("/session", function () {
       .post("/session/input-solc-json")
       .attach("files", solcJsonBuffer);
 
-    assertValidationError(null, res, "compilerVersion");
+    assertValidationError(null, res, "body");
   });
 
   it("should verify a contract with Solidity standard input JSON", async () => {

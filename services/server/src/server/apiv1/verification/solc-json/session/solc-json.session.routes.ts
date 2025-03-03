@@ -1,11 +1,8 @@
 import { Router } from "express";
 import { addInputSolcJsonEndpoint } from "./solc-json.session.handlers";
-import { safeHandler } from "../../../../common";
 
 const router: Router = Router();
 
-router
-  .route("/session/input-solc-json")
-  .post(safeHandler(addInputSolcJsonEndpoint));
+router.route("/session/input-solc-json").post(addInputSolcJsonEndpoint);
 
 export default router;

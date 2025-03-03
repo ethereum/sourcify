@@ -12,11 +12,11 @@ export function checksumAddresses(
   next: NextFunction,
 ) {
   // stateless
-  if (req.body.address) {
+  if (req.body?.address) {
     req.body.address = getAddress(req.body.address);
   }
   // session
-  if (req.body.contracts) {
+  if (req.body?.contracts) {
     req.body.contracts.forEach((contract: any) => {
       contract.address = getAddress(contract.address);
     });
@@ -59,7 +59,7 @@ export async function checkPerfectMatch(
   next: NextFunction,
 ) {
   // address and chain are always available because of openAPI validation
-  const { address, chain } = req.body;
+  const { address, chain } = req.body ?? {};
   const services = req.app.get("services") as Services;
 
   try {
@@ -70,7 +70,8 @@ export async function checkPerfectMatch(
     );
 
     if (result) {
-      return res.send({ result: [getResponseMatchFromMatch(result)] });
+      res.send({ result: [getResponseMatchFromMatch(result)] });
+      return;
     }
 
     next();

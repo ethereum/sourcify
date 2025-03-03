@@ -159,8 +159,16 @@ export class ServerFixture {
       await this._server.services.init();
 
       await new Promise<void>((resolve, reject) => {
-        httpServer = this.server.app.listen(this.server.port, resolve);
-        httpServer.on("error", reject);
+        httpServer = this.server.app.listen(
+          this.server.port,
+          (error?: Error) => {
+            if (error) {
+              reject(error);
+            } else {
+              resolve();
+            }
+          },
+        );
       });
       console.log(`Server listening on port ${this.server.port}!`);
     });
