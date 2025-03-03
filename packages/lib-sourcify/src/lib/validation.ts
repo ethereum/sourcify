@@ -12,7 +12,7 @@ import JSZip from 'jszip';
 import fs from 'fs';
 import Path from 'path';
 import { ISolidityCompiler } from './ISolidityCompiler';
-import { logDebug, logInfo } from './logger';
+import { logDebug, logInfo } from '../logger';
 import { IVyperCompiler } from './IVyperCompiler';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
 import { VyperCheckedContract } from './VyperCheckedContract';
