@@ -8,19 +8,31 @@ import {
   MissingSources,
   PathContent,
   StringMap,
-  checkFilesWithMetadata,
   isEmpty,
-  useAllSources,
   IVyperCompiler,
   Language,
-  AbstractCheckedContract,
-  VyperCheckedContract,
+  SolidityMetadataContract,
+  VyperCompilation,
+  CompilationTarget,
+  Verification,
+  VerificationError,
+  useAllSourcesAndReturnCompilation,
+  SolidityCompilation,
+  unzipFiles,
+  splitFiles,
+  rearrangeSources,
+  storeByHash,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Session } from "express-session";
 import { AbiConstructor, AbiParameter } from "abitype";
 import QueryString from "qs";
 import { VerificationService } from "../../services/VerificationService";
-import { ContractMeta, ContractWrapper, getMatchStatus } from "../../common";
+import {
+  ContractMeta,
+  ContractWrapper,
+  ContractWrapperData,
+  getMatchStatusFromVerification,
+} from "../../common";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { StorageService } from "../../services/StorageService";
 import logger from "../../../common/logger";
@@ -36,7 +48,7 @@ export function createSolidityCheckedContract(
 ) {
   return new SolidityCheckedContract(
     solc,
-    metadata,
+    metadata as any,
     solidity,
     missing,
     invalid,
@@ -222,11 +234,96 @@ export function updateUnused(unused: string[], session: Session) {
   session.unusedSources = unused;
 }
 
-export const checkContractsInSession = async (
-  solc: ISolidityCompiler,
-  vyper: IVyperCompiler,
-  session: Session,
-) => {
+/**
+ * Extracts unused source files by comparing the input files with the used files.
+ * @param inputFiles Array of source files
+ * @param usedFiles Array of paths of used files
+ * @param unused Array to be filled with unused file paths
+ */
+function extractUnused(
+  inputFiles: PathContent[],
+  usedFiles: string[],
+  unused: string[],
+): void {
+  const usedFilesSet = new Set(usedFiles);
+  const tmpUnused = inputFiles
+    .map((pc) => pc.path)
+    .filter((file) => !usedFilesSet.has(file));
+  unused.push(...tmpUnused);
+}
+
+const createSessionContractsFromFiles = async (
+  files: PathBuffer[],
+  unused: string[],
+): Promise<ContractWrapperData[]> => {
+  await unzipFiles(files);
+  const parsedFiles: PathContent[] = files.map((pathBuffer) => ({
+    content: pathBuffer.buffer.toString(),
+    path: pathBuffer.path,
+  }));
+  const { metadataFiles, sourceFiles } = splitFiles(parsedFiles);
+
+  const sessionContracts: ContractWrapperData[] = [];
+  const usedFiles: string[] = [];
+
+  for (const metadata of metadataFiles) {
+    if (metadata.language === "Solidity") {
+      const metadataContract = new SolidityMetadataContract(
+        metadata,
+        sourceFiles,
+      );
+
+      try {
+        // Fetch missing sources
+        await metadataContract.fetchMissing();
+      } catch (e) {
+        logger.error("Error fetching missing sources", { error: e });
+      }
+
+      sessionContracts.push({
+        language: Language.Solidity,
+        metadata: metadataContract.metadata,
+        sources: metadataContract.foundSources,
+        missing: metadataContract.missingSources,
+        invalid: metadataContract.invalidSources,
+        compiledPath: metadataContract.path,
+        name: metadataContract.name,
+      });
+
+      // Track used files
+      if (metadataContract.metadataPathToProvidedFilePath) {
+        const currentUsedFiles = Object.values(
+          metadataContract.metadataPathToProvidedFilePath,
+        );
+        usedFiles.push(...currentUsedFiles);
+      }
+    } else if (metadata.language === "Vyper") {
+      const byHash = storeByHash(sourceFiles);
+      const { foundSources } = rearrangeSources(metadata, byHash);
+      const compilationTarget = metadata.settings.compilationTarget;
+      const contractPath = Object.keys(compilationTarget)[0];
+      const contractName = compilationTarget[contractPath];
+      sessionContracts.push({
+        language: Language.Vyper,
+        metadata: metadata,
+        sources: foundSources,
+        compiledPath: contractPath,
+        name: contractName,
+        missing: {},
+        invalid: {},
+      });
+    } else {
+      throw new Error("Unsupported language");
+    }
+  }
+
+  // Track unused files
+  extractUnused(sourceFiles, usedFiles, unused);
+
+  return sessionContracts;
+};
+
+export const checkContractsInSession = async (session: Session) => {
   const pathBuffers: PathBuffer[] = [];
   for (const id in session.inputFiles) {
     const pathContent = session.inputFiles[id];
@@ -238,18 +335,17 @@ export const checkContractsInSession = async (
 
   try {
     const unused: string[] = [];
-    const contracts = await checkFilesWithMetadata(
-      solc,
-      vyper,
+    const contractsData = await createSessionContractsFromFiles(
       pathBuffers,
       unused,
     );
 
     const newPendingContracts: ContractWrapperMap = {};
-    for (const contract of contracts) {
-      newPendingContracts[generateId(JSON.stringify(contract.metadataRaw))] = {
-        // Remove large (e.g. bytecodes) and unnecessary (e.g. `solidityCompiler`) fields in SolidityCheckedContract before saving to the session. Essentially a SolidityCheckedContract only needs a few fields to be generated.
-        contract: contract.exportConstructorArguments(),
+    for (const contractData of contractsData) {
+      newPendingContracts[
+        generateId(JSON.stringify(JSON.stringify(contractData.metadata)))
+      ] = {
+        contract: contractData,
       };
     }
 
@@ -390,117 +486,158 @@ export const verifyContractsInSession = async (
 
     const { address, chainId, contract, creatorTxHash } = contractWrapper;
 
-    let checkedContract: AbstractCheckedContract;
-    if (contract.language === Language.Solidity) {
-      // The session saves the SolidityCheckedContract as a simple object, so we need to reinstantiate it
-      checkedContract = createSolidityCheckedContract(
-        solc,
-        contract.metadata,
-        contract.sources,
-        contract.missing,
-        contract.invalid,
-      );
-      await checkAndFetchMissing(checkedContract as SolidityCheckedContract);
-    } else if (contract.language === Language.Vyper) {
-      const compilationTarget = contract.metadata.settings.compilationTarget;
-      const contractPath = Object.keys(compilationTarget)[0];
-      const compilationSettings = JSON.parse(
-        JSON.stringify(contract.metadata.settings),
-      );
-      delete compilationSettings.compilationTarget;
-      const contractName = compilationTarget[contractPath];
-      checkedContract = new VyperCheckedContract(
-        vyper,
-        contract.metadata.compiler.version,
-        contractPath,
-        contractName,
-        compilationSettings,
-        contract.sources,
-      );
-    } else {
-      throw new BadRequestError("Unsupported language");
-    }
-
-    if (!isVerifiable(contractWrapper)) {
-      logger.debug("verifyContractsInSession: not verifiable", {
-        contractId: id,
-      });
-      continue;
-    }
-
-    let match: Match;
     try {
-      match = await verificationService.verifyDeployed(
-        checkedContract,
-        chainRepository.sourcifyChainMap[chainId as string],
-        address as string,
-        creatorTxHash,
-      );
-      // Send to verification again with all source files.
-      if (match.runtimeMatch === "extra-file-input-bug") {
-        logger.debug(
-          "verifyContractsInSession: extra-file-input-bug encountered",
-          {
+      // Create compilation based on contract type
+      let compilation;
+
+      if (contract.language === Language.Solidity) {
+        // Ensure required properties exist
+        if (!contract.compiledPath || !contract.name) {
+          throw new BadRequestError("Missing required contract information");
+        }
+
+        // Create SolidityMetadataContract
+        const metadataContract = new SolidityMetadataContract(
+          contract.metadata,
+          Object.entries(contract.sources).map(([path, content]) => ({
+            path,
+            content: content,
+          })) as PathContent[],
+        );
+
+        if (!metadataContract.isCompilable()) {
+          logger.debug("verifyContractsInSession: not verifiable", {
             contractId: id,
+          });
+          continue;
+        }
+
+        // Create compilation
+        compilation = await metadataContract.createCompilation(solc);
+      } else if (contract.language === Language.Vyper) {
+        // Ensure required properties exist
+        if (!contract.compiledPath || !contract.name) {
+          throw new BadRequestError("Missing required contract information");
+        }
+
+        // Extract compiler version from metadata
+        const compilerVersion = contract.metadata.compiler.version;
+        if (!compilerVersion) {
+          throw new BadRequestError("Missing compiler version in metadata");
+        }
+
+        // Extract compilation target from metadata
+        const compilationTarget = contract.metadata.settings.compilationTarget;
+        const contractPath = Object.keys(compilationTarget)[0];
+        const contractName = compilationTarget[contractPath];
+
+        // Create compilation target
+        const target: CompilationTarget = {
+          path: contractPath,
+          name: contractName,
+        };
+
+        // Extract settings from metadata
+        const compilationSettings = JSON.parse(
+          JSON.stringify(contract.metadata.settings),
+        );
+        delete compilationSettings.compilationTarget;
+
+        // Create VyperJsonInput with required outputSelection
+        const vyperJsonInput = {
+          language: "Vyper" as const,
+          sources: Object.fromEntries(
+            Object.entries(contract.sources).map(([path, content]) => [
+              path,
+              { content },
+            ]),
+          ),
+          settings: {
+            ...compilationSettings,
+            outputSelection: {
+              "*": ["evm.deployedBytecode.object"],
+            },
           },
+        };
+
+        // Create compilation
+        compilation = new VyperCompilation(
+          vyper,
+          compilerVersion,
+          vyperJsonInput,
+          target,
         );
-        // Session inputFiles are encoded base64. Why?
-        const pathBufferInputFiles: PathBuffer[] = Object.values(
-          session.inputFiles,
-        ).map((base64file) => ({
-          path: base64file.path,
-          buffer: Buffer.from(base64file.content, FILE_ENCODING),
-        }));
-        const checkedContractWithAllSources = createSolidityCheckedContract(
-          solc,
-          contractWrapper.contract.metadata,
-          contractWrapper.contract.sources,
-          contractWrapper.contract.missing,
-          contractWrapper.contract.invalid,
-        );
-        const contractWithAllSources = await useAllSources(
-          checkedContractWithAllSources,
-          pathBufferInputFiles,
-        );
-        const tempMatch = await verificationService.verifyDeployed(
-          contractWithAllSources,
+      } else {
+        throw new BadRequestError(`Unsupported language: ${contract.language}`);
+      }
+
+      // Verify the contract using the new verification flow
+      let verification: Verification | undefined;
+
+      try {
+        verification = await verificationService.verifyFromCompilation(
+          compilation,
           chainRepository.sourcifyChainMap[chainId as string],
           address as string,
+          creatorTxHash,
         );
-        if (
-          tempMatch.runtimeMatch === "perfect" ||
-          tempMatch.runtimeMatch === "partial" ||
-          tempMatch.creationMatch === "perfect" ||
-          tempMatch.creationMatch === "partial"
-        ) {
-          match = tempMatch;
-        } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
-          throw new BadRequestError(
-            "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-          );
+      } catch (e: any) {
+        if (e instanceof VerificationError) {
+          if (
+            e.code === "extra_file_input_bug" &&
+            compilation instanceof SolidityCompilation
+          ) {
+            logger.debug(
+              "verifyContractsInSession: extra-file-input-bug encountered",
+              {
+                contractId: id,
+              },
+            );
+            const pathBufferInputFiles: PathBuffer[] = Object.values(
+              session.inputFiles,
+            ).map((base64file) => ({
+              path: base64file.path,
+              buffer: Buffer.from(base64file.content, FILE_ENCODING),
+            }));
+
+            const contractWithAllSources =
+              await useAllSourcesAndReturnCompilation(
+                compilation,
+                pathBufferInputFiles,
+              );
+            verification = await verificationService.verifyFromCompilation(
+              contractWithAllSources,
+              chainRepository.sourcifyChainMap[chainId as string],
+              address as string,
+              creatorTxHash,
+            );
+          } else {
+            throw e;
+          }
+        } else {
+          throw e;
         }
       }
-    } catch (error: any) {
-      match = {
-        chainId: contractWrapper.chainId as string,
-        runtimeMatch: null,
-        creationMatch: null,
-        address: contractWrapper.address as string,
-        message: error.message,
-      };
-    }
 
-    contractWrapper.status = getMatchStatus(match) || "error";
-    contractWrapper.statusMessage = match.message;
-    contractWrapper.storageTimestamp = match.storageTimestamp;
-    if (dryRun) {
-      logger.info("dryRun verification", {
+      if (verification) {
+        // Store the verification result
+        if (!dryRun) {
+          await storageService.storeVerification(verification);
+        }
+
+        // Update contract wrapper with verification result
+        contractWrapper.status = getMatchStatusFromVerification(verification);
+        contractWrapper.statusMessage = ""; // We don't have access to a message property
+      }
+    } catch (error: any) {
+      logger.warn("Error verifying contract in session", {
+        error: error.message,
         sessionId: session.id,
+        contractId: id,
       });
-      continue;
-    }
-    if (match.runtimeMatch || match.creationMatch) {
-      await storageService.storeMatch(checkedContract, match);
+
+      contractWrapper.status = "error";
+      contractWrapper.statusMessage = error.message;
     }
   }
 };

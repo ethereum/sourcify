@@ -15,14 +15,6 @@ import { expect } from 'chai';
 import {
   VyperCheckedContract,
   SourcifyChain,
-  calculateCreate2Address,
-  /* 
-  getBytecode,
-  matchWithSimulation,
-  */
-  matchWithCreationTx,
-  replaceImmutableReferences,
-  verifyCreate2,
   verifyDeployed,
   SolidityCheckedContract,
 } from '../src';
@@ -36,6 +28,12 @@ import {
   stopHardhatNetwork,
 } from './hardhat-network-helper';
 import { AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
+import {
+  calculateCreate2Address,
+  matchWithCreationTx,
+  replaceImmutableReferences,
+  verifyCreate2,
+} from '../src/lib/verification';
 
 const HARDHAT_PORT = 8544;
 

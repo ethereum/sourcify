@@ -4,6 +4,7 @@ import {
   SolidityCheckedContract,
   VyperCheckedContract,
   SolidityOutputContract,
+  Verification,
 } from "@ethereum-sourcify/lib-sourcify";
 import { keccak256 } from "ethers";
 import * as DatabaseUtil from "../utils/database-util";
@@ -45,6 +46,25 @@ export default abstract class AbstractDatabaseService {
     if (match.creatorTxHash === undefined) {
       throw new Error(
         `can only store matches with creatorTxHash address=${match.address} chainId=${match.chainId}`,
+      );
+    }
+    return true;
+  }
+
+  validateVerificationBeforeStoring(verification: Verification): boolean {
+    if (
+      verification.compilation.runtimeBytecode === undefined ||
+      verification.compilation.creationBytecode === undefined ||
+      verification.status.runtimeMatch === undefined ||
+      verification.status.creationMatch === undefined
+    ) {
+      throw new Error(
+        `can only store contracts with both runtimeBytecode and creationBytecode address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
+    if (verification.deploymentInfo.txHash === undefined) {
+      throw new Error(
+        `can only store matches with creatorTxHash address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     return true;
@@ -232,13 +252,17 @@ export default abstract class AbstractDatabaseService {
       | Omit<DatabaseUtil.Tables.Code, "bytecode_hash">
       | undefined;
 
-    if (match.onchainCreationBytecode && keccak256OnchainCreationBytecode) {
-      onchainCreationCode = {
-        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
-          keccak256OnchainCreationBytecode,
-        ),
-        bytecode: bytesFromString<Bytes>(match.onchainCreationBytecode),
-      };
+    try {
+      if (match.onchainCreationBytecode && keccak256OnchainCreationBytecode) {
+        onchainCreationCode = {
+          bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+            keccak256OnchainCreationBytecode,
+          ),
+          bytecode: bytesFromString<Bytes>(match.onchainCreationBytecode),
+        };
+      }
+    } catch (e) {
+      // If the onchain creation bytecode is undefined, we don't store it
     }
 
     const sourcesInformation = Object.keys(recompiledContract.sources).map(
@@ -306,7 +330,6 @@ export default abstract class AbstractDatabaseService {
   }
 
   async insertNewVerifiedContract(
-    match: Match,
     databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<string> {
     // Get a client from the pool, so that we can execute all the insert queries within the same transaction
@@ -392,7 +415,7 @@ export default abstract class AbstractDatabaseService {
       // Rollback the transaction in case of error
       await client.query("ROLLBACK");
       throw new Error(
-        `cannot insert verified_contract address=${match.address} chainId=${match.chainId}\n${e}`,
+        `cannot insert verified_contract address=${databaseColumns.contractDeployment.address} chainId=${databaseColumns.contractDeployment.chain_id}\n${e}`,
       );
     } finally {
       client.release();
@@ -401,15 +424,13 @@ export default abstract class AbstractDatabaseService {
 
   async updateExistingVerifiedContract(
     existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
-    recompiledContract: AbstractCheckedContract,
-    match: Match,
     databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<string | false> {
     // runtime bytecodes must exist
-    if (recompiledContract.normalizedRuntimeBytecode === undefined) {
+    if (databaseColumns.recompiledRuntimeCode.bytecode === undefined) {
       throw new Error("Missing normalized runtime bytecode");
     }
-    if (match.onchainRuntimeBytecode === undefined) {
+    if (databaseColumns.onchainRuntimeCode.bytecode === undefined) {
       throw new Error("Missing onchain runtime bytecode");
     }
 
@@ -428,7 +449,7 @@ export default abstract class AbstractDatabaseService {
       // Check if contracts_deployed needs to be updated
       if (
         existingVerifiedContractResult[0].transaction_hash === null &&
-        match.creatorTxHash != null &&
+        databaseColumns.contractDeployment.transaction_hash != null &&
         databaseColumns.onchainCreationCode
       ) {
         onchainCreationCodeInsertResult = await this.database.insertCode(
@@ -461,10 +482,7 @@ export default abstract class AbstractDatabaseService {
       }
 
       // Add recompiled bytecodes
-      if (
-        recompiledContract.normalizedCreationBytecode &&
-        databaseColumns.recompiledCreationCode
-      ) {
+      if (databaseColumns.recompiledCreationCode) {
         recompiledCreationCodeInsertResult = await this.database.insertCode(
           client,
           databaseColumns.recompiledCreationCode,
@@ -507,7 +525,7 @@ export default abstract class AbstractDatabaseService {
       // Rollback the transaction in case of error
       await client.query("ROLLBACK");
       throw new Error(
-        `cannot update verified_contract address=${match.address} chainId=${match.chainId}\n${e}`,
+        `cannot update verified_contract address=${databaseColumns.contractDeployment.address} chainId=${databaseColumns.contractDeployment.chain_id}\n${e}`,
       );
     } finally {
       client.release();
@@ -544,18 +562,59 @@ export default abstract class AbstractDatabaseService {
     if (existingVerifiedContractResult.rowCount === 0) {
       return {
         type: "insert",
-        verifiedContractId: await this.insertNewVerifiedContract(
-          match,
-          databaseColumns,
-        ),
+        verifiedContractId:
+          await this.insertNewVerifiedContract(databaseColumns),
       };
     } else {
       return {
         type: "update",
         verifiedContractId: await this.updateExistingVerifiedContract(
           existingVerifiedContractResult.rows,
-          recompiledContract,
-          match,
+          databaseColumns,
+        ),
+        oldVerifiedContractId: existingVerifiedContractResult.rows[0].id,
+      };
+    }
+  }
+
+  async insertOrUpdateVerification(verification: Verification): Promise<{
+    type: "update" | "insert";
+    verifiedContractId: number | false;
+    oldVerifiedContractId?: number;
+  }> {
+    this.validateVerificationBeforeStoring(verification);
+
+    await this.init();
+
+    // Normalize both creation and runtime recompiled bytecodes before storing them to the database
+    const { normalizedRuntimeBytecode, normalizedCreationBytecode } =
+      DatabaseUtil.withVerification.normalizeRecompiledBytecodes(verification);
+
+    const databaseColumns =
+      await DatabaseUtil.withVerification.getDatabaseColumnsFromVerification(
+        verification,
+        normalizedCreationBytecode,
+        normalizedRuntimeBytecode,
+      );
+
+    // Get all the verified contracts existing in the DatabaseUtil for these exact onchain bytecodes.
+    const existingVerifiedContractResult =
+      await this.database.getVerifiedContractByChainAndAddress(
+        verification.chainId,
+        bytesFromString(verification.address)!,
+      );
+
+    if (existingVerifiedContractResult.rowCount === 0) {
+      return {
+        type: "insert",
+        verifiedContractId:
+          await this.insertNewVerifiedContract(databaseColumns),
+      };
+    } else {
+      return {
+        type: "update",
+        verifiedContractId: await this.updateExistingVerifiedContract(
+          existingVerifiedContractResult.rows,
           databaseColumns,
         ),
         oldVerifiedContractId: existingVerifiedContractResult.rows[0].id,

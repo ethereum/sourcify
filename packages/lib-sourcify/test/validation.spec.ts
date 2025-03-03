@@ -1,15 +1,17 @@
 import {
   AbstractCheckedContract,
-  checkPaths,
   extractHardhatMetadataAndSources,
-  pathContentArrayToStringMap,
-  unzipFiles,
 } from '../src';
 import path from 'path';
 import fs from 'fs';
 import chai, { expect } from 'chai';
 import hardhatOutput from './validation/files/hardhat-output/output.json';
 import { solc, vyperCompiler } from './utils';
+import {
+  checkPaths,
+  pathContentArrayToStringMap,
+  unzipFiles,
+} from '../src/lib/validation';
 
 function objectLength(obj: any) {
   return Object.keys(obj).length;

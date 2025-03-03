@@ -1,9 +1,7 @@
 import { Response, Request } from "express";
 import {
-  ContractWrapperMap,
   checkContractsInSession,
   getSessionJSON,
-  isVerifiable,
   saveFilesToSession,
   verifyContractsInSession,
 } from "../../verification.common";
@@ -48,10 +46,10 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     apiKey,
   );
 
-  let checkedContract;
+  let compilation;
   let sources: Sources;
   if (solidityResult) {
-    checkedContract = await processEtherscanSolidityContract(
+    compilation = await processEtherscanSolidityContract(
       solc,
       solidityResult.compilerVersion,
       solidityResult.solcJsonInput,
@@ -59,7 +57,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     );
     sources = solidityResult.solcJsonInput.sources;
   } else if (vyperResult) {
-    checkedContract = await processEtherscanVyperContract(
+    compilation = await processEtherscanVyperContract(
       vyper,
       vyperResult.compilerVersion,
       vyperResult.vyperJsonInput,
@@ -83,9 +81,10 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
       content: stringToBase64(sources[path].content),
     };
   });
+  await compilation.compile();
   pathContents.push({
     path: "metadata.json",
-    content: stringToBase64(JSON.stringify(checkedContract.metadata)),
+    content: stringToBase64(JSON.stringify(compilation.metadata)),
   });
   const session = req.session;
   const newFilesCount = saveFilesToSession(pathContents, session);
@@ -93,7 +92,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     throw new BadRequestError("The contract didn't add any new file");
   }
 
-  await checkContractsInSession(solc, vyper, session);
+  await checkContractsInSession(session);
   if (!session.contractWrappers) {
     throw new BadRequestError(
       "Unknown error during the Etherscan verification process",
@@ -101,7 +100,6 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
     return;
   }
 
-  const verifiable: ContractWrapperMap = {};
   for (const id of Object.keys(session.contractWrappers)) {
     const contractWrapper = session.contractWrappers[id];
     if (contractWrapper) {
@@ -109,16 +107,13 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
         contractWrapper.address = address;
         contractWrapper.chainId = chain;
       }
-      if (isVerifiable(contractWrapper)) {
-        verifiable[id] = contractWrapper;
-      }
     }
   }
 
   await verifyContractsInSession(
     solc,
     vyper,
-    verifiable,
+    session.contractWrappers,
     session,
     services.verification,
     services.storage,

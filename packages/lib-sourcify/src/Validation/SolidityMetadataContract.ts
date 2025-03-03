@@ -365,4 +365,17 @@ export class SolidityMetadataContract {
       Object.keys(this.invalidSources).length === 0
     );
   }
+
+  exportConstructorArguments() {
+    return {
+      language: 'Solidity',
+      metadata: this.metadata,
+      sources: this.foundSources,
+      missing: this.missingSources,
+      invalid: this.invalidSources,
+      // creationBytecode: this.creationBytecode, // Not needed without create2
+      compiledPath: this.path,
+      name: this.name,
+    };
+  }
 }
