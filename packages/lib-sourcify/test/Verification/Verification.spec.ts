@@ -19,12 +19,14 @@ import {
   ISolidityCompiler,
   SolidityOutput,
 } from '../../src/Compilation/SolidityTypes';
-import { useSolidityCompiler } from '../compiler/solidityCompiler';
-import { findSolcPlatform } from '../compiler/solidityCompiler';
 import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { PathContent } from '../../src/Validation/ValidationTypes';
 import chaiAsPromised from 'chai-as-promised';
+import {
+  findSolcPlatform,
+  useSolidityCompiler,
+} from '@ethereum-sourcify/compilers';
 
 use(chaiAsPromised);
 
@@ -34,7 +36,15 @@ class TestSolidityCompiler implements ISolidityCompiler {
     solcJsonInput: any,
     forceEmscripten = false,
   ): Promise<SolidityOutput> {
-    return useSolidityCompiler(version, solcJsonInput, forceEmscripten);
+    const compilersPath = path.join('/tmp', 'solc-repo');
+    const solJsonRepo = path.join('/tmp', 'soljson-repo');
+    return await useSolidityCompiler(
+      compilersPath,
+      solJsonRepo,
+      version,
+      solcJsonInput,
+      forceEmscripten,
+    );
   }
 }
 

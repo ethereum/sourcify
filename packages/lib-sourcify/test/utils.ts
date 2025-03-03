@@ -13,7 +13,6 @@ import { Match, SourcifyChain, verifyDeployed } from '../src';
 import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
-import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
 import {
   useSolidityCompiler,
   useVyperCompiler,
