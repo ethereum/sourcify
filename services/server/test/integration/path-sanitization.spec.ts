@@ -11,8 +11,6 @@ import { LocalChainFixture } from "../helpers/LocalChainFixture";
 import { ServerFixture } from "../helpers/ServerFixture";
 import { assertVerification } from "../helpers/assertions";
 import { id as keccak256str } from "ethers";
-import { RWStorageIdentifiers } from "../../src/server/services/storageServices/identifiers";
-import { RepositoryV1Service } from "../../src/server/services/storageServices/RepositoryV1Service";
 
 chai.use(chaiHttp);
 

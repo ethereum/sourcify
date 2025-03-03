@@ -1,4 +1,5 @@
-import { logDebug, logError } from '../../src/lib/logger';
+import { exec } from 'child_process';
+import { logDebug, logError, logSilly } from '../logger';
 
 /**
  * Fetches a resource with an exponential timeout.
@@ -17,7 +18,7 @@ export async function fetchWithBackoff(
 
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
-      logDebug('Start fetchWithBackoff', { resource, timeout, attempt });
+      logSilly('Start fetchWithBackoff', { resource, timeout, attempt });
       const controller = new AbortController();
       const id = setTimeout(() => {
         logDebug('Aborting request', { resource, timeout, attempt });
@@ -26,7 +27,7 @@ export async function fetchWithBackoff(
       const response = await fetch(resource, {
         signal: controller.signal,
       });
-      logDebug('Success fetchWithBackoff', { resource, timeout, attempt });
+      logSilly('Success fetchWithBackoff', { resource, timeout, attempt });
       clearTimeout(id);
       return response;
     } catch (error) {
@@ -52,4 +53,39 @@ export async function fetchWithBackoff(
     }
   }
   throw new Error(`Failed fetching ${resource}`);
+}
+
+export function asyncExec(
+  command: string,
+  inputStringified: string,
+  maxBuffer: number,
+): Promise<string> {
+  // check if input is valid JSON. The input is untrusted and potentially cause arbitrary execution.
+  JSON.parse(inputStringified);
+
+  return new Promise((resolve, reject) => {
+    const child = exec(
+      command,
+      {
+        maxBuffer,
+      },
+      (error, stdout, stderr) => {
+        if (error) {
+          reject(error);
+        } else if (stderr) {
+          reject(
+            new Error(`Compiler process returned with errors:\n ${stderr}`),
+          );
+        } else {
+          resolve(stdout);
+        }
+      },
+    );
+    if (!child.stdin) {
+      throw new Error('No stdin on child process');
+    }
+    // Write input to child process's stdin
+    child.stdin.write(inputStringified);
+    child.stdin.end();
+  });
 }

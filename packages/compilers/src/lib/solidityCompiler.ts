@@ -1,28 +1,26 @@
 // TODO: Handle nodejs only dependencies
-import path from "path";
-import fs from "fs";
-import { exec, spawnSync } from "child_process";
-import { StatusCodes } from "http-status-codes";
-import semver from "semver";
-import { Worker, WorkerOptions } from "worker_threads";
-import { SolidityOutput, JsonInput } from "@ethereum-sourcify/lib-sourcify";
-import logger from "../../../../common/logger";
-import { asyncExec, fetchWithBackoff } from "./common";
+import path from 'path';
+import fs from 'fs';
+import { spawnSync } from 'child_process';
+import semver from 'semver';
+import { Worker, WorkerOptions } from 'worker_threads';
+import { logDebug, logError, logInfo, logWarn } from '../logger';
+import { asyncExec, fetchWithBackoff } from './common';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
-const solc = require("solc");
+const solc = require('solc');
 
-const HOST_SOLC_REPO = "https://binaries.soliditylang.org/";
+const HOST_SOLC_REPO = 'https://binaries.soliditylang.org/';
 
 export function findSolcPlatform(): string | false {
-  if (process.platform === "darwin" && process.arch === "x64") {
-    return "macosx-amd64";
+  if (process.platform === 'darwin' && process.arch === 'x64') {
+    return 'macosx-amd64';
   }
-  if (process.platform === "linux" && process.arch === "x64") {
-    return "linux-amd64";
+  if (process.platform === 'linux' && process.arch === 'x64') {
+    return 'linux-amd64';
   }
-  if (process.platform === "win32" && process.arch === "x64") {
-    return "windows-amd64";
+  if (process.platform === 'win32' && process.arch === 'x64') {
+    return 'windows-amd64';
   }
   return false;
 }
@@ -41,12 +39,12 @@ export async function useSolidityCompiler(
   solcRepoPath: string,
   solJsonRepoPath: string,
   version: string,
-  solcJsonInput: JsonInput,
+  solcJsonInput: any,
   forceEmscripten = false,
-): Promise<SolidityOutput> {
+): Promise<any> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
-  if (version.includes("-ci.")) version = version.replace("-ci.", "-nightly.");
+  if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');
   const inputStringified = JSON.stringify(solcJsonInput);
   let compiled: string | undefined;
 
@@ -57,7 +55,7 @@ export async function useSolidityCompiler(
   }
   let startCompilation: number;
   if (solcPath && !forceEmscripten) {
-    logger.info("Compiling with solc binary", { version, solcPath });
+    logInfo('Compiling with solc binary', { version, solcPath });
     startCompilation = Date.now();
     try {
       compiled = await asyncExec(
@@ -66,31 +64,31 @@ export async function useSolidityCompiler(
         250 * 1024 * 1024,
       );
     } catch (error: any) {
-      if (error?.code === "ENOBUFS") {
-        throw new Error("Compilation output size too large");
+      if (error?.code === 'ENOBUFS') {
+        throw new Error('Compilation output size too large');
       }
       throw error;
     }
   } else {
-    logger.info("Compiling with solc-js", { version });
+    logInfo('Compiling with solc-js', { version });
     const solJson = await getSolcJs(solJsonRepoPath, version);
     startCompilation = Date.now();
     if (solJson) {
       const coercedVersion =
-        semver.coerce(new semver.SemVer(version))?.version ?? "";
+        semver.coerce(new semver.SemVer(version))?.version ?? '';
       // Run Worker for solc versions < 0.4.0 for clean compiler context. See https://github.com/ethereum/sourcify/issues/1099
-      if (semver.lt(coercedVersion, "0.4.0")) {
+      if (semver.lt(coercedVersion, '0.4.0')) {
         compiled = await new Promise((resolve, reject) => {
           const worker = importWorker(
-            path.resolve(__dirname, "./compilerWorker.ts"),
+            path.resolve(__dirname, './compilerWorker.ts'),
             {
               workerData: { solJsonRepoPath, version, inputStringified },
             },
           );
-          worker.once("message", (result) => {
+          worker.once('message', (result) => {
             resolve(result);
           });
-          worker.once("error", (error) => {
+          worker.once('error', (error) => {
             reject(error);
           });
         });
@@ -101,23 +99,23 @@ export async function useSolidityCompiler(
   }
 
   const endCompilation = Date.now();
-  logger.info("Local compiler - Compilation done", {
-    compiler: "solidity",
+  logInfo('Local compiler - Compilation done', {
+    compiler: 'solidity',
     timeInMs: endCompilation - startCompilation,
   });
 
   if (!compiled) {
-    throw new Error("Compilation failed. No output from the compiler.");
+    throw new Error('Compilation failed. No output from the compiler.');
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === "error",
+    (e: any) => e.severity === 'error',
   );
   if (errorMessages && errorMessages.length > 0) {
     const error = new Error(
-      "Compiler error:\n " + JSON.stringify(errorMessages),
+      'Compiler error:\n ' + JSON.stringify(errorMessages),
     );
-    logger.error(error.message);
+    logError(error.message);
     throw error;
   }
   return compiledJSON;
@@ -131,13 +129,13 @@ export async function getSolcExecutable(
   const fileName = `solc-${platform}-v${version}`;
   const solcPath = path.join(solcRepoPath, fileName);
   if (fs.existsSync(solcPath) && validateSolcPath(solcPath)) {
-    logger.debug("Found existing solc", { version, platform, solcPath });
+    logDebug('Found existing solc', { version, platform, solcPath });
     return solcPath;
   }
 
   const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
   if (success && !validateSolcPath(solcPath)) {
-    logger.error(`Cannot validate solc ${version}.`);
+    logError(`Cannot validate solc ${version}.`);
     return null;
   }
   return success ? solcPath : null;
@@ -145,7 +143,7 @@ export async function getSolcExecutable(
 
 function validateSolcPath(solcPath: string): boolean {
   // TODO: Handle nodejs only dependencies
-  const spawned = spawnSync(solcPath, ["--version"]);
+  const spawned = spawnSync(solcPath, ['--version']);
   if (spawned.status === 0) {
     return true;
   }
@@ -153,9 +151,9 @@ function validateSolcPath(solcPath: string): boolean {
   const error =
     spawned?.error?.message ||
     spawned.stderr.toString() ||
-    "Error running solc, are you on the right platoform? (e.g. x64 vs arm)";
+    'Error running solc, are you on the right platoform? (e.g. x64 vs arm)';
 
-  logger.warn(error);
+  logWarn(error);
   return false;
 }
 
@@ -172,13 +170,13 @@ async function fetchAndSaveSolc(
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
-  logger.info("Fetching solc", { version, platform, githubSolcURI, solcPath });
+  logInfo('Fetching solc', { version, platform, githubSolcURI, solcPath });
   let res = await fetchWithBackoff(githubSolcURI);
   let status = res.status;
   let buffer;
 
   // handle case in which the response is a link to another version
-  if (status === StatusCodes.OK) {
+  if (status === 200) {
     buffer = await res.arrayBuffer();
     const responseText = Buffer.from(buffer).toString();
     if (
@@ -191,7 +189,7 @@ async function fetchAndSaveSolc(
     }
   }
 
-  if (status === StatusCodes.OK && buffer) {
+  if (status === 200 && buffer) {
     fs.mkdirSync(path.dirname(solcPath), { recursive: true });
 
     try {
@@ -200,11 +198,11 @@ async function fetchAndSaveSolc(
       undefined;
     }
     fs.writeFileSync(solcPath, new DataView(buffer), { mode: 0o755 });
-    logger.info("Saved solc", { version, platform, githubSolcURI, solcPath });
+    logInfo('Saved solc', { version, platform, githubSolcURI, solcPath });
 
     return true;
   } else {
-    logger.warn("Failed fetching solc", {
+    logWarn('Failed fetching solc', {
       version,
       platform,
       githubSolcURI,
@@ -237,19 +235,19 @@ export async function getSolcJs(
 ): Promise<any> {
   // /^\d+\.\d+\.\d+\+commit\.[a-f0-9]{8}$/
   version = version.trim();
-  if (version !== "latest" && !version.startsWith("v")) {
-    version = "v" + version;
+  if (version !== 'latest' && !version.startsWith('v')) {
+    version = 'v' + version;
   }
 
   const fileName = `soljson-${version}.js`;
   const solJsonPath = path.resolve(solJsonRepoPath, fileName);
 
   if (!fs.existsSync(solJsonPath)) {
-    logger.debug("Solc-js not found locally, downloading", {
+    logDebug('Solc-js not found locally, downloading', {
       version,
       solJsonPath,
     });
-    if (!(await fetchAndSaveSolc("bin", solJsonPath, version, fileName))) {
+    if (!(await fetchAndSaveSolc('bin', solJsonPath, version, fileName))) {
       return false;
     }
   }
@@ -264,7 +262,7 @@ function importWorker(path: string, options: WorkerOptions) {
   return new Worker(resolvedPath, {
     ...options,
     execArgv: /\.ts$/.test(resolvedPath)
-      ? ["--require", "ts-node/register"]
+      ? ['--require', 'ts-node/register']
       : undefined,
   });
 }
