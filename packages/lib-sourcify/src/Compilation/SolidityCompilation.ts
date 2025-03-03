@@ -7,7 +7,11 @@ import {
   SolidityOutput,
   SolidityOutputContract,
 } from './SolidityTypes';
-import { CompilationTarget, LinkReferences } from './CompilationTypes';
+import {
+  CompilationLanguage,
+  CompilationTarget,
+  LinkReferences,
+} from './CompilationTypes';
 import {
   findAuxdataPositions,
   findAuxdatasInLegacyAssembly,
@@ -17,6 +21,7 @@ import {
  * Abstraction of a solidity compilation
  */
 export class SolidityCompilation extends AbstractCompilation {
+  public language: CompilationLanguage = 'solidity';
   // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: SolidityOutput;
   declare compileAndReturnCompilationTarget: (

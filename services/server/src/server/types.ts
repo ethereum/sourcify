@@ -2,7 +2,7 @@ import {
   CompiledContractCborAuxdata,
   Devdoc,
   ImmutableReferences,
-  JsonInput,
+  SolidityJsonInput,
   Language,
   LinkReferences,
   Metadata,
@@ -85,7 +85,7 @@ export interface VerifiedContract extends VerifiedContractMinimal {
   storageLayout?: Nullable<StorageLayout>;
   userdoc?: Nullable<Userdoc>;
   devdoc?: Nullable<Devdoc>;
-  stdJsonInput?: JsonInput | VyperJsonInput;
+  stdJsonInput?: SolidityJsonInput | VyperJsonInput;
   stdJsonOutput?: SolidityOutput | VyperOutput;
   proxyResolution?: ProxyResolution;
 }

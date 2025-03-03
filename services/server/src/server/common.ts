@@ -7,6 +7,7 @@ import {
   PathContent,
   Status,
   StringMap,
+  Verification,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../common/logger";
 import { InternalServerError } from "express-openapi-validator/dist/openapi.validator";
@@ -45,17 +46,19 @@ export type ContractMeta = {
   storageTimestamp?: Date;
 };
 
+export type ContractWrapperData = {
+  language: Language;
+  metadata: Metadata;
+  sources: StringMap;
+  missing: MissingSources;
+  invalid: InvalidSources;
+  creationBytecode?: string;
+  compiledPath?: string;
+  name?: string;
+};
+
 export type ContractWrapper = ContractMeta & {
-  contract: {
-    language: Language;
-    metadata: Metadata;
-    sources: StringMap;
-    missing: MissingSources;
-    invalid: InvalidSources;
-    creationBytecode?: string;
-    compiledPath?: string;
-    name?: string;
-  };
+  contract: ContractWrapperData;
 };
 
 export interface ContractWrapperMap {
@@ -95,6 +98,63 @@ export function getResponseMatchFromMatch(match: Match): ResponseMatch {
     status,
     runtimeMatch: undefined,
     creationMatch: undefined,
+  };
+
+  return responseMatch;
+}
+
+export function getMatchStatusFromVerification(
+  verification: Verification,
+): Status {
+  if (
+    verification.status.runtimeMatch === "perfect" ||
+    verification.status.creationMatch === "perfect"
+  ) {
+    return "perfect";
+  }
+  if (
+    verification.status.runtimeMatch === "partial" ||
+    verification.status.creationMatch === "partial"
+  ) {
+    return "partial";
+  }
+  if (verification.status.runtimeMatch === "extra-file-input-bug") {
+    return "extra-file-input-bug";
+  }
+  return null;
+}
+
+// TODO: implement this
+export function getResponseMatchFromVerification(
+  verification: Verification,
+): ResponseMatch {
+  const status = getMatchStatusFromVerification(verification);
+  const responseMatch = {
+    address: verification.address,
+    chainId: verification.chainId.toString(),
+    runtimeMatch: verification.status.runtimeMatch,
+    creationMatch: verification.status.creationMatch,
+    message: "",
+    abiEncodedConstructorArguments: "",
+    create2Args: {
+      deployerAddress: "",
+      salt: "",
+      constructorArgs: [],
+    },
+    libraryMap: {},
+    creatorTxHash: "",
+    immutableReferences: {},
+    runtimeTransformations: [],
+    creationTransformations: [],
+    runtimeTransformationValues: verification.transformations.runtime.values,
+    creationTransformationValues: verification.transformations.creation.values,
+    onchainRuntimeBytecode: "",
+    onchainCreationBytecode: "",
+    blockNumber: undefined,
+    txIndex: undefined,
+    deployer: undefined,
+    contractName: "",
+    status,
   };
 
   return responseMatch;

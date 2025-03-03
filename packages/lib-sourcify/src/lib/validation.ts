@@ -305,7 +305,10 @@ function splitFiles(files: PathContent[]): {
  * @param  {Map<string, any>}  byHash    Map from keccak to source
  * @return foundSources, missingSources, invalidSources
  */
-function rearrangeSources(metadata: any, byHash: Map<string, PathContent>) {
+export function rearrangeSources(
+  metadata: any,
+  byHash: Map<string, PathContent>,
+) {
   const foundSources: StringMap = {};
   const missingSources: MissingSources = {};
   const invalidSources: InvalidSources = {};
@@ -411,7 +414,7 @@ function generateVariations(pathContent: PathContent): PathContent[] {
   });
 }
 
-function extractUnused(
+export function extractUnused(
   inputFiles: PathContent[],
   usedFiles: string[],
   unused: string[],

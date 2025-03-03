@@ -1,6 +1,7 @@
 import {
   Match,
   AbstractCheckedContract,
+  Verification,
 } from "@ethereum-sourcify/lib-sourcify";
 import {
   RepositoryV1Service,
@@ -34,7 +35,7 @@ import {
   WStorageIdentifiers,
 } from "./storageServices/identifiers";
 import { ConflictError } from "../../common/errors/ConflictError";
-import { isBetterMatch } from "./utils/util";
+import { isBetterMatch, isBetterVerification } from "./utils/util";
 import {
   S3RepositoryService,
   S3RepositoryServiceOptions,
@@ -49,6 +50,7 @@ export interface WStorageService {
     contract: AbstractCheckedContract,
     match: Match,
   ): Promise<void | Match>;
+  storeVerification?(verification: Verification): Promise<void | Match>;
 }
 
 export interface RWStorageService extends WStorageService {
@@ -337,6 +339,68 @@ export class StorageService {
               error: e,
               contract,
               match,
+            });
+          }),
+        );
+      }
+    });
+
+    return await Promise.all(promises);
+  }
+
+  async storeVerification(verification: Verification) {
+    logger.info("Storing verification on StorageService", {
+      address: verification.address,
+      chainId: verification.chainId,
+      runtimeMatch: verification.status.runtimeMatch,
+      creationMatch: verification.status.creationMatch,
+    });
+
+    const existingMatch = await this.performServiceOperation(
+      "checkAllByChainAndAddress",
+      [verification.address, verification.chainId.toString()],
+    );
+    if (
+      existingMatch.length > 0 &&
+      !isBetterVerification(verification, existingMatch[0])
+    ) {
+      logger.info("Partial match already exists", {
+        chain: verification.chainId,
+        address: verification.address,
+        newRuntimeMatch: verification.status.runtimeMatch,
+        newCreationMatch: verification.status.creationMatch,
+        existingRuntimeMatch: existingMatch[0].runtimeMatch,
+        existingCreationMatch: existingMatch[0].creationMatch,
+      });
+      throw new ConflictError(
+        `The contract ${verification.address} on chainId ${verification.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
+      );
+    }
+
+    // Initialize an array to hold active service promises
+    const promises: Promise<Match | void>[] = [];
+
+    this.getWriteOrErrServices().forEach((service) => {
+      if (service.storeVerification) {
+        promises.push(
+          service.storeVerification(verification).catch((e) => {
+            logger.error(`Error storing to ${service.IDENTIFIER}`, {
+              error: e,
+              verification,
+            });
+            throw e;
+          }),
+        );
+      }
+    });
+
+    this.getWriteOrWarnServices().forEach((service) => {
+      if (service?.storeVerification) {
+        promises.push(
+          service.storeVerification(verification).catch((e) => {
+            logger.warn(`Error storing to ${service.IDENTIFIER}`, {
+              error: e,
+              verification,
             });
           }),
         );

@@ -13,7 +13,6 @@ import { Match, SourcifyChain, verifyDeployed } from '../src';
 import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
-import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
 import {
   useSolidityCompiler,
   useVyperCompiler,
@@ -22,7 +21,7 @@ import {
   IVyperCompiler,
   VyperJsonInput,
   VyperOutput,
-} from '../src/lib/IVyperCompiler';
+} from '../src/Compilation/VyperTypes';
 import {
   ISolidityCompiler,
   SolidityJsonInput,

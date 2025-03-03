@@ -14,6 +14,7 @@ import {
   VyperOutputContract,
 } from './VyperTypes';
 import {
+  CompilationLanguage,
   CompilationTarget,
   CompiledContractCborAuxdata,
   LinkReferences,
@@ -24,6 +25,7 @@ import { ImmutableReferences } from './SolidityTypes';
  * Abstraction of a vyper compilation
  */
 export class VyperCompilation extends AbstractCompilation {
+  public language: CompilationLanguage = 'vyper';
   // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: VyperOutput;
   declare compileAndReturnCompilationTarget: (

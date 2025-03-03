@@ -278,7 +278,7 @@ ${
       creation_match,
       metadata,
     }: Omit<Tables.SourcifyMatch, "created_at" | "id">,
-    oldVerifiedContractId: string,
+    oldVerifiedContractId: number,
   ) {
     await this.pool.query(
       `UPDATE ${this.schema}.sourcify_matches SET 

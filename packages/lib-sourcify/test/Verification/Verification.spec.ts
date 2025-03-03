@@ -19,12 +19,14 @@ import {
   ISolidityCompiler,
   SolidityOutput,
 } from '../../src/Compilation/SolidityTypes';
-import { useSolidityCompiler } from '../compiler/solidityCompiler';
-import { findSolcPlatform } from '../compiler/solidityCompiler';
 import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { PathContent } from '../../src/Validation/ValidationTypes';
 import chaiAsPromised from 'chai-as-promised';
+import {
+  findSolcPlatform,
+  useSolidityCompiler,
+} from '@ethereum-sourcify/compilers';
 
 use(chaiAsPromised);
 
@@ -34,7 +36,15 @@ class TestSolidityCompiler implements ISolidityCompiler {
     solcJsonInput: any,
     forceEmscripten = false,
   ): Promise<SolidityOutput> {
-    return useSolidityCompiler(version, solcJsonInput, forceEmscripten);
+    const compilersPath = path.join('/tmp', 'solc-repo');
+    const solJsonRepo = path.join('/tmp', 'soljson-repo');
+    return await useSolidityCompiler(
+      compilersPath,
+      solJsonRepo,
+      version,
+      solcJsonInput,
+      forceEmscripten,
+    );
   }
 }
 
@@ -1107,7 +1117,7 @@ describe('Verification Class Tests', () => {
             ],
             values: {
               cborAuxdata: {
-                '1': '0xa26469706673582212208a693a7ed29129e25fc67a65f83955fb3d86f5fbc378940d697827714b955df564736f6c634300081a0033',
+                '1': '0xa2646970667358221220fdd288b10b21a40b31e4e025a8c19db0027750c1dbb01660f7c8cc8780c0d16664736f6c634300081a0033',
               },
               constructorArguments:
                 '0x0000000000000000000000000000000000000000000000000000000000003039',
