@@ -14,9 +14,10 @@ export async function findLatestChainTest(req: Request, res: Response) {
   // Fetch last runs of the chain test workflow: https://circleci.com/docs/api/v2/#operation/getProjectWorkflowRuns
   const workflowResponse = await (await fetch(WORKFLOWS_URL)).json();
   if (workflowResponse.items.length === 0) {
-    return res
+    res
       .status(StatusCodes.NOT_FOUND)
       .json({ error: "No workflows returned from " + WORKFLOWS_URL });
+    return;
   }
   const workflowId = workflowResponse.items[0].id;
 
@@ -38,10 +39,11 @@ export async function findLatestChainTest(req: Request, res: Response) {
   const artifactResponse = await fetch(ARTIFACT_URL);
   const artifactResponseJson = await artifactResponse.json();
   if (!artifactResponse.ok) {
-    return res.status(artifactResponse.status).json(artifactResponseJson);
+    res.status(artifactResponse.status).json(artifactResponseJson);
+    return;
   }
 
-  return res.json({
+  res.json({
     testReport: artifactResponseJson,
     workflowId,
     pipelineNumber,
