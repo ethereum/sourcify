@@ -219,7 +219,7 @@ sourcify-server can use either a PostgreSQL database or a filesystem as its stor
 
 There are two types of storages: `RWStorageIdentifiers` and `WStorageIdentifiers`. These are the possible options:
 
-- `RWStorageIdentifiers.RepositoryV1` - the legacy repository that saves the source files and metadata as is inside a filesystem. A file system has many limitations and newer versions of the sourcify-server keeps it for backwards compatibility.
+- `RWStorageIdentifiers.RepositoryV1` - the legacy repository that saves the source files and metadata as is inside a filesystem. A file system has many limitations and newer versions of the sourcify-server keeps it for backwards compatibility. If used as the `read` option, the `/v2` API endpoints won't be available.
 - `WStorageIdentifiers.RepositoryV2` - a filesystem for serving source files and metadata on IPFS. Since pinning files on IPFS is done over a file system, Sourcify saves these files here. This repository does not save source file names as given in the metadata file (e.g. `contracts/MyContract.sol`) but saves each file with their keccak256 hash. This is done to avoid file name issues, as source file names can be arbitrary strings.
 
 - `WStorageIdentifiers.AllianceDatabase` - the PostgreSQL for the [Verifier Alliance](https://verifieralliance.org)

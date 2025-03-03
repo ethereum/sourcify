@@ -76,6 +76,28 @@ describe("proxy contract util", function () {
     });
   });
 
+  it("should detect EIP1967Proxy when the storage slot is only referenced in the creation code", async function () {
+    mockSourcifyChain.getStorageAt = sandbox
+      .stub()
+      .resolves(
+        "000000000000000000000000ac805a864be8b5c6727a7ecd502c287a20c91379",
+      );
+
+    const result = await detectAndResolveProxy(
+      proxyBytecodes.EIP1967ProxyWithSlotOnlyInCreationCode,
+      "0x6f943318b05AD7c6EE596A220510A6D64B518dd8",
+      mockSourcifyChain,
+    );
+
+    chai.expect(result).to.deep.equal({
+      isProxy: true,
+      proxyType: "EIP1967Proxy",
+      implementations: [
+        { address: "0xac805a864be8b5c6727a7ecd502c287a20c91379" },
+      ],
+    });
+  });
+
   it("should return false for factories that deploy proxies", async function () {
     // Based on 0x7dB8637A5fd20BbDab1176BdF49C943A96F2E9c6 deployed on ETH Mainnet
     const result = await detectAndResolveProxy(
