@@ -17,7 +17,7 @@ import {
 import { Response } from "express";
 import { Abi } from "abitype";
 import { ProxyDetectionResult } from "./services/utils/proxy-contract-util";
-import { GenericErrorResponse } from "./apiv2/errors";
+import { GenericErrorResponse, MatchingErrorResponse } from "./apiv2/errors";
 
 // Types used internally by the server.
 
@@ -97,6 +97,16 @@ export type ProxyResolution = Partial<ProxyDetectionResult> & {
   onchainRuntimeBytecode?: string;
   proxyResolutionError?: GenericErrorResponse;
 };
+
+export interface VerificationJob {
+  isJobCompleted: boolean;
+  verificationId: string;
+  jobStartTime: string;
+  jobFinishTime?: string;
+  compilationTime?: string;
+  error?: MatchingErrorResponse;
+  contract: VerifiedContractMinimal;
+}
 
 /**
  * An array wrapper with info properties.

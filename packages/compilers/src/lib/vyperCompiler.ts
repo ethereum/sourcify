@@ -1,26 +1,24 @@
 // TODO: Handle nodejs only dependencies
-import path from "path";
-import fs from "fs";
-import { spawnSync } from "child_process";
-import { StatusCodes } from "http-status-codes";
-import logger from "../../../../common/logger";
-import { VyperJsonInput, VyperOutput } from "@ethereum-sourcify/lib-sourcify";
-import { asyncExec, fetchWithBackoff } from "./common";
+import path from 'path';
+import fs from 'fs';
+import { spawnSync } from 'child_process';
+import { asyncExec, fetchWithBackoff } from './common';
+import { logDebug, logError, logInfo, logWarn } from '../logger';
 
-const HOST_VYPER_REPO = "https://github.com/vyperlang/vyper/releases/download/";
+const HOST_VYPER_REPO = 'https://github.com/vyperlang/vyper/releases/download/';
 
 export function findVyperPlatform(): string | false {
   if (
-    process.platform === "darwin" &&
-    (process.arch === "x64" || process.arch === "arm64")
+    process.platform === 'darwin' &&
+    (process.arch === 'x64' || process.arch === 'arm64')
   ) {
-    return "darwin";
+    return 'darwin';
   }
-  if (process.platform === "linux" && process.arch === "x64") {
-    return "linux";
+  if (process.platform === 'linux' && process.arch === 'x64') {
+    return 'linux';
   }
-  if (process.platform === "win32" && process.arch === "x64") {
-    return "windows.exe";
+  if (process.platform === 'win32' && process.arch === 'x64') {
+    return 'windows.exe';
   }
   return false;
 }
@@ -37,11 +35,11 @@ export function findVyperPlatform(): string | false {
 export async function useVyperCompiler(
   vyperRepoPath: string,
   version: string,
-  vyperJsonInput: VyperJsonInput,
-): Promise<VyperOutput> {
+  vyperJsonInput: any,
+): Promise<any> {
   const vyperPlatform = findVyperPlatform();
   if (!vyperPlatform) {
-    throw new Error("Vyper is not supported on this machine.");
+    throw new Error('Vyper is not supported on this machine.');
   }
 
   const vyperPath = await getVyperExecutable(
@@ -52,7 +50,7 @@ export async function useVyperCompiler(
 
   if (!vyperPath) {
     throw new Error(
-      "Vyper path not found. Maybe an incorrect version was provided.",
+      'Vyper path not found. Maybe an incorrect version was provided.',
     );
   }
 
@@ -66,30 +64,30 @@ export async function useVyperCompiler(
       250 * 1024 * 1024,
     );
   } catch (error: any) {
-    if (error?.code === "ENOBUFS") {
-      throw new Error("Compilation output size too large");
+    if (error?.code === 'ENOBUFS') {
+      throw new Error('Compilation output size too large');
     }
-    logger.warn(error.message);
+    logWarn(error.message);
     throw error;
   }
   const endCompilation = Date.now();
-  logger.info("Local compiler - Compilation done", {
-    compiler: "vyper",
+  logInfo('Local compiler - Compilation done', {
+    compiler: 'vyper',
     timeInMs: endCompilation - startCompilation,
   });
 
   if (!compiled) {
-    throw new Error("Compilation failed. No output from the compiler.");
+    throw new Error('Compilation failed. No output from the compiler.');
   }
   const compiledJSON = JSON.parse(compiled);
   const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === "error",
+    (e: any) => e.severity === 'error',
   );
   if (errorMessages && errorMessages.length > 0) {
     const error = new Error(
-      "Compiler error:\n " + JSON.stringify(errorMessages),
+      'Compiler error:\n ' + JSON.stringify(errorMessages),
     );
-    logger.error(error.message);
+    logError(error.message);
     throw error;
   }
   return compiledJSON;
@@ -103,7 +101,7 @@ export async function getVyperExecutable(
   const fileName = `vyper.${version}.${platform}`;
   const vyperPath = path.join(vyperRepoPath, fileName);
   if (fs.existsSync(vyperPath) && validateVyperPath(vyperPath)) {
-    logger.debug("Found vyper binary", {
+    logDebug('Found vyper binary', {
       version,
       vyperPath,
       platform,
@@ -111,7 +109,7 @@ export async function getVyperExecutable(
     return vyperPath;
   }
 
-  logger.debug("Downloading vyper", {
+  logDebug('Downloading vyper', {
     version,
     vyperPath,
     platform,
@@ -123,14 +121,14 @@ export async function getVyperExecutable(
     fileName,
   );
   if (success) {
-    logger.debug("Downloaded vyper", {
+    logDebug('Downloaded vyper', {
       version,
       vyperPath,
       platform,
     });
   }
   if (success && !validateVyperPath(vyperPath)) {
-    logger.error("Cannot validate vyper", {
+    logError('Cannot validate vyper', {
       version,
       vyperPath,
       platform,
@@ -142,7 +140,7 @@ export async function getVyperExecutable(
 
 function validateVyperPath(vyperPath: string): boolean {
   // TODO: Handle nodejs only dependencies
-  const spawned = spawnSync(vyperPath, ["--version"]);
+  const spawned = spawnSync(vyperPath, ['--version']);
   if (spawned.status === 0) {
     return true;
   }
@@ -150,9 +148,9 @@ function validateVyperPath(vyperPath: string): boolean {
   const error =
     spawned?.error?.message ||
     spawned.stderr.toString() ||
-    "Error running vyper, are you on the right platform? (e.g. x64 vs arm)";
+    'Error running vyper, are you on the right platform? (e.g. x64 vs arm)';
 
-  logger.warn(error);
+  logWarn(error);
   return false;
 }
 
@@ -166,9 +164,9 @@ async function fetchAndSaveVyper(
   fileName: string,
 ): Promise<boolean> {
   const encodedURIFilename = encodeURIComponent(fileName);
-  const versionWithoutCommit = version.split("+")[0];
+  const versionWithoutCommit = version.split('+')[0];
   const githubVyperURI = `${HOST_VYPER_REPO}v${versionWithoutCommit}/${encodedURIFilename}`;
-  logger.debug("Fetching vyper", {
+  logDebug('Fetching vyper', {
     version,
     platform,
     vyperPath,
@@ -178,8 +176,8 @@ async function fetchAndSaveVyper(
   const status = res.status;
   const buffer = await res.arrayBuffer();
 
-  if (status === StatusCodes.OK && buffer) {
-    logger.debug("Fetched vyper", { version, platform, vyperPath });
+  if (status === 200 && buffer) {
+    logDebug('Fetched vyper', { version, platform, vyperPath });
     fs.mkdirSync(path.dirname(vyperPath), { recursive: true });
 
     try {
@@ -191,7 +189,7 @@ async function fetchAndSaveVyper(
 
     return true;
   } else {
-    logger.warn("Failed fetching vyper", { version, platform, vyperPath });
+    logWarn('Failed fetching vyper', { version, platform, vyperPath });
   }
 
   return false;

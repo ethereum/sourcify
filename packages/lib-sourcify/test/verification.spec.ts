@@ -29,7 +29,7 @@ import {
 
 import fs from 'fs';
 import { JsonRpcSigner } from 'ethers';
-import { findSolcPlatform } from './compiler/solidityCompiler';
+import { findSolcPlatform } from '@ethereum-sourcify/compilers';
 import { ChildProcess } from 'child_process';
 import {
   startHardhatNetwork,
