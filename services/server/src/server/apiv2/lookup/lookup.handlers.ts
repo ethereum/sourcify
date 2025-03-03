@@ -35,7 +35,7 @@ type ListContractsResponse = TypedResponse<{
 export async function listContractsEndpoint(
   req: ListContractsRequest,
   res: ListContractsResponse,
-): Promise<ListContractsResponse> {
+) {
   logger.debug("listContractsEndpoint", {
     chainId: req.params.chainId,
     limit: req.query.limit,
@@ -54,7 +54,7 @@ export async function listContractsEndpoint(
     ],
   );
 
-  return res.status(StatusCodes.OK).json(contracts);
+  res.status(StatusCodes.OK).json(contracts);
 }
 
 interface GetContractRequest extends Request {
@@ -73,7 +73,7 @@ type GetContractResponse = TypedResponse<VerifiedContract>;
 export async function getContractEndpoint(
   req: GetContractRequest,
   res: GetContractResponse,
-): Promise<GetContractResponse> {
+) {
   logger.debug("getContractEndpoint", {
     chainId: req.params.chainId,
     address: req.params.address,
@@ -92,7 +92,8 @@ export async function getContractEndpoint(
   );
 
   if (!contract.match) {
-    return res.status(StatusCodes.NOT_FOUND).json(contract);
+    res.status(StatusCodes.NOT_FOUND).json(contract);
+    return;
   }
 
   // TODO:
@@ -159,5 +160,5 @@ export async function getContractEndpoint(
     contract.proxyResolution = proxyResolution;
   }
 
-  return res.status(StatusCodes.OK).json(contract);
+  res.status(StatusCodes.OK).json(contract);
 }

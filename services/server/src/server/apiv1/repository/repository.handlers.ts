@@ -59,7 +59,7 @@ export function createEndpoint(
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }
-    return res
+    res
       .status(StatusCodes.OK)
       .json(reportMatchStatus ? retrieved : retrieved.files);
   };
@@ -78,7 +78,7 @@ export function createContractEndpoint(
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }
-    return res.status(StatusCodes.OK).json(retrieved);
+    res.status(StatusCodes.OK).json(retrieved);
   };
 }
 
@@ -101,7 +101,7 @@ export function createPaginatedContractEndpoint(
     } catch (err: any) {
       return next(new NotFoundError(err.message));
     }
-    return res.status(StatusCodes.OK).json(retrieved);
+    res.status(StatusCodes.OK).json(retrieved);
   };
 }
 

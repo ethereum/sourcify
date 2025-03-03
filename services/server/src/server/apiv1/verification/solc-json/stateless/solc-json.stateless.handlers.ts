@@ -82,7 +82,8 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       tempMatch.creationMatch === "perfect"
     ) {
       await services.storage.storeMatch(contractToVerify, tempMatch);
-      return res.send({ result: [tempMatch] });
+      res.send({ result: [tempMatch] });
+      return;
     } else if (tempMatch.runtimeMatch === "extra-file-input-bug") {
       throw new BadRequestError(
         "It seems your contract's metadata hashes match but not the bytecodes. You should add all the files input to the compiler during compilation and remove all others. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
@@ -92,5 +93,5 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   if (match.runtimeMatch || match.creationMatch) {
     await services.storage.storeMatch(contractToVerify, match);
   }
-  return res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
+  res.send({ result: [getResponseMatchFromMatch(match)] }); // array is an old expected behavior (e.g. by frontend)
 }
