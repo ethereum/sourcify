@@ -6,7 +6,7 @@ import {
   RecompilationResult,
   StringMap,
 } from './types';
-import { logInfo, logSilly, logWarn } from './logger';
+import { logInfo, logSilly, logWarn } from '../logger';
 import {
   IVyperCompiler,
   VyperJsonInput,
