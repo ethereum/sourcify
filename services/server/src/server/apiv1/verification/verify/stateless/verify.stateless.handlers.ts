@@ -66,7 +66,9 @@ export async function legacyVerifyEndpoint(
   try {
     await contract.fetchMissing();
   } catch (error: any) {
-    // TODO: log warn
+    logger.silly("Error fetching missing files", {
+      error: error,
+    });
   }
 
   if (!contract.isCompilable()) {
@@ -97,18 +99,30 @@ export async function legacyVerifyEndpoint(
           compilation,
           inputFiles,
         );
-        verification = await services.verification.verifyFromCompilation(
-          contractWithAllSources,
-          chainRepository.sourcifyChainMap[req.body.chain],
-          req.body.address,
-          req.body.creatorTxHash,
-        );
+        verification = await services.verification
+          .verifyFromCompilation(
+            contractWithAllSources,
+            chainRepository.sourcifyChainMap[req.body.chain],
+            req.body.address,
+            req.body.creatorTxHash,
+          )
+          .catch((e) => {
+            // This catch is needed to being compatible with the old verification flow
+            logger.warn("Verification error", {
+              error: e,
+            });
+            throw new BadRequestError(e.message);
+          });
       } else {
-        // TODO: log warn
+        logger.warn("Verification error", {
+          error: e,
+        });
         throw e;
       }
     } else {
-      // TODO: log warn
+      logger.error("Verification error", {
+        error: e,
+      });
       throw e;
     }
   }

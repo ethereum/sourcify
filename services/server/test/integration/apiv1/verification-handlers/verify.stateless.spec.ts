@@ -965,7 +965,7 @@ describe("/", function () {
           .field("address", contractAddress)
           .attach("files", hardhatOutputBuffer)
           .end((err, res) => {
-            chai.expect(res.status).to.equal(StatusCodes.INTERNAL_SERVER_ERROR); // TODO: change to bad request
+            chai.expect(res.status).to.equal(StatusCodes.BAD_REQUEST);
             chai
               .expect(res.body.error)
               .to.equal(
