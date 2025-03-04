@@ -87,43 +87,39 @@ export async function legacyVerifyEndpoint(
       req.body.address,
       req.body.creatorTxHash,
     );
-  } catch (e) {
-    if (e instanceof VerificationError) {
-      if (e.code === "extra_file_input_bug") {
-        logger.info("Found extra-file-input-bug", {
-          contract: contract.name,
-          chain: req.body.chain,
-          address: req.body.address,
-        });
-        const contractWithAllSources = await useAllSourcesAndReturnCompilation(
-          compilation,
-          inputFiles,
-        );
-        verification = await services.verification
-          .verifyFromCompilation(
-            contractWithAllSources,
-            chainRepository.sourcifyChainMap[req.body.chain],
-            req.body.address,
-            req.body.creatorTxHash,
-          )
-          .catch((e) => {
-            // This catch is needed to being compatible with the old verification flow
-            logger.warn("Verification error", {
-              error: e,
-            });
-            throw new BadRequestError(e.message);
-          });
-      } else {
-        logger.warn("Verification error", {
-          error: e,
-        });
-        throw e;
-      }
-    } else {
-      logger.error("Verification error", {
-        error: e,
-      });
-      throw e;
+  } catch (error) {
+    // If the error is not a VerificationError, log and rethrow
+    if (!(error instanceof VerificationError)) {
+      logger.error("Verification error", { error });
+      throw error;
+    }
+    // For VerificationError instances, handle non-extra_file_input_bug errors first.
+    if (error.code !== "extra_file_input_bug") {
+      logger.warn("Verification error", { error });
+      throw error;
+    }
+    // Handle the extra_file_input_bug by logging, reconstructing the compilation with all sources,
+    // and then reattempting the verification.
+    logger.info("Found extra-file-input-bug", {
+      contract: contract.name,
+      chain: req.body.chain,
+      address: req.body.address,
+    });
+    const contractWithAllSources = await useAllSourcesAndReturnCompilation(
+      compilation,
+      inputFiles,
+    );
+    try {
+      verification = await services.verification.verifyFromCompilation(
+        contractWithAllSources,
+        chainRepository.sourcifyChainMap[req.body.chain],
+        req.body.address,
+        req.body.creatorTxHash,
+      );
+    } catch (fallbackError: any) {
+      // This catch ensures compatibility with the old verification flow
+      logger.warn("Verification error", { error: fallbackError });
+      throw new BadRequestError(fallbackError.message);
     }
   }
 
