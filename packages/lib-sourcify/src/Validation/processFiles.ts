@@ -3,7 +3,6 @@
 import { Metadata, StringMap } from '../Compilation/CompilationTypes';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import { Sources, SolidityJsonInput } from '../Compilation/SolidityTypes';
-import { pathContentArrayToStringMap, extractUnused } from '../lib/validation';
 import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
 import {
@@ -16,6 +15,30 @@ import { unzipFiles } from './zipUtils';
 import fs from 'fs';
 import Path from 'path';
 import { id as keccak256str } from 'ethers';
+
+function pathContentArrayToStringMap(pathContentArr: PathContent[]) {
+  const stringMapResult: StringMap = {};
+  pathContentArr.forEach((elem, i) => {
+    if (elem.path) {
+      stringMapResult[elem.path] = elem.content;
+    } else {
+      stringMapResult[`path-${i}`] = elem.content;
+    }
+  });
+  return stringMapResult;
+}
+
+function extractUnused(
+  inputFiles: PathContent[],
+  usedFiles: string[],
+  unused: string[],
+): void {
+  const usedFilesSet = new Set(usedFiles);
+  const tmpUnused = inputFiles
+    .map((pc) => pc.path)
+    .filter((file) => !usedFilesSet.has(file));
+  unused.push(...tmpUnused);
+}
 
 /**
  * Regular expression matching metadata nested within another string.

@@ -4,7 +4,7 @@ import { id as keccak256str } from 'ethers';
 import nock from 'nock';
 import { ISolidityCompiler } from '../../src/Compilation/SolidityTypes';
 import { Metadata } from '../../src/Compilation/CompilationTypes';
-import { PathContent } from '../../src/lib/types';
+import { PathContent } from '../../src';
 
 describe('SolidityMetadataContract', () => {
   let validMetadata: Metadata;

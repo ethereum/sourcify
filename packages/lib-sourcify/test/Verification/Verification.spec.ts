@@ -1,7 +1,6 @@
 import { describe, it, before, after } from 'mocha';
 import { expect, use } from 'chai';
 import { Verification } from '../../src/Verification/Verification';
-import SourcifyChain from '../../src/SourcifyChain';
 import { ChildProcess } from 'child_process';
 import { JsonRpcSigner } from 'ethers';
 import path from 'path';
@@ -27,6 +26,7 @@ import {
   findSolcPlatform,
   useSolidityCompiler,
 } from '@ethereum-sourcify/compilers';
+import { SourcifyChain } from '../../src';
 
 use(chaiAsPromised);
 

@@ -6,14 +6,14 @@ import {
   TransactionResponse,
   getAddress,
 } from 'ethers';
+import { logDebug, logError, logInfo, logWarn } from '../logger';
 import {
   CallFrame,
   Chain,
   FetchContractCreationTxMethods,
   SourcifyChainExtension,
   TraceSupportedRPC,
-} from '../lib/types';
-import { logDebug, logError, logInfo, logWarn } from '../logger';
+} from './SourcifyChainTypes';
 
 const RPC_TIMEOUT = process.env.RPC_TIMEOUT
   ? parseInt(process.env.RPC_TIMEOUT)
