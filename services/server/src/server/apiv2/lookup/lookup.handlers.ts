@@ -110,7 +110,8 @@ export async function getContractEndpoint(
       const sourcifyChain =
         chainRepository.supportedChainMap[req.params.chainId];
       const proxyDetectionResult = await detectAndResolveProxy(
-        contract.proxyResolution!.onchainRuntimeBytecode!,
+        contract.proxyResolution!.onchainCreationBytecode ||
+          contract.proxyResolution!.onchainRuntimeBytecode!,
         req.params.address,
         sourcifyChain,
       );

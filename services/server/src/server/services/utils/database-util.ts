@@ -422,8 +422,9 @@ export const FIELDS_TO_STORED_PROPERTIES: Record<
   stdJsonInput: "std_json_input",
   stdJsonOutput: "std_json_output",
   proxyResolution: {
-    // TODO: remove onchainRuntimeBytecode, when proxy detection result is stored in database
+    // TODO: remove onchainRuntimeBytecode and onchainCreationBytecode when proxy detection result is stored in database
     onchainRuntimeBytecode: "onchain_runtime_code",
+    onchainCreationBytecode: "onchain_creation_code",
   },
 };
 
