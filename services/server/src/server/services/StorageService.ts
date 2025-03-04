@@ -1,8 +1,4 @@
-import {
-  Match,
-  AbstractCheckedContract,
-  Verification,
-} from "@ethereum-sourcify/lib-sourcify";
+import { Verification } from "@ethereum-sourcify/lib-sourcify";
 import {
   RepositoryV1Service,
   RepositoryV1ServiceOptions,
@@ -28,6 +24,7 @@ import {
   VerifiedContractMinimal,
   VerifiedContract,
   VerificationJob,
+  Match,
 } from "../types";
 import {
   RWStorageIdentifiers,
@@ -46,10 +43,6 @@ import { Field } from "./utils/database-util";
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
   init(): Promise<boolean>;
-  storeMatch(
-    contract: AbstractCheckedContract,
-    match: Match,
-  ): Promise<void | Match>;
   storeVerification?(verification: Verification): Promise<void | Match>;
 }
 
@@ -288,64 +281,6 @@ export class StorageService {
         );
       }
     }
-  }
-
-  async storeMatch(contract: AbstractCheckedContract, match: Match) {
-    logger.info("Storing match on StorageService", {
-      name: contract.name,
-      address: match.address,
-      chainId: match.chainId,
-      runtimeMatch: match.runtimeMatch,
-      creationMatch: match.creationMatch,
-    });
-
-    const existingMatch = await this.performServiceOperation(
-      "checkAllByChainAndAddress",
-      [match.address, match.chainId],
-    );
-    if (existingMatch.length > 0 && !isBetterMatch(match, existingMatch[0])) {
-      logger.info("Partial match already exists", {
-        chain: match.chainId,
-        address: match.address,
-        newRuntimeMatch: match.runtimeMatch,
-        newCreationMatch: match.creationMatch,
-        existingRuntimeMatch: existingMatch[0].runtimeMatch,
-        existingCreationMatch: existingMatch[0].creationMatch,
-      });
-      throw new ConflictError(
-        `The contract ${match.address} on chainId ${match.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
-      );
-    }
-
-    // Initialize an array to hold active service promises
-    const promises: Promise<Match | void>[] = [];
-
-    this.getWriteOrErrServices().forEach((service) =>
-      promises.push(
-        service.storeMatch(contract, match).catch((e) => {
-          logger.error(`Error storing to ${service.IDENTIFIER}`, {
-            error: e,
-          });
-          throw e;
-        }),
-      ),
-    );
-
-    this.getWriteOrWarnServices().forEach((service) => {
-      if (service) {
-        promises.push(
-          service.storeMatch(contract, match).catch((e) => {
-            logger.warn(`Error storing to ${service.IDENTIFIER}`, {
-              error: e,
-              contract,
-              match,
-            });
-          }),
-        );
-      }
-    });
-
-    return await Promise.all(promises);
   }
 
   async storeVerification(verification: Verification) {

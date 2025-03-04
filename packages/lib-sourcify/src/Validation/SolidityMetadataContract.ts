@@ -13,19 +13,7 @@ import {
   StringMap,
 } from '../Compilation/CompilationTypes';
 import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
-
-const CONTENT_VARIATORS = [
-  (content: string) => content.replace(/\r?\n/g, '\r\n'),
-  (content: string) => content.replace(/\r\n/g, '\n'),
-];
-
-const ENDING_VARIATORS = [
-  (content: string) => content.trimEnd(),
-  (content: string) => content.trimEnd() + '\n',
-  (content: string) => content.trimEnd() + '\r\n',
-  (content: string) => content + '\n',
-  (content: string) => content + '\r\n',
-];
+import { CONTENT_VARIATORS, ENDING_VARIATORS } from './processFiles';
 
 export class SolidityMetadataContract {
   metadata: Metadata;

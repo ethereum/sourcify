@@ -1,16 +1,10 @@
 import { Request } from "express";
 import { BadRequestError, PayloadTooLargeError } from "../../../common/errors";
 import {
-  SolidityCheckedContract,
   InvalidSources,
-  Match,
-  Metadata,
   MissingSources,
   PathContent,
-  StringMap,
-  isEmpty,
   IVyperCompiler,
-  Language,
   SolidityMetadataContract,
   VyperCompilation,
   CompilationTarget,
@@ -38,22 +32,7 @@ import { StorageService } from "../../services/StorageService";
 import logger from "../../../common/logger";
 import { createHash } from "crypto";
 import { ChainRepository } from "../../../sourcify-chain-repository";
-
-export function createSolidityCheckedContract(
-  solc: ISolidityCompiler,
-  metadata: Metadata,
-  solidity: StringMap,
-  missing?: MissingSources,
-  invalid?: InvalidSources,
-) {
-  return new SolidityCheckedContract(
-    solc,
-    metadata as any,
-    solidity,
-    missing,
-    invalid,
-  );
-}
+import { Match } from "../../types";
 
 type PathBuffer = {
   path: string;
@@ -101,15 +80,6 @@ export const extractFilesFromJSON = (files: {
     inputFiles.push({ path: name, buffer });
   }
   return inputFiles;
-};
-
-export const stringifyInvalidAndMissing = (
-  contract: SolidityCheckedContract,
-) => {
-  const errors = Object.keys(contract.invalid).concat(
-    Object.keys(contract.missing),
-  );
-  return `${contract.name} (${errors.join(", ")})`;
 };
 
 export const FILE_ENCODING = "base64";
@@ -281,7 +251,7 @@ const createSessionContractsFromFiles = async (
       }
 
       sessionContracts.push({
-        language: Language.Solidity,
+        language: "Solidity",
         metadata: metadataContract.metadata,
         sources: metadataContract.foundSources,
         missing: metadataContract.missingSources,
@@ -304,7 +274,7 @@ const createSessionContractsFromFiles = async (
       const contractPath = Object.keys(compilationTarget)[0];
       const contractName = compilationTarget[contractPath];
       sessionContracts.push({
-        language: Language.Vyper,
+        language: "Vyper",
         metadata: metadata,
         sources: foundSources,
         compiledPath: contractPath,
@@ -416,31 +386,6 @@ export async function addRemoteFile(
   ];
 }
 
-export const checkAndFetchMissing = async (
-  contract: SolidityCheckedContract,
-): Promise<void> => {
-  if (!contract.isValid()) {
-    try {
-      // Try to fetch missing files
-      await SolidityCheckedContract.fetchMissing(contract);
-    } catch (e) {
-      // There's no need to throw inside fetchMissing if we're going to do an empty catch. This would cause not being able to catch other potential errors inside the function. TODO: Don't throw inside `fetchMissing` and remove the try/catch block.
-      // Missing files are accessible from the contract.missingFiles array.
-      // No need to throw an error
-    }
-  }
-};
-
-export function isVerifiable(contractWrapper: ContractWrapper) {
-  const contract = contractWrapper.contract;
-  return (
-    isEmpty(contract.missing) &&
-    isEmpty(contract.invalid) &&
-    Boolean(contractWrapper.address) &&
-    Boolean(contractWrapper.chainId)
-  );
-}
-
 export const verifyContractsInSession = async (
   solc: ISolidityCompiler,
   vyper: IVyperCompiler,
@@ -490,7 +435,7 @@ export const verifyContractsInSession = async (
       // Create compilation based on contract type
       let compilation;
 
-      if (contract.language === Language.Solidity) {
+      if (contract.language === "Solidity") {
         // Ensure required properties exist
         if (!contract.compiledPath || !contract.name) {
           throw new BadRequestError("Missing required contract information");
@@ -514,7 +459,7 @@ export const verifyContractsInSession = async (
 
         // Create compilation
         compilation = await metadataContract.createCompilation(solc);
-      } else if (contract.language === Language.Vyper) {
+      } else if (contract.language === "Vyper") {
         // Ensure required properties exist
         if (!contract.compiledPath || !contract.name) {
           throw new BadRequestError("Missing required contract information");

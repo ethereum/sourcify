@@ -8,13 +8,16 @@
 import Path from "path";
 import fs from "fs";
 import {
-  Match,
-  Status,
+  VerificationStatus,
   StringMap,
-  AbstractCheckedContract,
   Verification,
 } from "@ethereum-sourcify/lib-sourcify";
-import { V1MatchLevelWithoutAny, MatchQuality, PathConfig } from "../../types";
+import {
+  V1MatchLevelWithoutAny,
+  MatchQuality,
+  PathConfig,
+  Match,
+} from "../../types";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
 import { getMatchStatus, getMatchStatusFromVerification } from "../../common";
@@ -188,101 +191,6 @@ export class RepositoryV2Service implements WStorageService {
     }
   }
 
-  public async storeMatch(
-    contract: AbstractCheckedContract,
-    match: Match,
-  ): Promise<void | Match> {
-    if (
-      match.address &&
-      (match.runtimeMatch === "perfect" ||
-        match.runtimeMatch === "partial" ||
-        match.creationMatch === "perfect" ||
-        match.creationMatch === "partial")
-    ) {
-      // Delete the partial matches if we now have a perfect match instead.
-      if (
-        match.runtimeMatch === "perfect" ||
-        match.creationMatch === "perfect"
-      ) {
-        await this.deletePartialIfExists(match.chainId, match.address);
-      }
-      const matchQuality: MatchQuality = this.statusToMatchQuality(
-        getMatchStatus(match),
-      );
-
-      await this.storeSources(
-        matchQuality,
-        match.chainId,
-        match.address,
-        contract.sources,
-      );
-
-      // Store metadata
-      await this.storeJSON(
-        matchQuality,
-        match.chainId,
-        match.address,
-        "metadata.json",
-        contract.metadata,
-      );
-
-      if (match.abiEncodedConstructorArguments) {
-        await this.storeTxt(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "constructor-args.txt",
-          match.abiEncodedConstructorArguments,
-        );
-      }
-
-      if (match.creatorTxHash) {
-        await this.storeTxt(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "creator-tx-hash.txt",
-          match.creatorTxHash,
-        );
-      }
-
-      if (match.libraryMap && Object.keys(match.libraryMap).length) {
-        await this.storeJSON(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "library-map.json",
-          match.libraryMap,
-        );
-      }
-
-      if (
-        match.immutableReferences &&
-        Object.keys(match.immutableReferences).length > 0
-      ) {
-        await this.storeJSON(
-          matchQuality,
-          match.chainId,
-          match.address,
-          "immutable-references.json",
-          match.immutableReferences,
-        );
-      }
-
-      logger.info(`Stored contract to ${this.IDENTIFIER}`, {
-        address: match.address,
-        chainId: match.chainId,
-        runtimeMatch: match.runtimeMatch,
-        creationMatch: match.creationMatch,
-        name: contract.name,
-      });
-    } else if (match.runtimeMatch === "extra-file-input-bug") {
-      return match;
-    } else {
-      throw new Error(`Unknown match status: ${match.runtimeMatch}`);
-    }
-  }
-
   async deletePartialIfExists(chainId: string, address: string) {
     const pathConfig: PathConfig = {
       matchQuality: "partial",
@@ -303,7 +211,7 @@ export class RepositoryV2Service implements WStorageService {
    * @param status
    * @returns {MatchQuality} matchQuality
    */
-  private statusToMatchQuality(status: Status): MatchQuality {
+  private statusToMatchQuality(status: VerificationStatus): MatchQuality {
     if (status === "perfect") return "full";
     if (status === "partial") return status;
     throw new Error(`Invalid match status: ${status}`);

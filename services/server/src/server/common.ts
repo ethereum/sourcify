@@ -1,17 +1,17 @@
 import {
   InvalidSources,
-  Language,
-  Match,
+  CompilationLanguage,
   Metadata,
   MissingSources,
   PathContent,
-  Status,
+  VerificationStatus,
   StringMap,
   Verification,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../common/logger";
 import { InternalServerError } from "express-openapi-validator/dist/openapi.validator";
 import { Request, Response, NextFunction } from "express";
+import { Match } from "./types";
 
 export const safeHandler = <T extends Request = Request>(
   requestHandler: (req: T, res: Response, next: NextFunction) => Promise<any>,
@@ -41,13 +41,13 @@ export type ContractMeta = {
   address?: string;
   chainId?: string;
   creatorTxHash?: string;
-  status?: Status;
+  status?: VerificationStatus;
   statusMessage?: string;
   storageTimestamp?: Date;
 };
 
 export type ContractWrapperData = {
-  language: Language;
+  language: CompilationLanguage;
   metadata: Metadata;
   sources: StringMap;
   missing: MissingSources;
@@ -75,10 +75,10 @@ declare module "express-session" {
 
 export interface ResponseMatch
   extends Omit<Match, "runtimeMatch" | "creationMatch"> {
-  status: Status;
+  status: VerificationStatus;
 }
 
-export function getMatchStatus(match: Match): Status {
+export function getMatchStatus(match: Match): VerificationStatus {
   if (match.runtimeMatch === "perfect" || match.creationMatch === "perfect") {
     return "perfect";
   }
@@ -105,7 +105,7 @@ export function getResponseMatchFromMatch(match: Match): ResponseMatch {
 
 export function getMatchStatusFromVerification(
   verification: Verification,
-): Status {
+): VerificationStatus {
   if (
     verification.status.runtimeMatch === "perfect" ||
     verification.status.creationMatch === "perfect"

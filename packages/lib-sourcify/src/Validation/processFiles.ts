@@ -1,15 +1,22 @@
 // Tools to assemble SolidityMetadataContract(s) from files.
 
-import { Metadata } from '../Compilation/CompilationTypes';
+import { Metadata, StringMap } from '../Compilation/CompilationTypes';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import { Sources, SolidityJsonInput } from '../Compilation/SolidityTypes';
 import { pathContentArrayToStringMap, extractUnused } from '../lib/validation';
 import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
-import { PathBuffer, PathContent } from './ValidationTypes';
+import {
+  InvalidSources,
+  MissingSources,
+  PathBuffer,
+  PathContent,
+} from './ValidationTypes';
 import { unzipFiles } from './zipUtils';
 import fs from 'fs';
 import Path from 'path';
+import { id as keccak256str } from 'ethers';
+
 /**
  * Regular expression matching metadata nested within another string.
  * Assumes metadata's first key is "compiler" and the last key is "version".
@@ -306,4 +313,133 @@ export async function useAllSourcesAndReturnCompilation(
     solidityCompilation.compilationTarget,
   );
   return solidityCompilationWithAllSources;
+}
+
+/**
+ * Validates metadata content keccak hashes for all files and
+ * returns mapping of file contents by file name
+ * @param  {any}       metadata
+ * @param  {Map<string, any>}  byHash    Map from keccak to source
+ * @return foundSources, missingSources, invalidSources
+ */
+export function rearrangeSources(
+  metadata: any,
+  byHash: Map<string, PathContent>,
+) {
+  const foundSources: StringMap = {};
+  const missingSources: MissingSources = {};
+  const invalidSources: InvalidSources = {};
+  const metadata2provided: StringMap = {}; // maps fileName as in metadata to the fileName of the provided file
+
+  for (const sourcePath in metadata.sources) {
+    const sourceInfoFromMetadata = metadata.sources[sourcePath];
+    let file: PathContent | undefined = undefined;
+    const expectedHash: string = sourceInfoFromMetadata.keccak256;
+    if (sourceInfoFromMetadata.content) {
+      // Source content already in metadata
+      file = {
+        content: sourceInfoFromMetadata.content,
+        path: sourcePath,
+      };
+      const contentHash = keccak256str(file.content);
+      if (contentHash != expectedHash) {
+        invalidSources[sourcePath] = {
+          expectedHash: expectedHash,
+          calculatedHash: contentHash,
+          msg: `The keccak256 given in the metadata and the calculated keccak256 of the source content in metadata don't match`,
+        };
+        continue;
+      }
+    } else {
+      // Get source from input files by hash
+      const pathContent = byHash.get(expectedHash);
+      if (pathContent) {
+        file = pathContent;
+        metadata2provided[sourcePath] = pathContent.path;
+      } // else: no file has the hash that was searched for
+    }
+
+    if (file && file.content) {
+      foundSources[sourcePath] = file.content;
+    } else {
+      missingSources[sourcePath] = {
+        keccak256: expectedHash,
+        urls: sourceInfoFromMetadata.urls,
+      };
+    }
+  }
+
+  return {
+    foundSources,
+    missingSources,
+    invalidSources,
+    metadata2provided,
+    language: metadata.language,
+  };
+}
+
+export const CONTENT_VARIATORS = [
+  (content: string) => content.replace(/\r?\n/g, '\r\n'),
+  (content: string) => content.replace(/\r\n/g, '\n'),
+];
+
+export const ENDING_VARIATORS = [
+  (content: string) => content.trimEnd(),
+  (content: string) => content.trimEnd() + '\n',
+  (content: string) => content.trimEnd() + '\r\n',
+  (content: string) => content + '\n',
+  (content: string) => content + '\r\n',
+];
+
+function generateVariations(pathContent: PathContent): PathContent[] {
+  const variations: {
+    content: string;
+    contentVariator: number;
+    endingVariator: number;
+  }[] = [];
+  const original = pathContent.content;
+  for (const [
+    CONTENT_VARIATORS_INDEX,
+    contentVariator,
+  ] of CONTENT_VARIATORS.entries()) {
+    const variatedContent = contentVariator(original);
+    for (const [
+      ENDING_VARIATORS_INDEX,
+      endingVariator,
+    ] of ENDING_VARIATORS.entries()) {
+      const variation = endingVariator(variatedContent);
+      variations.push({
+        content: variation,
+        contentVariator: CONTENT_VARIATORS_INDEX,
+        endingVariator: ENDING_VARIATORS_INDEX,
+      });
+    }
+  }
+
+  return variations.map(({ content, contentVariator, endingVariator }) => {
+    return {
+      content,
+      path: pathContent.path,
+      variation: contentVariator + '.' + endingVariator,
+    };
+  });
+}
+
+/**
+ * Generates a map of files indexed by the keccak hash of their content.
+ *
+ * @param  {string[]}  files Array containing sources.
+ * @returns Map object that maps hash to PathContent.
+ */
+export function storeByHash(files: PathContent[]): Map<string, PathContent> {
+  const byHash: Map<string, PathContent> = new Map();
+
+  for (const pathContent of files) {
+    for (const variation of generateVariations(pathContent)) {
+      const calculatedHash = keccak256str(variation.content);
+      byHash.set(calculatedHash, variation);
+    }
+  }
+
+  return byHash;
 }

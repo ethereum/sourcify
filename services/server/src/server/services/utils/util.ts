@@ -1,8 +1,16 @@
 import Path from "path";
 import fs from "fs";
-import { V1MatchLevelWithoutAny, MatchQuality, MatchLevel } from "../../types";
+import {
+  V1MatchLevelWithoutAny,
+  MatchQuality,
+  MatchLevel,
+  Match,
+} from "../../types";
 import { getAddress } from "ethers";
-import { Match, Status, Verification } from "@ethereum-sourcify/lib-sourcify";
+import {
+  VerificationStatus,
+  Verification,
+} from "@ethereum-sourcify/lib-sourcify";
 
 export const getFileRelativePath = (
   chainId: string,
@@ -56,11 +64,14 @@ export async function readFile(
 }
 
 /**
- * This function returns a positive number if the first Status
+ * This function returns a positive number if the first VerificationStatus
  * is better than the second one; 0 if they are the same; or a
- * negative number if the first Status is worse than the second one
+ * negative number if the first VerificationStatus is worse than the second one
  */
-export function getStatusDiff(status1: Status, status2: Status): number {
+export function getStatusDiff(
+  status1: VerificationStatus,
+  status2: VerificationStatus,
+): number {
   const scores = {
     error: 0,
     "extra-file-input-bug": 0,
@@ -137,7 +148,7 @@ export function isBetterVerification(
   return false;
 }
 
-export function toMatchLevel(status: Status): MatchLevel {
+export function toMatchLevel(status: VerificationStatus): MatchLevel {
   switch (status) {
     case "perfect":
       return "exact_match";
@@ -149,8 +160,8 @@ export function toMatchLevel(status: Status): MatchLevel {
 }
 
 export function getTotalMatchLevel(
-  creationStatus: Status,
-  runtimeStatus: Status,
+  creationStatus: VerificationStatus,
+  runtimeStatus: VerificationStatus,
 ): MatchLevel {
   if (
     ![creationStatus, runtimeStatus].find(

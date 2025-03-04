@@ -21,7 +21,7 @@ import {
  * Abstraction of a solidity compilation
  */
 export class SolidityCompilation extends AbstractCompilation {
-  public language: CompilationLanguage = 'solidity';
+  public language: CompilationLanguage = 'Solidity';
   // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: SolidityOutput;
   declare compileAndReturnCompilationTarget: (

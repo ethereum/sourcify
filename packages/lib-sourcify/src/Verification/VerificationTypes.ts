@@ -34,4 +34,9 @@ export enum SolidityBugType {
   EXTRA_FILE_INPUT_BUG,
 }
 
-export type VerificationStatus = 'perfect' | 'partial' | null;
+export type VerificationStatus =
+  | 'perfect'
+  | 'partial'
+  | 'extra-file-input-bug'
+  | 'error'
+  | null;

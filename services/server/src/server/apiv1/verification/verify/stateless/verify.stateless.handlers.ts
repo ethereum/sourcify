@@ -1,16 +1,7 @@
 import { Response } from "express";
+import { LegacyVerifyRequest, extractFiles } from "../../verification.common";
 import {
-  LegacyVerifyRequest,
-  extractFiles,
-  stringifyInvalidAndMissing,
-} from "../../verification.common";
-import {
-  SolidityCheckedContract,
   ISolidityCompiler,
-  Match,
-  checkFilesWithMetadata,
-  matchWithRuntimeBytecode,
-  IVyperCompiler,
   SolidityMetadataContract,
   createMetadataContractsFromFiles,
   VerificationError,
@@ -19,14 +10,9 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
-import {
-  getMatchStatus,
-  getResponseMatchFromMatch,
-  getResponseMatchFromVerification,
-} from "../../../../common";
+import { getResponseMatchFromVerification } from "../../../../common";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
-import { AuxdataStyle } from "@ethereum-sourcify/bytecode-utils";
 import logger from "../../../../../common/logger";
 
 export async function legacyVerifyEndpoint(
@@ -131,6 +117,8 @@ export async function legacyVerifyEndpoint(
   return res.send({ result: [getResponseMatchFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
 }
 
+// TODO: handle this
+/* 
 export async function verifyDeprecated(
   req: LegacyVerifyRequest,
   res: Response,
@@ -254,4 +242,4 @@ export async function verifyDeprecated(
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .send({ error: error.message });
   }
-}
+} */

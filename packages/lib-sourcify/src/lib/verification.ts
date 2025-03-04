@@ -20,7 +20,7 @@ import { BigNumber } from '@ethersproject/bignumber';
 import { defaultAbiCoder as abiCoder, ParamType } from '@ethersproject/abi';
 import { AbiConstructor } from 'abitype';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
-import SourcifyChain from '../SourcifyChain';
+import SourcifyChain from '../SourcifyChain/SourcifyChain';
 import { lt } from 'semver';
 import { AbstractCheckedContract } from './AbstractCheckedContract';
 import {

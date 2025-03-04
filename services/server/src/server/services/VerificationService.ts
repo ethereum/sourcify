@@ -1,7 +1,4 @@
 import {
-  verifyDeployed as libSourcifyVerifyDeployed,
-  AbstractCheckedContract,
-  Match,
   SourcifyChain,
   ISolidityCompiler,
   SolidityJsonInput,
@@ -106,41 +103,6 @@ export class VerificationService {
     ) {
       logger.warn("Contract already being verified", { chainId, address });
       throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
-    }
-  }
-
-  public async verifyDeployed(
-    checkedContract: AbstractCheckedContract,
-    sourcifyChain: SourcifyChain,
-    address: string,
-    creatorTxHash?: string,
-  ): Promise<Match> {
-    const chainId = sourcifyChain.chainId.toString();
-    logger.debug("VerificationService.verifyDeployed", {
-      chainId,
-      address,
-    });
-    this.throwIfContractIsAlreadyBeingVerified(chainId, address);
-    this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
-
-    const foundCreatorTxHash =
-      creatorTxHash ||
-      (await getCreatorTx(sourcifyChain, address)) ||
-      undefined;
-
-    /* eslint-disable no-useless-catch */
-    try {
-      const res = await libSourcifyVerifyDeployed(
-        checkedContract,
-        sourcifyChain,
-        address,
-        foundCreatorTxHash,
-      );
-      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
-      return res;
-    } catch (e) {
-      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
-      throw e;
     }
   }
 
