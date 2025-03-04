@@ -15,7 +15,6 @@ import {
   unzipFiles,
   splitFiles,
   rearrangeSources,
-  storeByHash,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Session } from "express-session";
 import { AbiConstructor, AbiParameter } from "abitype";
@@ -33,6 +32,7 @@ import logger from "../../../common/logger";
 import { createHash } from "crypto";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { Match } from "../../types";
+import { keccak256 } from "ethers";
 
 type PathBuffer = {
   path: string;
@@ -268,7 +268,14 @@ const createSessionContractsFromFiles = async (
         usedFiles.push(...currentUsedFiles);
       }
     } else if (metadata.language === "Vyper") {
-      const byHash = storeByHash(sourceFiles);
+      const byHash: Map<string, PathContent> = new Map();
+      for (const pathBuffer of files) {
+        const calculatedHash = keccak256(pathBuffer.buffer);
+        byHash.set(calculatedHash, {
+          path: pathBuffer.path,
+          content: pathBuffer.buffer.toString(),
+        });
+      }
       const { foundSources } = rearrangeSources(metadata, byHash);
       const compilationTarget = metadata.settings.compilationTarget;
       const contractPath = Object.keys(compilationTarget)[0];
