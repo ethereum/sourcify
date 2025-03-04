@@ -1,11 +1,13 @@
 import {
-  verifyDeployed as libSourcifyVerifyDeployed,
-  AbstractCheckedContract,
-  Match,
   SourcifyChain,
   ISolidityCompiler,
-  JsonInput,
+  SolidityJsonInput,
+  VyperJsonInput,
   PathBuffer,
+  Verification,
+  SolidityCompilation,
+  VyperCompilation,
+  CompilationTarget,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -104,44 +106,9 @@ export class VerificationService {
     }
   }
 
-  public async verifyDeployed(
-    checkedContract: AbstractCheckedContract,
-    sourcifyChain: SourcifyChain,
-    address: string,
-    creatorTxHash?: string,
-  ): Promise<Match> {
-    const chainId = sourcifyChain.chainId.toString();
-    logger.debug("VerificationService.verifyDeployed", {
-      chainId,
-      address,
-    });
-    this.throwIfContractIsAlreadyBeingVerified(chainId, address);
-    this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
-
-    const foundCreatorTxHash =
-      creatorTxHash ||
-      (await getCreatorTx(sourcifyChain, address)) ||
-      undefined;
-
-    /* eslint-disable no-useless-catch */
-    try {
-      const res = await libSourcifyVerifyDeployed(
-        checkedContract,
-        sourcifyChain,
-        address,
-        foundCreatorTxHash,
-      );
-      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
-      return res;
-    } catch (e) {
-      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
-      throw e;
-    }
-  }
-
   async getAllMetadataAndSourcesFromSolcJson(
     solc: ISolidityCompiler,
-    solcJsonInput: JsonInput,
+    solcJsonInput: SolidityJsonInput | VyperJsonInput,
     compilerVersion: string,
   ): Promise<PathBuffer[]> {
     if (solcJsonInput.language !== "Solidity")
@@ -183,4 +150,87 @@ export class VerificationService {
     }
     return metadataAndSources;
   }
+
+  public async verifyFromCompilation(
+    compilation: SolidityCompilation | VyperCompilation,
+    sourcifyChain: SourcifyChain,
+    address: string,
+    creatorTxHash?: string,
+  ): Promise<Verification> {
+    const chainId = sourcifyChain.chainId.toString();
+    logger.debug("VerificationService.verifyFromCompilation", {
+      chainId,
+      address,
+    });
+    this.throwIfContractIsAlreadyBeingVerified(chainId, address);
+    this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
+
+    const foundCreatorTxHash =
+      creatorTxHash ||
+      (await getCreatorTx(sourcifyChain, address)) ||
+      undefined;
+
+    const verification = new Verification(
+      compilation,
+      sourcifyChain,
+      address,
+      foundCreatorTxHash,
+    );
+
+    /* eslint-disable no-useless-catch */
+    try {
+      await verification.verify();
+      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
+      return verification;
+    } catch (e) {
+      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
+      throw e;
+    }
+  }
+
+  public async verifyFromJsonInput(
+    solc: ISolidityCompiler,
+    compilerVersion: string,
+    jsonInput: VyperJsonInput | SolidityJsonInput,
+    compilationTarget: CompilationTarget,
+    sourcifyChain: SourcifyChain,
+    address: string,
+    creatorTxHash?: string,
+  ): Promise<Verification> {
+    const compilation = new SolidityCompilation(
+      solc,
+      compilerVersion,
+      jsonInput,
+      compilationTarget,
+    );
+
+    return await this.verifyFromCompilation(
+      compilation,
+      sourcifyChain,
+      address,
+      creatorTxHash,
+    );
+  }
+
+  /*   public async verifyFromMetadata(
+    metadata: Metadata,
+    sources: PathContent[],
+    sourcifyChain: SourcifyChain,
+    address: string,
+    creatorTxHash?: string,
+  ): Promise<Verification> {
+    const solidityMetadataContract = new SolidityMetadataContract(
+      metadata,
+      sources,
+    );
+    const compilation = await solidityMetadataContract.createCompilation(
+      this.solc,
+    );
+    return await this.verifyFromCompilation(
+      compilation,
+      sourcifyChain,
+      address,
+      creatorTxHash,
+    );
+  } */
 }

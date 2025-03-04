@@ -33,3 +33,10 @@ export enum SolidityBugType {
   IR_OUTPUT_ORDERING_BUG,
   EXTRA_FILE_INPUT_BUG,
 }
+
+export type VerificationStatus =
+  | 'perfect'
+  | 'partial'
+  | 'extra-file-input-bug'
+  | 'error'
+  | null;

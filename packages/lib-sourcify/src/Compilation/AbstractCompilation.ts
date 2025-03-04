@@ -3,6 +3,8 @@ import {
   CompilationTarget,
   CompiledContractCborAuxdata,
   Metadata,
+  CompilationLanguage,
+  StringMap,
   LinkReferences,
 } from './CompilationTypes';
 import {
@@ -33,6 +35,7 @@ export abstract class AbstractCompilation {
   compilerOutput?: SolidityOutput | VyperOutput;
 
   abstract auxdataStyle: AuxdataStyle;
+  abstract language: CompilationLanguage;
 
   /** Marks the positions of the CborAuxdata parts in the bytecode */
   protected _creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
@@ -126,6 +129,13 @@ export abstract class AbstractCompilation {
       throw new Error('Metadata is not set');
     }
     return this._metadata;
+  }
+
+  get sources() {
+    return Object.keys(this.jsonInput.sources).reduce((acc, source) => {
+      acc[source] = this.jsonInput.sources[source].content;
+      return acc;
+    }, {} as StringMap);
   }
 
   abstract get immutableReferences(): ImmutableReferences;

@@ -1,19 +1,7 @@
 /* eslint-disable @typescript-eslint/no-var-requires */
-// Functions here assume a folder structure like this:
-// - contractFolderPath
-//   - artifact.json
-//   - metadata.json
-//   - sources
-//     - source1.sol
-//     - source2.sol
-
 import path from 'path';
-import fs from 'fs';
-import { Match, SourcifyChain, verifyDeployed } from '../src';
-import { checkFilesWithMetadata } from '../src';
 import { expect } from 'chai';
 import { ContractFactory, Signer } from 'ethers';
-import { ISolidityCompiler } from '../src/lib/ISolidityCompiler';
 import {
   useSolidityCompiler,
   useVyperCompiler,
@@ -22,7 +10,7 @@ import {
   IVyperCompiler,
   VyperJsonInput,
   VyperOutput,
-} from '../src/lib/IVyperCompiler';
+} from '../src/Compilation/VyperTypes';
 import {
   ISolidityCompiler,
   SolidityJsonInput,
@@ -95,106 +83,6 @@ class VyperCompiler implements IVyperCompiler {
 }
 
 export const vyperCompiler = new VyperCompiler();
-
-/**
- * Checks the contract from metadata and source files under contractFolderPath and
- * verifies it on sourcifyChain at address.
- * The metadata must be at contractFolderPath/metadata.json and the sources must be under contractFolderPath/sources.
- */
-export const checkAndVerifyDeployed = async (
-  contractFolderPath: string,
-  sourcifyChain: SourcifyChain,
-  address: string,
-  creatorTxHash?: string,
-) => {
-  const checkedContracts =
-    await checkFilesWithMetadataFromContractFolder(contractFolderPath);
-
-  const match = await verifyDeployed(
-    checkedContracts[0],
-    sourcifyChain,
-    address,
-    creatorTxHash,
-  );
-  return match;
-};
-
-/**
- * Creates a CheckedContract[] from the files under contractFolderPath.
- * The metadata must be at contractFolderPath/metadata.json and the sources must be under contractFolderPath/sources.
- */
-export const checkFilesWithMetadataFromContractFolder = async (
-  contractFolderPath: string,
-) => {
-  const metadataPath = path.join(contractFolderPath, 'metadata.json');
-  const metadataBuffer = fs.readFileSync(metadataPath);
-  const metadataPathBuffer = { path: metadataPath, buffer: metadataBuffer };
-
-  const sourcePathBuffers: { path: string; buffer: Buffer }[] = [];
-  const traverseDirectory = (dirPath: string, basePath: string = '') => {
-    const entries = fs.readdirSync(dirPath, { withFileTypes: true });
-    for (const entry of entries) {
-      const fullPath = path.join(dirPath, entry.name);
-      const relativePath = path.join(basePath, entry.name);
-      if (entry.isDirectory()) {
-        traverseDirectory(fullPath, relativePath);
-      } else {
-        const sourceBuffer = fs.readFileSync(fullPath);
-        sourcePathBuffers.push({ path: relativePath, buffer: sourceBuffer });
-      }
-    }
-  };
-  traverseDirectory(path.join(contractFolderPath, 'sources'));
-  const checkedContracts = await checkFilesWithMetadata(solc, vyperCompiler, [
-    metadataPathBuffer,
-    ...sourcePathBuffers,
-  ]);
-  return checkedContracts;
-};
-/**
- * Combines both deploying and verifying a contract in a single function.
- * Returns the deployed address for assertions on Match.address
- */
-export const deployCheckAndVerify = async (
-  contractFolderPath: string,
-  sourcifyChain: SourcifyChain,
-  signer: Signer,
-  args?: any[],
-) => {
-  const { contractAddress } = await deployFromAbiAndBytecode(
-    signer,
-    contractFolderPath,
-    args,
-  );
-  const match = await checkAndVerifyDeployed(
-    contractFolderPath,
-    sourcifyChain,
-    contractAddress,
-  );
-  return { match, contractAddress };
-};
-
-export const expectMatch = (
-  match: Match,
-  status: string | null,
-  address: string,
-  libraryMap?: { [key: string]: string },
-  message?: string,
-) => {
-  try {
-    expect(match.runtimeMatch).to.equal(status);
-    expect(match.address).to.equal(address);
-    if (libraryMap) {
-      expect(match.libraryMap).to.deep.equal(libraryMap);
-    }
-    if (message) {
-      expect(match.message).to.equal(message);
-    }
-  } catch (e) {
-    console.log('Match: ', match);
-    throw e;
-  }
-};
 
 /**
  * Helper function to verify a Verification object using its getters

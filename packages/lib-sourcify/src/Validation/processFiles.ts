@@ -1,12 +1,45 @@
 // Tools to assemble SolidityMetadataContract(s) from files.
 
-import { Metadata } from '../Compilation/CompilationTypes';
+import { Metadata, StringMap } from '../Compilation/CompilationTypes';
+import { SolidityCompilation } from '../Compilation/SolidityCompilation';
+import { Sources, SolidityJsonInput } from '../Compilation/SolidityTypes';
 import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
-import { PathBuffer, PathContent } from './ValidationTypes';
+import {
+  InvalidSources,
+  MissingSources,
+  PathBuffer,
+  PathContent,
+} from './ValidationTypes';
 import { unzipFiles } from './zipUtils';
 import fs from 'fs';
 import Path from 'path';
+import { id as keccak256str } from 'ethers';
+
+function pathContentArrayToStringMap(pathContentArr: PathContent[]) {
+  const stringMapResult: StringMap = {};
+  pathContentArr.forEach((elem, i) => {
+    if (elem.path) {
+      stringMapResult[elem.path] = elem.content;
+    } else {
+      stringMapResult[`path-${i}`] = elem.content;
+    }
+  });
+  return stringMapResult;
+}
+
+function extractUnused(
+  inputFiles: PathContent[],
+  usedFiles: string[],
+  unused: string[],
+): void {
+  const usedFilesSet = new Set(usedFiles);
+  const tmpUnused = inputFiles
+    .map((pc) => pc.path)
+    .filter((file) => !usedFilesSet.has(file));
+  unused.push(...tmpUnused);
+}
+
 /**
  * Regular expression matching metadata nested within another string.
  * Assumes metadata's first key is "compiler" and the last key is "version".
@@ -19,6 +52,7 @@ const HARDHAT_OUTPUT_FORMAT_REGEX = /"hh-sol-build-info-1"/;
 export function createMetadataContractsFromPaths(
   paths: string[],
   ignoring?: string[],
+  unused?: string[],
 ) {
   const files: PathBuffer[] = [];
   paths.forEach((path) => {
@@ -33,10 +67,13 @@ export function createMetadataContractsFromPaths(
     }
   });
 
-  return createMetadataContractsFromFiles(files);
+  return createMetadataContractsFromFiles(files, unused);
 }
 
-export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
+export async function createMetadataContractsFromFiles(
+  files: PathBuffer[],
+  unused?: string[],
+) {
   logInfo('Creating metadata contracts from files', {
     numberOfFiles: files.length,
   });
@@ -48,6 +85,7 @@ export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
   const { metadataFiles, sourceFiles } = splitFiles(parsedFiles);
 
   const metadataContracts: SolidityMetadataContract[] = [];
+  const usedFiles: string[] = [];
 
   metadataFiles.forEach((metadata) => {
     if (metadata.language === 'Solidity') {
@@ -56,12 +94,25 @@ export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
         sourceFiles,
       );
       metadataContracts.push(metadataContract);
+
+      // Track used files
+      if (metadataContract.metadataPathToProvidedFilePath) {
+        const currentUsedFiles = Object.values(
+          metadataContract.metadataPathToProvidedFilePath,
+        );
+        usedFiles.push(...currentUsedFiles);
+      }
     } else if (metadata.language === 'Vyper') {
       throw new Error('Can only handle Solidity metadata files');
     } else {
       throw new Error('Unsupported language');
     }
   });
+
+  // Track unused files if the parameter is provided
+  if (unused) {
+    extractUnused(sourceFiles, usedFiles, unused);
+  }
 
   logInfo('SolidityMetadataContracts', {
     contracts: metadataContracts.map((c) => c.name),
@@ -72,7 +123,7 @@ export async function createMetadataContractsFromFiles(files: PathBuffer[]) {
 /**
  * Splits the files into metadata and source files using heuristics.
  */
-function splitFiles(files: PathContent[]): {
+export function splitFiles(files: PathContent[]): {
   metadataFiles: Metadata[];
   sourceFiles: PathContent[];
 } {
@@ -241,4 +292,111 @@ function assertCompilationTarget(metadata: Metadata) {
       `Metadata must have exactly one compilation target. Found: ${Object.keys(metadata.settings.compilationTarget).join(', ')}`,
     );
   }
+}
+
+export async function useAllSourcesAndReturnCompilation(
+  solidityCompilation: SolidityCompilation,
+  files: PathBuffer[],
+) {
+  await unzipFiles(files);
+  const parsedFiles = files.map((pathBuffer) => ({
+    content: pathBuffer.buffer.toString(),
+    path: pathBuffer.path,
+  }));
+  const { sourceFiles } = splitFiles(parsedFiles);
+  const stringMapSourceFiles = pathContentArrayToStringMap(sourceFiles);
+
+  // Create a proper Sources object from the StringMap
+  const sourcesObject: Sources = {};
+
+  // First add all sources from the string map
+  for (const path in stringMapSourceFiles) {
+    sourcesObject[path] = {
+      content: stringMapSourceFiles[path],
+    };
+  }
+
+  // Then add all sources from the solidityCompilation (which are already hash matched)
+  // These will override any duplicates from the string map
+  for (const path in solidityCompilation.jsonInput.sources) {
+    sourcesObject[path] = solidityCompilation.jsonInput.sources[path];
+  }
+
+  // Create a new SolidityJsonInput with the combined sources
+  const newJsonInput: SolidityJsonInput = {
+    language: solidityCompilation.jsonInput.language,
+    sources: sourcesObject,
+    settings: solidityCompilation.jsonInput.settings,
+  };
+
+  const solidityCompilationWithAllSources = new SolidityCompilation(
+    solidityCompilation.compiler,
+    solidityCompilation.compilerVersion,
+    newJsonInput,
+    solidityCompilation.compilationTarget,
+  );
+  return solidityCompilationWithAllSources;
+}
+
+/**
+ * Validates metadata content keccak hashes for all files and
+ * returns mapping of file contents by file name
+ * @param  {any}       metadata
+ * @param  {Map<string, any>}  byHash    Map from keccak to source
+ * @return foundSources, missingSources, invalidSources
+ */
+export function rearrangeSources(
+  metadata: any,
+  byHash: Map<string, PathContent>,
+) {
+  const foundSources: StringMap = {};
+  const missingSources: MissingSources = {};
+  const invalidSources: InvalidSources = {};
+  const metadata2provided: StringMap = {}; // maps fileName as in metadata to the fileName of the provided file
+
+  for (const sourcePath in metadata.sources) {
+    const sourceInfoFromMetadata = metadata.sources[sourcePath];
+    let file: PathContent | undefined = undefined;
+    const expectedHash: string = sourceInfoFromMetadata.keccak256;
+    if (sourceInfoFromMetadata.content) {
+      // Source content already in metadata
+      file = {
+        content: sourceInfoFromMetadata.content,
+        path: sourcePath,
+      };
+      const contentHash = keccak256str(file.content);
+      if (contentHash != expectedHash) {
+        invalidSources[sourcePath] = {
+          expectedHash: expectedHash,
+          calculatedHash: contentHash,
+          msg: `The keccak256 given in the metadata and the calculated keccak256 of the source content in metadata don't match`,
+        };
+        continue;
+      }
+    } else {
+      // Get source from input files by hash
+      const pathContent = byHash.get(expectedHash);
+      if (pathContent) {
+        file = pathContent;
+        metadata2provided[sourcePath] = pathContent.path;
+      } // else: no file has the hash that was searched for
+    }
+
+    if (file && file.content) {
+      foundSources[sourcePath] = file.content;
+    } else {
+      missingSources[sourcePath] = {
+        keccak256: expectedHash,
+        urls: sourceInfoFromMetadata.urls,
+      };
+    }
+  }
+
+  return {
+    foundSources,
+    missingSources,
+    invalidSources,
+    metadata2provided,
+    language: metadata.language,
+  };
 }
