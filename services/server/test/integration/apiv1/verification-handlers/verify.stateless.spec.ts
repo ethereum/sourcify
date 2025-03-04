@@ -735,6 +735,92 @@ describe("/", function () {
       .to.equal(JSON.stringify(correctMetadata));
   });
 
+  it("should verify a contract on deprecated chain (Goerli) and store it correctly in the database", async () => {
+    // Use Goerli chain ID (5) which is deprecated
+    const address = "0x71c7656ec7ab88b098defb751b7401b5f6d8976f"; // Sample address
+    const goerliChainId = "5"; // Goerli chain ID
+    const matchStatus = "perfect"; // Request match type parameter for deprecated chain
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .post("/verify-deprecated")
+      .field("address", address)
+      .field("chain", goerliChainId)
+      .field("match", matchStatus)
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .attach("files", chainFixture.defaultContractSource, "Storage.sol");
+
+    // Verify API response
+    await assertVerification(
+      serverFixture,
+      null,
+      res,
+      null,
+      address,
+      goerliChainId,
+      matchStatus,
+    );
+
+    // Verify the response result has the correct address and chainId
+    chai
+      .expect(res.body.result[0].address.toLowerCase())
+      .to.equal(address.toLowerCase());
+    chai.expect(res.body.result[0].chainId).to.equal(goerliChainId);
+    chai.expect(res.body.result[0].status).to.equal(matchStatus);
+
+    // Use a comprehensive query to get all verification details in a single query
+    const verificationDetails = await serverFixture.sourcifyDatabase.query(
+      `SELECT 
+          runtime_match,
+          creation_match,
+          onchain_runtime_code.code as onchain_runtime_code,
+          onchain_creation_code.code as onchain_creation_code,
+          cd.chain_id,
+          cd.block_number,
+          cd.transaction_index,
+          cd.transaction_hash,
+          cd.deployer
+        FROM verified_contracts vc
+        LEFT JOIN contract_deployments cd ON cd.id = vc.deployment_id
+        LEFT JOIN contracts c ON c.id = cd.contract_id
+        LEFT JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = c.runtime_code_hash
+        LEFT JOIN code onchain_creation_code ON onchain_creation_code.code_hash = c.creation_code_hash
+        WHERE cd.address = $1`,
+      [Buffer.from(address.substring(2), "hex")],
+    );
+
+    // Verify that we got a result
+    chai.expect(verificationDetails.rows.length).to.equal(1);
+    const details = verificationDetails.rows[0];
+
+    // Verify chain ID and address
+    chai.expect(details.chain_id).to.equal(goerliChainId);
+
+    // Verify the deployment information
+    chai.expect(details.block_number).to.equal("-1"); // Special value for deprecated chains
+    chai.expect(details.transaction_index).to.equal("-1"); // Special value for deprecated chains
+    chai.expect(details.transaction_hash).to.be.null; // Should be null for deprecated chains
+    chai.expect(details.deployer).to.be.null; // Should be null for deprecated chains
+
+    // Verify match status
+    chai.expect(details.runtime_match).to.equal(true);
+    chai.expect(details.creation_match).to.equal(true);
+
+    // Check if the onchain bytecodes have the special deprecated message
+    const deprecatedMessage =
+      "0x2121212121212121212121202d20636861696e207761732064657072656361746564206174207468652074696d65206f6620766572696669636174696f6e";
+
+    // Convert database bytecode (Buffer) to hex string for comparison
+    const onchainRuntimeHex =
+      "0x" + Buffer.from(details.onchain_runtime_code).toString("hex");
+    const onchainCreationHex =
+      "0x" + Buffer.from(details.onchain_creation_code).toString("hex");
+
+    // Verify the special deprecated message was stored as bytecode
+    chai.expect(onchainRuntimeHex).to.equal(deprecatedMessage);
+    chai.expect(onchainCreationHex).to.equal(deprecatedMessage);
+  });
+
   describe("solc standard input json", () => {
     it("should return validation error for adding standard input JSON without a compiler version", async () => {
       const address = await deployFromAbiAndBytecode(

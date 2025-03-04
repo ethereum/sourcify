@@ -127,15 +127,13 @@ export async function legacyVerifyEndpoint(
   return res.send({ result: [getResponseMatchFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
 }
 
-// TODO: handle this
-/* 
 export async function verifyDeprecated(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
   const solc = req.app.get("solc") as ISolidityCompiler;
-  const vyper = req.app.get("vyper") as IVyperCompiler;
   const services = req.app.get("services") as Services;
+  const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
   const inputFiles = extractFiles(req);
   if (!inputFiles) {
@@ -144,41 +142,39 @@ export async function verifyDeprecated(
     throw new NotFoundError(msg);
   }
 
-  let checkedContracts: SolidityCheckedContract[];
+  let metadataContracts: SolidityMetadataContract[];
   try {
-    checkedContracts = (await checkFilesWithMetadata(
-      solc,
-      vyper,
+    metadataContracts = (await createMetadataContractsFromFiles(
       inputFiles,
-    )) as SolidityCheckedContract[];
+    )) as SolidityMetadataContract[];
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }
 
-  const errors = checkedContracts
-    .filter((contract) => !contract.isValid(true))
-    .map(stringifyInvalidAndMissing);
+  const errors = metadataContracts
+    .filter((contract) => !contract.isCompilable())
+    .map((contract) => contract.name);
   if (errors.length) {
     throw new BadRequestError(
       "Invalid or missing sources in:\n" + errors.join("\n"),
     );
   }
 
-  if (checkedContracts.length !== 1 && !req.body.chosenContract) {
-    const contractNames = checkedContracts.map((c) => c.name).join(", ");
-    const msg = `Detected ${checkedContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
-    const contractsToChoose = checkedContracts.map((contract) => ({
+  if (metadataContracts.length !== 1 && !req.body.chosenContract) {
+    const contractNames = metadataContracts.map((c) => c.name).join(", ");
+    const msg = `Detected ${metadataContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
+    const contractsToChoose = metadataContracts.map((contract) => ({
       name: contract.name,
-      path: contract.compiledPath,
+      path: contract.path,
     }));
     return res
       .status(StatusCodes.BAD_REQUEST)
       .send({ error: msg, contractsToChoose });
   }
 
-  const contract: SolidityCheckedContract = req.body.chosenContract
-    ? checkedContracts[req.body.chosenContract]
-    : checkedContracts[0];
+  const contract: SolidityMetadataContract = req.body.chosenContract
+    ? metadataContracts[req.body.chosenContract]
+    : metadataContracts[0];
 
   if (!contract) {
     throw new NotFoundError(
@@ -187,69 +183,63 @@ export async function verifyDeprecated(
     );
   }
 
-  const match: Match = {
-    address: req.body.address,
-    chainId: req.body.chain,
-    runtimeMatch: null,
-    creationMatch: null,
-    runtimeTransformations: [],
-    creationTransformations: [],
-    runtimeTransformationValues: {},
-    creationTransformationValues: {},
-  };
+  // Fetch missing files
+  try {
+    await contract.fetchMissing();
+  } catch (error: any) {
+    logger.silly("Error fetching missing files", {
+      error: error,
+    });
+  }
 
-  const generateRuntimeCborAuxdataPositions = async () => {
-    if (!contract.runtimeBytecodeCborAuxdata) {
-      await contract.generateCborAuxdataPositions();
-    }
-    return contract.runtimeBytecodeCborAuxdata || {};
-  };
+  if (!contract.isCompilable()) {
+    throw new BadRequestError(
+      "Invalid or missing sources in:\n" + contract.name,
+    );
+  }
 
   try {
-    const {
-      runtimeBytecode: recompiledRuntimeBytecode,
-      immutableReferences,
-      runtimeLinkReferences,
-      // creationLinkReferences,
-    } = await contract.recompile();
+    // Create a compilation from the contract and compile it
+    const compilation = await contract.createCompilation(solc);
+    await compilation.compile();
+    await compilation.generateCborAuxdataPositions();
 
-    // we are running also matchWithRuntimeBytecode to extract transformations
-    await matchWithRuntimeBytecode(
-      match,
-      recompiledRuntimeBytecode,
-      recompiledRuntimeBytecode, // onchainBytecode
-      generateRuntimeCborAuxdataPositions,
-      immutableReferences,
-      runtimeLinkReferences,
-      AuxdataStyle.SOLIDITY,
+    // Create a mock Verification object for deprecated chains
+    const verification = new Verification(
+      compilation,
+      chainRepository.sourcifyChainMap[req.body.chain],
+      req.body.address,
+      req.body.creatorTxHash,
     );
 
-    match;
-    const matchStatus = getMatchStatus(match);
-    if (matchStatus !== "perfect") {
-      res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .send({ error: "Match is neither partial or perfect" });
-    }
-
-    // Override match properties
-    match.runtimeMatch = req.body.match;
-    match.creationMatch = req.body.match;
-    // hex for !!!!!!!!!!! - chain was deprecated at the time of verification";
-    match.onchainRuntimeBytecode =
+    // Override verification properties for deprecated chains
+    // The hexadecimal string is '!!!!!!!!! - chain was deprecated at the time of verification'
+    const deprecatedMessage =
       "0x2121212121212121212121202d20636861696e207761732064657072656361746564206174207468652074696d65206f6620766572696669636174696f6e";
-    match.onchainCreationBytecode =
-      "0x2121212121212121212121202d20636861696e207761732064657072656361746564206174207468652074696d65206f6620766572696669636174696f6e";
-    match.blockNumber = -1;
-    match.creatorTxHash = undefined; // null bytea
-    match.txIndex = -1;
-    match.deployer = undefined; // null bytea
 
-    await services.storage.storeMatch(contract, match);
-    return res.send({ result: [getResponseMatchFromMatch(match)] });
+    // Set status based on request match type
+    (verification as any).runtimeMatch = req.body.match;
+    (verification as any).creationMatch = req.body.match;
+
+    // Set mock bytecodes
+    (verification as any)._onchainRuntimeBytecode = deprecatedMessage;
+    (verification as any)._onchainCreationBytecode = deprecatedMessage;
+
+    // Set deployment info
+    (verification as any).blockNumber = -1;
+    (verification as any).creatorTxHash = undefined; // null bytea
+    (verification as any).txIndex = -1;
+    (verification as any).deployer = undefined; // null bytea
+
+    // Store the verification
+    await services.storage.storeVerification(verification);
+
+    return res.send({
+      result: [getResponseMatchFromVerification(verification)],
+    });
   } catch (error: any) {
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .send({ error: error.message });
   }
-} */
+}

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import {
   legacyVerifyEndpoint,
-  /* verifyDeprecated, */
+  verifyDeprecated,
 } from "./verify.stateless.handlers";
 import { checkPerfectMatch } from "../../../controllers.common";
 import { safeHandler } from "../../../../common";
@@ -12,7 +12,7 @@ router
   .route("/verify")
   .post(checkPerfectMatch, safeHandler(legacyVerifyEndpoint));
 
-/* router.route("/verify-deprecated").post(
+router.route("/verify-deprecated").post(
   // Middleware to check if verifyDeprecated is enabled
   (req, res, next) => {
     const verifyDeprecatedEnabled = req.app.get("verifyDeprecated") as boolean;
@@ -25,7 +25,7 @@ router
   checkPerfectMatch,
   safeHandler(verifyDeprecated),
 );
- */
+
 export const deprecatedRoutesVerifyStateless = {
   "/": {
     method: "post",
