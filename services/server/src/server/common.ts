@@ -124,36 +124,37 @@ export function getMatchStatusFromVerification(
   return null;
 }
 
-// TODO: implement this
 export function getResponseMatchFromVerification(
   verification: Verification,
 ): ResponseMatch {
   const status = getMatchStatusFromVerification(verification);
+  let onchainCreationBytecode;
+  try {
+    onchainCreationBytecode = verification.onchainCreationBytecode;
+  } catch (e) {
+    // can be undefined
+  }
   const responseMatch = {
     address: verification.address,
     chainId: verification.chainId.toString(),
     runtimeMatch: verification.status.runtimeMatch,
     creationMatch: verification.status.creationMatch,
-    message: "",
-    abiEncodedConstructorArguments: "",
-    create2Args: {
-      deployerAddress: "",
-      salt: "",
-      constructorArgs: [],
-    },
-    libraryMap: {},
-    creatorTxHash: "",
-    immutableReferences: {},
-    runtimeTransformations: [],
-    creationTransformations: [],
+    abiEncodedConstructorArguments:
+      verification.transformations.creation.values.constructorArguments,
+    libraryMap:
+      verification.libraryMap.creation || verification.libraryMap.runtime,
+    immutableReferences: verification.compilation.immutableReferences,
+    runtimeTransformations: verification.transformations.runtime.list,
+    creationTransformations: verification.transformations.creation.list,
     runtimeTransformationValues: verification.transformations.runtime.values,
     creationTransformationValues: verification.transformations.creation.values,
-    onchainRuntimeBytecode: "",
-    onchainCreationBytecode: "",
-    blockNumber: undefined,
-    txIndex: undefined,
-    deployer: undefined,
-    contractName: "",
+    onchainRuntimeBytecode: verification.onchainRuntimeBytecode,
+    onchainCreationBytecode: onchainCreationBytecode,
+    creatorTxHash: verification.deploymentInfo.txHash,
+    blockNumber: verification.deploymentInfo.blockNumber,
+    txIndex: verification.deploymentInfo.txIndex,
+    deployer: verification.deploymentInfo.deployer,
+    contractName: verification.compilation.compilationTarget.name,
     status,
   };
 
