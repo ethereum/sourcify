@@ -37,6 +37,16 @@ import {
   RouteNotFoundError,
   errorHandler as v2ErrorHandler,
 } from "./apiv2/errors";
+import $RefParser, {
+  JSONSchema,
+  dereferenceInternal,
+} from "@apidevtools/json-schema-ref-parser";
+import dereference from "@apidevtools/json-schema-ref-parser/lib/dereference";
+
+import yaml from "js-yaml";
+import { JSON_SCHEMA } from "js-yaml";
+import fs from "fs";
+import swaggerUi from "swagger-ui-express";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -260,6 +270,20 @@ export class Server {
 
     this.app.use("/", routes);
 
+    const swaggerDocument = this.loadSwagger();
+
+    this.app.get("/api-docs/swagger.json", (req, res) =>
+      res.json(swaggerDocument),
+    );
+    this.app.use(
+      "/api-docs",
+      swaggerUi.serve,
+      swaggerUi.setup(swaggerDocument, {
+        customSiteTitle: "Sourcify API",
+        customfavIcon: "https://sourcify.dev/favicon.ico",
+      }),
+    );
+
     // Any request that could not be handled by a route earlier will match this
     this.app.use((req, res, next) => {
       next(new RouteNotFoundError("The requested resource was not found"));
@@ -278,25 +302,39 @@ export class Server {
   }
 
   // We need to resolve the $refs in the openapi file ourselves because the SwaggerUI-expresses does not do it
-  async loadSwagger(root: string) {
-    const options = {
-      filter: ["relative", "remote"],
-      loaderOptions: {
-        processContent: function (res: any, callback: any) {
-          callback(null, yamljs.parse(res.text));
-        },
-      },
-      location: __dirname,
-    };
-
-    return resolveRefs(root as any, options).then(
-      function (results: any) {
-        return results.resolved;
-      },
-      function (err: any) {
-        console.log(err.stack);
-      },
+  loadSwagger() {
+    // const options = {
+    //   filter: ["relative", "remote"],
+    //   loaderOptions: {
+    //     processContent: function (res: any, callback: any) {
+    //       callback(null, yamljs.parse(res.text));
+    //     },
+    //   },
+    //   location: __dirname,
+    // };
+    const openapiFile = fs.readFileSync(
+      path.join(__dirname, "..", "openapi.yaml"),
+      "utf8",
     );
+    const root = yaml.load(openapiFile.toString(), {
+      schema: JSON_SCHEMA,
+    }) as JSONSchema;
+
+    const parser = new $RefParser();
+    parser.parse(root);
+    parser.schema = root;
+    dereferenceInternal(parser, { dereference: { circular: true } }); // Mutates root
+
+    return root;
+
+    // return resolveRefs(root as any, options).then(
+    //   function (results: any) {
+    //     return results.resolved;
+    //   },
+    //   function (err: any) {
+    //     console.log(err.stack);
+    //   },
+    // );
   }
 }
 
