@@ -156,7 +156,7 @@ commit_changelogs() {
 
 ###
 ### Next, set versions with lerna version.
-### Must use the interactive command. There is no way to bump the version of a single package in a singel command, weirdly, https://github.com/lerna/lerna/issues/3874
+### Must use the interactive command. There is no way to bump the version of a single package in a singe command, weirdly, https://github.com/lerna/lerna/issues/3874
 ###
 
 function run_lerna_version() {
