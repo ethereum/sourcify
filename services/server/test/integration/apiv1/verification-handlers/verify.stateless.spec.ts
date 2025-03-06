@@ -317,25 +317,7 @@ describe("/", function () {
     verifyDeployedSpy.restore();
   });
 
-  it("Should upgrade creation match from 'null' to 'perfect', delete partial from repository and update creationTx information in database", async () => {
-    const partialMetadata = (
-      await import("../../../testcontracts/Storage/metadataModified.json")
-    ).default;
-    const partialMetadataBuffer = Buffer.from(JSON.stringify(partialMetadata));
-
-    const partialSourcePath = path.join(
-      __dirname,
-      "..",
-      "..",
-      "..",
-      "testcontracts",
-      "Storage",
-      "StorageModified.sol",
-    );
-    const partialSourceBuffer = fs.readFileSync(partialSourcePath);
-
-    const partialMetadataURL = `/repository/contracts/partial_match/${chainFixture.chainId}/${chainFixture.defaultContractAddress}/metadata.json`;
-
+  it("Should upgrade creation match from 'null' to 'perfect', update verified_contracts and contract_deployments creation information in database", async () => {
     // Block the getTransactionReceipt call and the binary search for the creation tx hash and creationMatch will be set to null
     const restoreGetTx =
       serverFixture.server.chainRepository.sourcifyChainMap[
@@ -352,8 +334,8 @@ describe("/", function () {
       .post("/")
       .field("address", chainFixture.defaultContractAddress)
       .field("chain", chainFixture.chainId)
-      .attach("files", partialMetadataBuffer, "metadata.json")
-      .attach("files", partialSourceBuffer);
+      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
+      .attach("files", chainFixture.defaultContractSource);
 
     // Restore the getTransactionReceipt call
     serverFixture.server.chainRepository.sourcifyChainMap[
@@ -367,11 +349,24 @@ describe("/", function () {
       null,
       chainFixture.defaultContractAddress,
       chainFixture.chainId,
-      "partial",
+      "perfect",
     );
 
-    res = await chai.request(serverFixture.server.app).get(partialMetadataURL);
-    chai.expect(res.body).to.deep.equal(partialMetadata);
+    // Creation match should be false
+    const verifiedContractsWithFalseCreationMatchResult =
+      await serverFixture.sourcifyDatabase.query(
+        "SELECT creation_match FROM verified_contracts",
+      );
+    chai
+      .expect(verifiedContractsWithFalseCreationMatchResult?.rows)
+      .to.have.length(1);
+    chai
+      .expect(verifiedContractsWithFalseCreationMatchResult?.rows)
+      .to.deep.equal([
+        {
+          creation_match: false,
+        },
+      ]);
 
     const contractDeploymentWithoutCreatorTransactionHash =
       await serverFixture.sourcifyDatabase.query(
@@ -434,22 +429,24 @@ describe("/", function () {
       "SELECT encode(source_hash, 'hex') as source_hash FROM compiled_contracts_sources",
     );
 
-    chai.expect(sourcesResult?.rows).to.have.length(2);
+    chai.expect(sourcesResult?.rows).to.have.length(1);
     chai.expect(sourcesResult?.rows).to.deep.equal([
-      {
-        source_hash:
-          "fd080cadfc692807b0d856c83148034ab5c47ededd67ea6c93c500a2a0fd4378",
-      },
       {
         source_hash:
           "fb898a1d72892619d00d572bca59a5d98a9664169ff850e2389373e2421af4aa",
       },
     ]);
 
-    await waitSecs(2); // allow server some time to execute the deletion (it started *after* the last response)
+    const verifiedContractsResult = await serverFixture.sourcifyDatabase.query(
+      "SELECT creation_match FROM verified_contracts",
+    );
 
-    res = await chai.request(serverFixture.server.app).get(partialMetadataURL);
-    chai.expect(res.status).to.equal(StatusCodes.NOT_FOUND);
+    chai.expect(verifiedContractsResult?.rows).to.have.length(1);
+    chai.expect(verifiedContractsResult?.rows).to.deep.equal([
+      {
+        creation_match: true,
+      },
+    ]);
   });
 
   it("Should upgrade creation match from 'partial' to 'perfect' even if existing runtime match is already 'perfect'", async () => {
