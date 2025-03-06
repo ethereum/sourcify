@@ -365,12 +365,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Rollux Tanenbaum (testnet)
-  verifyContract(
-    "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
-    "57000",
-    "Rollux Tanenbaum",
-    "shared/",
-  );
+  // verifyContract(
+  //   "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
+  //   "57000",
+  //   "Rollux Tanenbaum",
+  //   "shared/",
+  // );
 
   verifyContract(
     "0xE295aD71242373C37C5FdA7B57F26f9eA1088AFe",
@@ -841,13 +841,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Bear Network Chain Mainnet
-  verifyContract(
-    "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
-    "641230",
-    "Bear Network Chain Mainnet",
-    "shared/",
-  );
+  // // Bear Network Chain Mainnet
+  // verifyContract(
+  //   "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
+  //   "641230",
+  //   "Bear Network Chain Mainnet",
+  //   "shared/",
+  // );
 
   // Lyra Mainnet
   verifyContract(
@@ -938,13 +938,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Telcoin Network
-  verifyContract(
-    "0x25E8aB38013CB30D74992Aa5d1a74B65409Dc6b1",
-    "2017",
-    "Telcoin Network",
-    "shared/",
-  );
+  // // Telcoin Network
+  // verifyContract(
+  //   "0x25E8aB38013CB30D74992Aa5d1a74B65409Dc6b1",
+  //   "2017",
+  //   "Telcoin Network",
+  //   "shared/",
+  // );
 
   // Bitkub Chain Testnet
   verifyContract(
@@ -1225,12 +1225,12 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  verifyContract(
-    "0xE115Ef16e46bbF46591170D712140eC553C43553",
-    "10243",
-    "Arthera Testnet",
-    "shared/",
-  );
+  // verifyContract(
+  //   "0xE115Ef16e46bbF46591170D712140eC553C43553",
+  //   "10243",
+  //   "Arthera Testnet",
+  //   "shared/",
+  // );
 
   // Q Mainnet
   verifyContract(
@@ -1433,12 +1433,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Ozone Chain Mainnet
-  verifyContract(
-    "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
-    "4000",
-    "Ozone Chain Mainnet",
-    "shared/",
-  );
+  // verifyContract(
+  //   "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
+  //   "4000",
+  //   "Ozone Chain Mainnet",
+  //   "shared/",
+  // );
 
   // Endurance Smart Chain Mainnet
   verifyContract(
@@ -1472,13 +1472,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // YMTECH-BESU Testnet
-  verifyContract(
-    "0x37A01685de21e2d459fE3c6AEDe86A94B4bb8d9C",
-    "202401",
-    "YMTECH-BESU Testnet",
-    "shared/",
-  );
+  // // YMTECH-BESU Testnet
+  // verifyContract(
+  //   "0x37A01685de21e2d459fE3c6AEDe86A94B4bb8d9C",
+  //   "202401",
+  //   "YMTECH-BESU Testnet",
+  //   "shared/",
+  // );
 
   // Swisstronik Testnet
   verifyContract(
@@ -1680,13 +1680,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Vechain Testnet
-  verifyContract(
-    "0x393207E1019e4114EE4E9c633D09418252217e22",
-    "16350",
-    "Incentiv Devnet",
-    "shared/",
-  );
+  // // Vechain Testnet
+  // verifyContract(
+  //   "0x393207E1019e4114EE4E9c633D09418252217e22",
+  //   "16350",
+  //   "Incentiv Devnet",
+  //   "shared/",
+  // );
 
   // Curtis Testnet
   verifyContract(
@@ -1775,21 +1775,21 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Story Odyssey
-  verifyContract(
-    "0x78418e6efE946a65900E354e949C5dF0317dd411",
-    "1516",
-    "Story Odyssey",
-    "shared/",
-  );
+  // // Story Odyssey
+  // verifyContract(
+  //   "0x78418e6efE946a65900E354e949C5dF0317dd411",
+  //   "1516",
+  //   "Story Odyssey",
+  //   "shared/",
+  // );
 
-  // Quantum Portal Network
-  verifyContract(
-    "0x511f9B726559384f10371Bc7f19A925F864a9997",
-    "26100",
-    "Quantum Portal Network",
-    "shared/",
-  );
+  // // Quantum Portal Network
+  // verifyContract(
+  //   "0x511f9B726559384f10371Bc7f19A925F864a9997",
+  //   "26100",
+  //   "Quantum Portal Network",
+  //   "shared/",
+  // );
 
   // Citrea Testnet
   verifyContract(

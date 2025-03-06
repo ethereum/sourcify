@@ -543,7 +543,7 @@
   },
   "57000": {
     "sourcifyName": "Rollux Testnet Tanenbaum",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://rollux.tanenbaum.io/"
@@ -1138,7 +1138,7 @@
   },
   "641230": {
     "sourcifyName": "Bear Network Chain Mainnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://brnkscan.bearnetwork.net/"
@@ -1277,7 +1277,7 @@
   },
   "2017": {
     "sourcifyName": "Telcoin Network",
-    "supported": true
+    "supported": false
   },
   "25925": {
     "sourcifyName": "Bitkub Chain Testnet",
@@ -1539,7 +1539,7 @@
   },
   "10243": {
     "sourcifyName": "Arthera Testnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://explorer-test.arthera.net/"
@@ -1896,7 +1896,7 @@
   },
   "4000": {
     "sourcifyName": "Ozone Chain Mainnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://ozonescan.io/"
@@ -1934,7 +1934,7 @@
   },
   "202401": {
     "sourcifyName": "YMTECH-BESU Testnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "http://39.119.118.198/"
@@ -2167,7 +2167,7 @@
     "supported": false
   },
   "16350": {
-    "supported": true,
+    "supported": false,
     "sourcifyName": "Incentiv Devnet"
   },
   "33111": {
@@ -2263,7 +2263,7 @@
   },
   "1516": {
     "sourcifyName": "Story Odyssey",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://odyssey.storyscan.xyz/"
@@ -2273,7 +2273,7 @@
   },
   "26100": {
     "sourcifyName": "Quantum Portal Network",
-    "supported": true
+    "supported": false
   },
   "7200": {
     "sourcifyName": "exSat Mainnet",
