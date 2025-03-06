@@ -1113,6 +1113,13 @@ describe("Test Supported Chains", function () {
     "Zilliqa 2 EVM proto-mainnet",
     "shared/",
   );
+  // Zilliqa 2 EVM proto-testnet
+  verifyContract(
+    "0xCCA8678D48D028Ba9AF201345c608DfDB0D64f83",
+    "33103",
+    "Zilliqa 2 EVM proto-testnet",
+    "shared/",
+  );
 
   // KAVA EVM Testnet
   verifyContract(
