@@ -33,10 +33,7 @@ import {
 import { ChainRepository } from "../sourcify-chain-repository";
 import { SessionOptions } from "express-session";
 import { makeV1ValidatorFormats } from "./apiv1/validation";
-import {
-  RouteNotFoundError,
-  errorHandler as v2ErrorHandler,
-} from "./apiv2/errors";
+import { errorHandler as v2ErrorHandler } from "./apiv2/errors";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -259,11 +256,6 @@ export class Server {
     this.app.use("/*session*", getSessionMiddleware(options.sessionOptions));
 
     this.app.use("/", routes);
-
-    // Any request that could not be handled by a route earlier will match this
-    this.app.use((req, res, next) => {
-      next(new RouteNotFoundError("The requested resource was not found"));
-    });
 
     // Error handlers cannot be registered on the routes, so we need to register them here
     this.app.use("/v2", v2ErrorHandler);
