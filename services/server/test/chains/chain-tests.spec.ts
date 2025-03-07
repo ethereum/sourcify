@@ -843,10 +843,10 @@ describe("Test Supported Chains", function () {
 
   // Bear Network Chain Mainnet
   verifyContract(
-	"0x115B83FE885D2Acf6099B6f3aAa75502CEBBA154",
-	"641230",
-	"Bear Network Chain Mainnet",
-	"shared/",
+    "0x115B83FE885D2Acf6099B6f3aAa75502CEBBA154",
+    "641230",
+    "Bear Network Chain Mainnet",
+    "shared/",
   );
 
   // Lyra Mainnet
