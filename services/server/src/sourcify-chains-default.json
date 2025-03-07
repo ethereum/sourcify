@@ -2301,5 +2301,15 @@
         "url": "https://explorer.testnet.citrea.xyz"
       }
     }
+  },
+  "180": {
+    "sourcifyName": "AME Chain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://amescan.io/"
+      }
+    }
   }
+
 }
