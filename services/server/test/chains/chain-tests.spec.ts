@@ -841,13 +841,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // // Bear Network Chain Mainnet
-  // verifyContract(
-  //   "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
-  //   "641230",
-  //   "Bear Network Chain Mainnet",
-  //   "shared/",
-  // );
+  // Bear Network Chain Mainnet
+  verifyContract(
+	"0x115B83FE885D2Acf6099B6f3aAa75502CEBBA154",
+	"641230",
+	"Bear Network Chain Mainnet",
+	"shared/",
+  );
 
   // Lyra Mainnet
   verifyContract(
