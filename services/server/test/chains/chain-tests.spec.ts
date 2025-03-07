@@ -1799,6 +1799,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Citrea Testnet
+  verifyContract(
+    "0xF32a986F3741cC19Cfe05B806b3ECBAe7eB5F4eA",
+    "180",
+    "AME Chain Mainnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
