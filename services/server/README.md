@@ -255,6 +255,9 @@ $ docker run \
   ghcr.io/ethereum/sourcify/server:latest
 ```
 
+### Connecting to a node on the host
+If you are running an RPC server for a chain on the Docker host, you can have your Sourcify container connect to it by using `host.docker.internal` as the hostname (or `host.containers.internal` if using Podman instead of Docker). For example, if the RPC server is accessible on the host at `http://localhost:8545`, configure the RPC's URL in `sourcify-chains.json` as `http://host.docker.internal:8545`.
+
 ## Logging
 
 By default the server logs `info` level when `NODE_ENV=production` and `debug` otherwise.
