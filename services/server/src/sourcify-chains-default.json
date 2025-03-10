@@ -1896,7 +1896,7 @@
   },
   "4000": {
     "sourcifyName": "Ozone Chain Mainnet",
-    "supported": false,
+    "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://ozonescan.io/"

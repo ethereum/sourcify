@@ -1433,12 +1433,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Ozone Chain Mainnet
-  // verifyContract(
-  //   "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
-  //   "4000",
-  //   "Ozone Chain Mainnet",
-  //   "shared/",
-  // );
+  verifyContract(
+    "0xf776d21c74BEde463E0Ac7aD7cF12a9b2c904D03",
+    "4000",
+    "Ozone Chain Mainnet",
+    "shared/",
+  );
 
   // Endurance Smart Chain Mainnet
   verifyContract(
