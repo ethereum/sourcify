@@ -1,19 +1,21 @@
 import {
   ImmutableReferences,
   Libraries,
-  Match,
   Metadata,
-  Status,
+  VerificationStatus,
   StorageLayout,
   Transformation,
   TransformationValues,
   CompiledContractCborAuxdata,
-  AbstractCheckedContract,
   LinkReferences,
   VyperJsonInput,
-  JsonInput,
+  SolidityJsonInput,
   SolidityOutput,
   VyperOutput,
+  Verification,
+  SolidityOutputContract,
+  SoliditySettings,
+  VyperSettings,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Abi } from "abitype";
 import {
@@ -24,6 +26,7 @@ import {
   BytesTypes,
   Nullable,
 } from "../../types";
+import { keccak256 } from "ethers";
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
@@ -62,7 +65,10 @@ export namespace Tables {
       storageLayout: Nullable<StorageLayout>;
       sources: Nullable<CompilationArtifactsSources>;
     };
-    compiler_settings: Object;
+    compiler_settings: Omit<
+      SoliditySettings | VyperSettings,
+      "outputSelection"
+    >;
     creation_code_hash?: BytesSha;
     runtime_code_hash: BytesSha;
     creation_code_artifacts: {
@@ -108,8 +114,8 @@ export namespace Tables {
   export interface SourcifyMatch {
     id: string;
     verified_contract_id: string;
-    runtime_match: Status | null;
-    creation_match: Status | null;
+    runtime_match: VerificationStatus | null;
+    creation_match: VerificationStatus | null;
     metadata: Metadata;
     created_at: Date;
   }
@@ -215,7 +221,7 @@ export type GetSourcifyMatchByChainAddressWithPropertiesResult = Partial<
       deployer: string;
       sources: { [path: string]: { content: string } };
       storage_layout: Tables.CompiledContract["compilation_artifacts"]["storageLayout"];
-      std_json_input: JsonInput | VyperJsonInput;
+      std_json_input: SolidityJsonInput | VyperJsonInput;
       std_json_output: SolidityOutput | VyperOutput;
     }
 >;
@@ -463,24 +469,17 @@ export function bytesFromString<T extends BytesTypes>(
 //   Creation bytecode:
 //     1. Replace library address placeholders ("__$53aea86b7d70b31448b230b20ae141a537$__") with zeros
 //     2. Immutables are already set to zeros
-export function normalizeRecompiledBytecodes(
-  recompiledContract: AbstractCheckedContract,
-  match: Match,
-) {
-  recompiledContract.normalizedRuntimeBytecode =
-    recompiledContract.runtimeBytecode;
+export function normalizeRecompiledBytecodes(verification: Verification) {
+  let normalizedRuntimeBytecode = verification.compilation.runtimeBytecode;
+  let normalizedCreationBytecode = verification.compilation.creationBytecode;
 
   const PLACEHOLDER_LENGTH = 40;
 
   // Runtime bytecode normalzations
-  match.runtimeTransformations?.forEach((transformation) => {
-    if (
-      transformation.reason === "library" &&
-      recompiledContract.normalizedRuntimeBytecode
-    ) {
+  verification.transformations.runtime.list.forEach((transformation) => {
+    if (transformation.reason === "library" && normalizedRuntimeBytecode) {
       const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
-      const normalizedRuntimeBytecode =
-        recompiledContract.normalizedRuntimeBytecode.substring(2);
+      normalizedRuntimeBytecode = normalizedRuntimeBytecode.substring(2);
       // we multiply by 2 because transformation.offset is stored as the length in bytes
       const before = normalizedRuntimeBytecode.substring(
         0,
@@ -489,72 +488,295 @@ export function normalizeRecompiledBytecodes(
       const after = normalizedRuntimeBytecode.substring(
         transformation.offset * 2 + PLACEHOLDER_LENGTH,
       );
-      recompiledContract.normalizedRuntimeBytecode = `0x${
-        before + placeholder + after
-      }`;
+      normalizedRuntimeBytecode = `0x${before + placeholder + after}`;
     }
   });
 
   // Creation bytecode normalizations
-  if (recompiledContract.creationBytecode) {
-    recompiledContract.normalizedCreationBytecode =
-      recompiledContract.creationBytecode;
-    match.creationTransformations?.forEach((transformation) => {
-      if (
-        transformation.reason === "library" &&
-        recompiledContract.normalizedCreationBytecode
-      ) {
-        const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
-        const normalizedCreationBytecode =
-          recompiledContract.normalizedCreationBytecode.substring(2);
-        // we multiply by 2 because transformation.offset is stored as the length in bytes
-        const before = normalizedCreationBytecode.substring(
-          0,
-          transformation.offset * 2,
-        );
-        const after = normalizedCreationBytecode.substring(
-          transformation.offset * 2 + PLACEHOLDER_LENGTH,
-        );
-        recompiledContract.normalizedCreationBytecode = `0x${
-          before + placeholder + after
-        }`;
-      }
-    });
-  }
+  verification.transformations.creation.list.forEach((transformation) => {
+    if (transformation.reason === "library" && normalizedCreationBytecode) {
+      const placeholder = "0".repeat(PLACEHOLDER_LENGTH);
+      normalizedCreationBytecode = normalizedCreationBytecode.substring(2);
+      // we multiply by 2 because transformation.offset is stored as the length in bytes
+      const before = normalizedCreationBytecode.substring(
+        0,
+        transformation.offset * 2,
+      );
+      const after = normalizedCreationBytecode.substring(
+        transformation.offset * 2 + PLACEHOLDER_LENGTH,
+      );
+      normalizedCreationBytecode = `0x${before + placeholder + after}`;
+    }
+  });
+
+  return {
+    normalizedRuntimeBytecode,
+    normalizedCreationBytecode,
+  };
 }
 
-export function prepareCompilerSettings(
-  recompiledContract: AbstractCheckedContract,
+function getKeccak256Bytecodes(
+  verification: Verification,
+  normalizedCreationBytecode: string,
+  normalizedRuntimeBytecode: string,
 ) {
-  // The metadata.settings contains recompiledContract that is not a field of compiler input
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { compilationTarget, ...restSettings } =
-    recompiledContract.metadata.settings;
+  if (verification.compilation.runtimeBytecode === undefined) {
+    throw new Error("normalizedRuntimeBytecode cannot be undefined");
+  }
+  if (verification.onchainRuntimeBytecode === undefined) {
+    throw new Error("onchainRuntimeBytecode cannot be undefined");
+  }
 
-  const metadataLibraries =
-    recompiledContract.metadata.settings?.libraries || {};
-  restSettings.libraries = Object.keys(metadataLibraries || {}).reduce(
-    (libraries, libraryKey) => {
-      // Before Solidity v0.7.5: { "ERC20": "0x..."}
-      if (!libraryKey.includes(":")) {
-        if (!libraries[""]) {
-          libraries[""] = {};
-        }
-        // try using the global method, available for pre 0.7.5 versions
-        libraries[""][libraryKey] = metadataLibraries[libraryKey];
-        return libraries;
-      }
+  let onchainCreationBytecode = undefined;
+  try {
+    onchainCreationBytecode = verification.onchainCreationBytecode;
+  } catch (e) {
+    // If the onchain creation bytecode is undefined, we don't store it
+  }
 
-      // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
-      const [contractPath, contractName] = libraryKey.split(":");
-      if (!libraries[contractPath]) {
-        libraries[contractPath] = {};
-      }
-      libraries[contractPath][contractName] = metadataLibraries[libraryKey];
-      return libraries;
+  return {
+    keccak256OnchainCreationBytecode: onchainCreationBytecode
+      ? keccak256(bytesFromString(onchainCreationBytecode))
+      : undefined,
+    keccak256OnchainRuntimeBytecode: keccak256(
+      bytesFromString(verification.onchainRuntimeBytecode),
+    ),
+    keccak256RecompiledCreationBytecode: normalizedCreationBytecode
+      ? keccak256(
+          bytesFromString(normalizedCreationBytecode), // eslint-disable-line indent
+        ) // eslint-disable-line indent
+      : undefined,
+    keccak256RecompiledRuntimeBytecode: keccak256(
+      bytesFromString(normalizedRuntimeBytecode),
+    ),
+  };
+}
+export async function getDatabaseColumnsFromVerification(
+  verification: Verification,
+): Promise<DatabaseColumns> {
+  // Normalize both creation and runtime recompiled bytecodes before storing them to the database
+  const { normalizedRuntimeBytecode, normalizedCreationBytecode } =
+    normalizeRecompiledBytecodes(verification);
+
+  const {
+    keccak256OnchainCreationBytecode,
+    keccak256OnchainRuntimeBytecode,
+    keccak256RecompiledCreationBytecode,
+    keccak256RecompiledRuntimeBytecode,
+  } = getKeccak256Bytecodes(
+    verification,
+    normalizedCreationBytecode,
+    normalizedRuntimeBytecode,
+  );
+
+  const runtimeMatch =
+    verification.status.runtimeMatch === "perfect" ||
+    verification.status.runtimeMatch === "partial";
+  const creationMatch =
+    verification.status.creationMatch === "perfect" ||
+    verification.status.creationMatch === "partial";
+
+  const {
+    runtime: {
+      list: runtimeTransformations,
+      values: runtimeTransformationValues,
     },
-    {} as Libraries,
-  ) as any;
+    creation: {
+      list: creationTransformations,
+      values: creationTransformationValues,
+    },
+  } = verification.transformations;
 
+  // Force _transformations and _values to be null if not match
+  // Force _transformations and _values to be not null if match
+  let runtime_transformations = null;
+  let runtime_values = null;
+  let runtime_metadata_match = null;
+  if (runtimeMatch) {
+    runtime_transformations = runtimeTransformations
+      ? runtimeTransformations
+      : [];
+    runtime_values = runtimeTransformationValues
+      ? runtimeTransformationValues
+      : {};
+    runtime_metadata_match = verification.status.runtimeMatch === "perfect";
+  }
+  let creation_transformations = null;
+  let creation_values = null;
+  let creation_metadata_match = null;
+  if (creationMatch) {
+    creation_transformations = creationTransformations
+      ? creationTransformations
+      : [];
+    creation_values = creationTransformationValues
+      ? creationTransformationValues
+      : {};
+    creation_metadata_match = verification.status.creationMatch === "perfect";
+  }
+
+  const compilationTargetPath = verification.compilation.compilationTarget.path;
+  const compilationTargetName = verification.compilation.compilationTarget.name;
+  const compilerOutput = verification.compilation.contractCompilerOutput;
+
+  // If during verification `generateCborAuxdataPositions` was not called, we call it now
+  if (
+    verification.compilation.runtimeBytecodeCborAuxdata === undefined &&
+    verification.compilation.creationBytecodeCborAuxdata === undefined
+  ) {
+    if (!(await verification.compilation.generateCborAuxdataPositions())) {
+      throw new Error(
+        `cannot generate contract artifacts address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
+  }
+
+  // Prepare compilation_artifacts.sources by removing everything except id
+  let sources: Nullable<CompilationArtifactsSources> = null;
+  if (verification.compilation.compilerOutput?.sources) {
+    sources = {};
+    for (const source of Object.keys(
+      verification.compilation.compilerOutput.sources,
+    )) {
+      sources[source] = {
+        id: verification.compilation.compilerOutput.sources[source].id,
+      };
+    }
+  }
+
+  // For some property we cast compilerOutput as SolidityOutputContract because VyperOutput does not have them
+  const compilationArtifacts = {
+    abi: compilerOutput?.abi || null,
+    userdoc: compilerOutput?.userdoc || null,
+    devdoc: compilerOutput?.devdoc || null,
+    storageLayout:
+      (compilerOutput as SolidityOutputContract)?.storageLayout || null,
+    sources,
+  };
+  const creationCodeArtifacts = {
+    sourceMap:
+      (compilerOutput as SolidityOutputContract)?.evm?.bytecode?.sourceMap ||
+      null,
+    linkReferences:
+      (compilerOutput as SolidityOutputContract)?.evm?.bytecode
+        ?.linkReferences || null,
+    cborAuxdata: verification.compilation.creationBytecodeCborAuxdata || null,
+  };
+  const runtimeCodeArtifacts = {
+    sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
+    linkReferences:
+      (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
+        ?.linkReferences || null,
+    immutableReferences:
+      (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
+        ?.immutableReferences || null,
+    cborAuxdata: verification.compilation.runtimeBytecodeCborAuxdata || null,
+  };
+
+  // runtime bytecodes must exist
+  if (normalizedRuntimeBytecode === undefined) {
+    throw new Error("Missing normalized runtime bytecode");
+  }
+  if (verification.onchainRuntimeBytecode === undefined) {
+    throw new Error("Missing onchain runtime bytecode");
+  }
+
+  let recompiledCreationCode: Omit<Tables.Code, "bytecode_hash"> | undefined;
+  if (normalizedCreationBytecode && keccak256RecompiledCreationBytecode) {
+    recompiledCreationCode = {
+      bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+        keccak256RecompiledCreationBytecode,
+      ),
+      bytecode: bytesFromString<Bytes>(normalizedCreationBytecode),
+    };
+  }
+
+  let onchainCreationCode: Omit<Tables.Code, "bytecode_hash"> | undefined;
+
+  try {
+    if (
+      verification.onchainCreationBytecode &&
+      keccak256OnchainCreationBytecode
+    ) {
+      onchainCreationCode = {
+        bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+          keccak256OnchainCreationBytecode,
+        ),
+        bytecode: bytesFromString<Bytes>(verification.onchainCreationBytecode),
+      };
+    }
+  } catch (e) {
+    // If the onchain creation bytecode is undefined, we don't store it
+  }
+
+  const sourcesInformation = Object.keys(verification.compilation.sources).map(
+    (path) => {
+      return {
+        path,
+        source_hash_keccak: bytesFromString<BytesKeccak>(
+          keccak256(Buffer.from(verification.compilation.sources[path])),
+        ),
+        content: verification.compilation.sources[path],
+      };
+    },
+  );
+
+  return {
+    recompiledCreationCode,
+    recompiledRuntimeCode: {
+      bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+        keccak256RecompiledRuntimeBytecode,
+      ),
+      bytecode: bytesFromString<Bytes>(normalizedRuntimeBytecode),
+    },
+    onchainCreationCode,
+    onchainRuntimeCode: {
+      bytecode_hash_keccak: bytesFromString<BytesKeccak>(
+        keccak256OnchainRuntimeBytecode,
+      ),
+      bytecode: bytesFromString<Bytes>(verification.onchainRuntimeBytecode),
+    },
+    contractDeployment: {
+      chain_id: verification.chainId.toString(),
+      address: bytesFromString(verification.address),
+      transaction_hash: bytesFromString(verification.deploymentInfo.txHash),
+      block_number: verification.deploymentInfo.blockNumber,
+      transaction_index: verification.deploymentInfo.txIndex,
+      deployer: bytesFromString(verification.deploymentInfo.deployer),
+    },
+    compiledContract: {
+      language: verification.compilation.language.toLocaleLowerCase(),
+      compiler:
+        verification.compilation.language.toLocaleLowerCase() === "solidity"
+          ? "solc"
+          : "vyper",
+      compiler_settings: prepareCompilerSettingsFromVerification(verification),
+      name: verification.compilation.compilationTarget.name,
+      version: verification.compilation.compilerVersion,
+      fully_qualified_name: `${compilationTargetPath}:${compilationTargetName}`,
+      compilation_artifacts: compilationArtifacts,
+      creation_code_artifacts: creationCodeArtifacts,
+      runtime_code_artifacts: runtimeCodeArtifacts,
+    },
+    sourcesInformation,
+    verifiedContract: {
+      runtime_transformations,
+      creation_transformations,
+      runtime_values,
+      creation_values,
+      runtime_match: runtimeMatch,
+      creation_match: creationMatch,
+      // We cover also no-metadata case by using match === "perfect"
+      runtime_metadata_match,
+      creation_metadata_match,
+    },
+  };
+}
+
+export function prepareCompilerSettingsFromVerification(
+  verification: Verification,
+): Omit<SoliditySettings | VyperSettings, "outputSelection"> {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { outputSelection, ...restSettings } =
+    verification.compilation.jsonInput.settings;
   return restSettings;
 }

@@ -2,8 +2,8 @@ import {
   CompiledContractCborAuxdata,
   Devdoc,
   ImmutableReferences,
-  JsonInput,
-  Language,
+  SolidityJsonInput,
+  CompilationLanguage,
   LinkReferences,
   Metadata,
   SolidityOutput,
@@ -13,6 +13,8 @@ import {
   Userdoc,
   VyperJsonInput,
   VyperOutput,
+  VerificationStatus,
+  StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Response } from "express";
 import { Abi } from "abitype";
@@ -73,7 +75,7 @@ export interface VerifiedContract extends VerifiedContractMinimal {
     [path: string]: { content: string };
   };
   compilation?: {
-    language: Language;
+    language: CompilationLanguage;
     compiler: string;
     compilerVersion: string;
     compilerSettings: Object;
@@ -85,7 +87,7 @@ export interface VerifiedContract extends VerifiedContractMinimal {
   storageLayout?: Nullable<StorageLayout>;
   userdoc?: Nullable<Userdoc>;
   devdoc?: Nullable<Devdoc>;
-  stdJsonInput?: JsonInput | VyperJsonInput;
+  stdJsonInput?: SolidityJsonInput | VyperJsonInput;
   stdJsonOutput?: SolidityOutput | VyperOutput;
   proxyResolution?: ProxyResolution;
 }
@@ -205,3 +207,20 @@ export type BytesTypes = Bytes | BytesKeccak | BytesSha;
 export type TypedResponse<T> = Omit<Response, "json" | "status"> & {
   json(data: T): TypedResponse<T>;
 } & { status(code: number): TypedResponse<T> };
+
+export interface Create2Args {
+  deployerAddress: string;
+  salt: string;
+  constructorArgs?: any[];
+}
+
+export interface Match {
+  address: string;
+  chainId: string;
+  runtimeMatch: VerificationStatus;
+  creationMatch: VerificationStatus;
+  storageTimestamp?: Date;
+  onchainRuntimeBytecode?: string;
+  contractName?: string;
+  message?: string;
+}

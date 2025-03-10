@@ -14,6 +14,7 @@ import {
   VyperOutputContract,
 } from './VyperTypes';
 import {
+  CompilationLanguage,
   CompilationTarget,
   CompiledContractCborAuxdata,
   LinkReferences,
@@ -24,6 +25,7 @@ import { ImmutableReferences } from './SolidityTypes';
  * Abstraction of a vyper compilation
  */
 export class VyperCompilation extends AbstractCompilation {
+  public language: CompilationLanguage = 'Vyper';
   // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: VyperOutput;
   declare compileAndReturnCompilationTarget: (
@@ -44,7 +46,7 @@ export class VyperCompilation extends AbstractCompilation {
    * compatibility reasons e.g. in the legacy Sourcify API that always assumes a metadata.json
    */
   generateMetadata() {
-    const contract = this.compilationTargetContract;
+    const contract = this.contractCompilerOutput;
     const outputMetadata = {
       abi: contract.abi,
       devdoc: contract.devdoc,
@@ -245,9 +247,9 @@ export class VyperCompilation extends AbstractCompilation {
 
   // Override the bytecodes' getter methods to not duplicate the 0x prefix
   get creationBytecode() {
-    return this.compilationTargetContract.evm.bytecode.object;
+    return this.contractCompilerOutput.evm.bytecode.object;
   }
   get runtimeBytecode() {
-    return this.compilationTargetContract.evm.deployedBytecode.object;
+    return this.contractCompilerOutput.evm.deployedBytecode.object;
   }
 }

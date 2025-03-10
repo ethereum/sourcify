@@ -1,7 +1,6 @@
 import { describe, it, before, after } from 'mocha';
 import { expect, use } from 'chai';
 import { Verification } from '../../src/Verification/Verification';
-import SourcifyChain from '../../src/SourcifyChain';
 import { ChildProcess } from 'child_process';
 import { JsonRpcSigner } from 'ethers';
 import path from 'path';
@@ -19,12 +18,15 @@ import {
   ISolidityCompiler,
   SolidityOutput,
 } from '../../src/Compilation/SolidityTypes';
-import { useSolidityCompiler } from '../compiler/solidityCompiler';
-import { findSolcPlatform } from '../compiler/solidityCompiler';
 import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { PathContent } from '../../src/Validation/ValidationTypes';
 import chaiAsPromised from 'chai-as-promised';
+import {
+  findSolcPlatform,
+  useSolidityCompiler,
+} from '@ethereum-sourcify/compilers';
+import { SourcifyChain } from '../../src';
 
 use(chaiAsPromised);
 
@@ -34,7 +36,15 @@ class TestSolidityCompiler implements ISolidityCompiler {
     solcJsonInput: any,
     forceEmscripten = false,
   ): Promise<SolidityOutput> {
-    return useSolidityCompiler(version, solcJsonInput, forceEmscripten);
+    const compilersPath = path.join('/tmp', 'solc-repo');
+    const solJsonRepo = path.join('/tmp', 'soljson-repo');
+    return await useSolidityCompiler(
+      compilersPath,
+      solJsonRepo,
+      version,
+      solcJsonInput,
+      forceEmscripten,
+    );
   }
 }
 
@@ -1068,7 +1078,7 @@ describe('Verification Class Tests', () => {
         __dirname,
         '..',
         'sources',
-        'ConstructorModified',
+        'Constructor',
       );
       const { contractAddress, txHash } = await deployFromAbiAndBytecode(
         signer,
@@ -1076,7 +1086,16 @@ describe('Verification Class Tests', () => {
         ['12345'],
       );
 
-      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const modifiedContractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'ConstructorModified',
+      );
+
+      const compilation = await getCompilationFromMetadata(
+        modifiedContractFolderPath,
+      );
       const verification = new Verification(
         compilation,
         sourcifyChainHardhat,

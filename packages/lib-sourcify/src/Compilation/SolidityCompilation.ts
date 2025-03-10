@@ -7,7 +7,11 @@ import {
   SolidityOutput,
   SolidityOutputContract,
 } from './SolidityTypes';
-import { CompilationTarget, LinkReferences } from './CompilationTypes';
+import {
+  CompilationLanguage,
+  CompilationTarget,
+  LinkReferences,
+} from './CompilationTypes';
 import {
   findAuxdataPositions,
   findAuxdatasInLegacyAssembly,
@@ -17,6 +21,7 @@ import {
  * Abstraction of a solidity compilation
  */
 export class SolidityCompilation extends AbstractCompilation {
+  public language: CompilationLanguage = 'Solidity';
   // Use declare to override AbstractCompilation's types to target Solidity types
   declare compilerOutput?: SolidityOutput;
   declare compileAndReturnCompilationTarget: (
@@ -90,7 +95,7 @@ export class SolidityCompilation extends AbstractCompilation {
   public async generateCborAuxdataPositions(forceEmscripten = false) {
     // Auxdata array extracted from the compiler's `legacyAssembly` field
     const auxdatasFromCompilerOutput = findAuxdatasInLegacyAssembly(
-      (this.compilationTargetContract as SolidityOutputContract).evm
+      (this.contractCompilerOutput as SolidityOutputContract).evm
         .legacyAssembly,
     );
 
@@ -189,19 +194,19 @@ export class SolidityCompilation extends AbstractCompilation {
 
   get immutableReferences(): ImmutableReferences {
     const compilationTarget = this
-      .compilationTargetContract as SolidityOutputContract;
+      .contractCompilerOutput as SolidityOutputContract;
     return compilationTarget.evm.deployedBytecode.immutableReferences || {};
   }
 
   get runtimeLinkReferences(): LinkReferences {
     const compilationTarget = this
-      .compilationTargetContract as SolidityOutputContract;
+      .contractCompilerOutput as SolidityOutputContract;
     return compilationTarget.evm.deployedBytecode.linkReferences || {};
   }
 
   get creationLinkReferences(): LinkReferences {
     const compilationTarget = this
-      .compilationTargetContract as SolidityOutputContract;
+      .contractCompilerOutput as SolidityOutputContract;
     return compilationTarget.evm.bytecode.linkReferences || {};
   }
 }
