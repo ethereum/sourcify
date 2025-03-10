@@ -18,7 +18,7 @@ import { getAddress, id as keccak256 } from "ethers";
 import { WStorageService } from "../StorageService";
 import { WStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
-import { getMatchStatusFromVerification } from "../../apiv1/controllers.common";
+import { getMatchStatus } from "../../apiv1/controllers.common";
 
 export interface RepositoryV2ServiceOptions {
   repositoryPath?: string;
@@ -107,7 +107,7 @@ export class RepositoryV2Service implements WStorageService {
         );
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
-        getMatchStatusFromVerification(verification),
+        getMatchStatus(verification.status),
       );
 
       await this.storeSources(

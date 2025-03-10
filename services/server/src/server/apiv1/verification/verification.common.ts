@@ -32,7 +32,7 @@ import { createHash } from "crypto";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { Match } from "../../types";
 import { keccak256 } from "ethers";
-import { getMatchStatusFromVerification } from "../controllers.common";
+import { getMatchStatus } from "../controllers.common";
 
 type PathBuffer = {
   path: string;
@@ -569,7 +569,7 @@ export const verifyContractsInSession = async (
       }
 
       // Update contract wrapper with verification result
-      contractWrapper.status = getMatchStatusFromVerification(verification);
+      contractWrapper.status = getMatchStatus(verification.status);
       contractWrapper.statusMessage = ""; // We don't have access to a message property
     } catch (error: any) {
       logger.warn("Error verifying contract in session", {

@@ -22,7 +22,7 @@ import { getAddress } from "ethers";
 import { RWStorageService } from "../StorageService";
 import { RWStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
-import { getMatchStatusFromVerification } from "../../apiv1/controllers.common";
+import { getMatchStatus } from "../../apiv1/controllers.common";
 
 export interface RepositoryV1ServiceOptions {
   repositoryPath: string;
@@ -511,7 +511,7 @@ export class RepositoryV1Service implements RWStorageService {
         );
       }
       const matchQuality: MatchQuality = this.statusToMatchQuality(
-        getMatchStatusFromVerification(verification),
+        getMatchStatus(verification.status),
       );
 
       await this.storeSources(
