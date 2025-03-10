@@ -44,8 +44,9 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     );
 
   // Create metadata contracts from the files
-  const { contracts: metadataContracts } =
-    await createMetadataContractsFromFiles(metadataAndSourcesPathBuffers);
+  const metadataContracts = await createMetadataContractsFromFiles(
+    metadataAndSourcesPathBuffers,
+  );
 
   // Find the contract to verify
   const contractToVerify = metadataContracts.find(

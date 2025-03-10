@@ -32,8 +32,7 @@ export async function legacyVerifyEndpoint(
 
   let metadataContracts: SolidityMetadataContract[];
   try {
-    const { contracts } = await createMetadataContractsFromFiles(inputFiles);
-    metadataContracts = contracts;
+    metadataContracts = await createMetadataContractsFromFiles(inputFiles);
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }
@@ -143,8 +142,7 @@ export async function verifyDeprecated(
 
   let metadataContracts: SolidityMetadataContract[];
   try {
-    const { contracts } = await createMetadataContractsFromFiles(inputFiles);
-    metadataContracts = contracts;
+    metadataContracts = await createMetadataContractsFromFiles(inputFiles);
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }

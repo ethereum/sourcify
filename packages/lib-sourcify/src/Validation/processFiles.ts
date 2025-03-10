@@ -12,8 +12,6 @@ import {
   PathContent,
 } from './ValidationTypes';
 import { unzipFiles } from './zipUtils';
-import fs from 'fs';
-import Path from 'path';
 import { id as keccak256str } from 'ethers';
 
 function pathContentArrayToStringMap(pathContentArr: PathContent[]) {
@@ -28,18 +26,6 @@ function pathContentArrayToStringMap(pathContentArr: PathContent[]) {
   return stringMapResult;
 }
 
-function extractUnused(
-  inputFiles: PathContent[],
-  usedFiles: string[],
-  unused: string[],
-): void {
-  const usedFilesSet = new Set(usedFiles);
-  const tmpUnused = inputFiles
-    .map((pc) => pc.path)
-    .filter((file) => !usedFilesSet.has(file));
-  unused.push(...tmpUnused);
-}
-
 /**
  * Regular expression matching metadata nested within another string.
  * Assumes metadata's first key is "compiler" and the last key is "version".
@@ -49,32 +35,9 @@ const NESTED_METADATA_REGEX =
   /"{\\"compiler\\":{\\"version\\".*?},\\"version\\":1}"/;
 const HARDHAT_OUTPUT_FORMAT_REGEX = /"hh-sol-build-info-1"/;
 
-export function createMetadataContractsFromPaths(
-  paths: string[],
-  ignoring?: string[],
-) {
-  const files: PathBuffer[] = [];
-  paths.forEach((path) => {
-    if (fs.existsSync(path)) {
-      traversePathRecursively(path, (filePath) => {
-        const fullPath = Path.resolve(filePath);
-        const file = { buffer: fs.readFileSync(filePath), path: fullPath };
-        files.push(file);
-      });
-    } else if (ignoring) {
-      ignoring.push(path);
-    }
-  });
-
-  return createMetadataContractsFromFiles(files);
-}
-
 export async function createMetadataContractsFromFiles(
   files: PathBuffer[],
-): Promise<{
-  contracts: SolidityMetadataContract[];
-  unused: string[];
-}> {
+): Promise<SolidityMetadataContract[]> {
   logInfo('Creating metadata contracts from files', {
     numberOfFiles: files.length,
   });
@@ -109,15 +72,10 @@ export async function createMetadataContractsFromFiles(
       throw new Error('Unsupported language');
     }
   });
-
-  // Track unused files if the parameter is provided
-  const unused: string[] = [];
-  extractUnused(sourceFiles, usedFiles, unused);
-
   logInfo('SolidityMetadataContracts', {
     contracts: metadataContracts.map((c) => c.name),
   });
-  return { contracts: metadataContracts, unused };
+  return metadataContracts;
 }
 
 /**
@@ -237,38 +195,6 @@ function extractMetadataFromString(file: string): Metadata | null {
   }
 
   return null;
-}
-/**
- * Applies the provided worker function to the provided path recursively.
- *
- * @param path the path to be traversed
- * @param worker the function to be applied on each file that is not a directory
- * @param afterDir the function to be applied on the directory after traversing its children
- */
-function traversePathRecursively(
-  path: string,
-  worker: (filePath: string) => void,
-  afterDirectory?: (filePath: string) => void,
-) {
-  if (!fs.existsSync(path)) {
-    const msg = `Encountered a nonexistent path: ${path}`;
-    const error = new Error(msg);
-    throw error;
-  }
-
-  const fileStat = fs.lstatSync(path);
-  if (fileStat.isFile()) {
-    worker(path);
-  } else if (fileStat.isDirectory()) {
-    fs.readdirSync(path).forEach((nestedName) => {
-      const nestedPath = Path.join(path, nestedName);
-      traversePathRecursively(nestedPath, worker, afterDirectory);
-    });
-
-    if (afterDirectory) {
-      afterDirectory(path);
-    }
-  }
 }
 
 function isMetadata(obj: any): boolean {
