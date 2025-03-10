@@ -81,6 +81,7 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
       content: stringToBase64(sources[path].content),
     };
   });
+  // Here we need to compile because we need to get the metadata
   await compilation.compile();
   pathContents.push({
     path: "metadata.json",

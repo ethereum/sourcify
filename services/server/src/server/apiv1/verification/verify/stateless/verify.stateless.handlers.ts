@@ -10,10 +10,10 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
-import { getResponseMatchFromVerification } from "../../../../common";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import logger from "../../../../../common/logger";
+import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 
 export async function legacyVerifyEndpoint(
   req: LegacyVerifyRequest,
@@ -32,9 +32,8 @@ export async function legacyVerifyEndpoint(
 
   let metadataContracts: SolidityMetadataContract[];
   try {
-    metadataContracts = (await createMetadataContractsFromFiles(
-      inputFiles,
-    )) as SolidityMetadataContract[];
+    const { contracts } = await createMetadataContractsFromFiles(inputFiles);
+    metadataContracts = contracts;
   } catch (error: any) {
     throw new BadRequestError(error.message);
   }
@@ -89,15 +88,15 @@ export async function legacyVerifyEndpoint(
     );
   } catch (error) {
     // If the error is not a VerificationError, log and rethrow
-    if (!(error instanceof VerificationError)) {
+    // If the error is not an extra_file_input_bug, log and rethrow
+    if (
+      !(error instanceof VerificationError) ||
+      error.code !== "extra_file_input_bug"
+    ) {
       logger.error("Verification error", { error });
       throw error;
     }
-    // For VerificationError instances, handle non-extra_file_input_bug errors first.
-    if (error.code !== "extra_file_input_bug") {
-      logger.warn("Verification error", { error });
-      throw error;
-    }
+
     // Handle the extra_file_input_bug by logging, reconstructing the compilation with all sources,
     // and then reattempting the verification.
     logger.info("Found extra-file-input-bug", {
@@ -105,13 +104,13 @@ export async function legacyVerifyEndpoint(
       chain: req.body.chain,
       address: req.body.address,
     });
-    const contractWithAllSources = await useAllSourcesAndReturnCompilation(
+    const compilationWithAllSources = await useAllSourcesAndReturnCompilation(
       compilation,
       inputFiles,
     );
     try {
       verification = await services.verification.verifyFromCompilation(
-        contractWithAllSources,
+        compilationWithAllSources,
         chainRepository.sourcifyChainMap[req.body.chain],
         req.body.address,
         req.body.creatorTxHash,
@@ -124,7 +123,7 @@ export async function legacyVerifyEndpoint(
   }
 
   await services.storage.storeVerification(verification);
-  return res.send({ result: [getResponseMatchFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
+  return res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
 }
 
 export async function verifyDeprecated(
@@ -144,20 +143,10 @@ export async function verifyDeprecated(
 
   let metadataContracts: SolidityMetadataContract[];
   try {
-    metadataContracts = (await createMetadataContractsFromFiles(
-      inputFiles,
-    )) as SolidityMetadataContract[];
+    const { contracts } = await createMetadataContractsFromFiles(inputFiles);
+    metadataContracts = contracts;
   } catch (error: any) {
     throw new BadRequestError(error.message);
-  }
-
-  const errors = metadataContracts
-    .filter((contract) => !contract.isCompilable())
-    .map((contract) => contract.name);
-  if (errors.length) {
-    throw new BadRequestError(
-      "Invalid or missing sources in:\n" + errors.join("\n"),
-    );
   }
 
   if (metadataContracts.length !== 1 && !req.body.chosenContract) {
@@ -192,15 +181,25 @@ export async function verifyDeprecated(
     });
   }
 
+  const stringifyInvalidAndMissing = (contract: SolidityMetadataContract) => {
+    const errors = Object.keys(contract.invalidSources).concat(
+      Object.keys(contract.missingSources),
+    );
+    return `${contract.name} (${errors.join(", ")})`;
+  };
+
   if (!contract.isCompilable()) {
     throw new BadRequestError(
-      "Invalid or missing sources in:\n" + contract.name,
+      "Invalid or missing sources in:\n" + stringifyInvalidAndMissing(contract),
     );
   }
 
   try {
     // Create a compilation from the contract and compile it
     const compilation = await contract.createCompilation(solc);
+
+    // We need to compile the compilation before creating the Verification object
+    // because we are not going to call verify() on the Verification object
     await compilation.compile();
     await compilation.generateCborAuxdataPositions();
 
@@ -235,7 +234,7 @@ export async function verifyDeprecated(
     await services.storage.storeVerification(verification);
 
     return res.send({
-      result: [getResponseMatchFromVerification(verification)],
+      result: [getApiV1ResponseFromVerification(verification)],
     });
   } catch (error: any) {
     res

@@ -84,31 +84,6 @@ export function getStatusDiff(
 }
 
 /**
- * Verify that either the newMatch runtime or creation match is better
- * ensuring that neither the newMatch runtime nor creation is worse
- * than the existing match
- */
-export function isBetterMatch(newMatch: Match, existingMatch: Match): boolean {
-  if (
-    /** if newMatch.creationMatch is better */
-    getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) > 0 &&
-    /** and newMatch.runtimeMatch is not worse */
-    getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) >= 0
-  ) {
-    return true;
-  }
-  if (
-    /** if newMatch.runtimeMatch is better */
-    getStatusDiff(newMatch.runtimeMatch, existingMatch.runtimeMatch) > 0 &&
-    /** and newMatch.creationMatch is not worse */
-    getStatusDiff(newMatch.creationMatch, existingMatch.creationMatch) >= 0
-  ) {
-    return true;
-  }
-  return false;
-}
-
-/**
  * Verify that either the newVerification runtime or creation match is better
  * ensuring that neither the newVerification runtime nor creation is worse
  * than the existing verification

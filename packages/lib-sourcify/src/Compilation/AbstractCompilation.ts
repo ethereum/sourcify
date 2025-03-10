@@ -76,8 +76,8 @@ export abstract class AbstractCompilation {
       throw error;
     }
 
-    // We call getCompilationTarget() before logging because it can throw an error
-    const compilationTarget = this.compilationTargetContract;
+    // We call contractCompilerOutput() before logging because it can throw an error
+    const compilationTargetContract = this.contractCompilerOutput;
 
     const compilationEndTime = Date.now();
     const compilationDuration = compilationEndTime - compilationStartTime;
@@ -90,12 +90,10 @@ export abstract class AbstractCompilation {
       compilationDuration: `${compilationDuration}ms`,
     });
 
-    return compilationTarget;
+    return compilationTargetContract;
   }
 
-  get compilationTargetContract():
-    | SolidityOutputContract
-    | VyperOutputContract {
+  get contractCompilerOutput(): SolidityOutputContract | VyperOutputContract {
     if (!this.compilerOutput) {
       logWarn('Compiler output is undefined');
       throw new Error('Compiler output is undefined');
@@ -117,11 +115,11 @@ export abstract class AbstractCompilation {
   }
 
   get creationBytecode() {
-    return `0x${this.compilationTargetContract.evm.bytecode.object}`;
+    return `0x${this.contractCompilerOutput.evm.bytecode.object}`;
   }
 
   get runtimeBytecode() {
-    return `0x${this.compilationTargetContract.evm.deployedBytecode.object}`;
+    return `0x${this.contractCompilerOutput.evm.deployedBytecode.object}`;
   }
 
   get metadata() {

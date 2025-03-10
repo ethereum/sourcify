@@ -177,14 +177,11 @@ export class VerificationService {
       foundCreatorTxHash,
     );
 
-    /* eslint-disable no-useless-catch */
     try {
       await verification.verify();
-      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
       return verification;
-    } catch (e) {
+    } finally {
       delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
-      throw e;
     }
   }
 
@@ -211,26 +208,4 @@ export class VerificationService {
       creatorTxHash,
     );
   }
-
-  /*   public async verifyFromMetadata(
-    metadata: Metadata,
-    sources: PathContent[],
-    sourcifyChain: SourcifyChain,
-    address: string,
-    creatorTxHash?: string,
-  ): Promise<Verification> {
-    const solidityMetadataContract = new SolidityMetadataContract(
-      metadata,
-      sources,
-    );
-    const compilation = await solidityMetadataContract.createCompilation(
-      this.solc,
-    );
-    return await this.verifyFromCompilation(
-      compilation,
-      sourcifyChain,
-      address,
-      creatorTxHash,
-    );
-  } */
 }

@@ -220,20 +220,7 @@ export interface Match {
   runtimeMatch: VerificationStatus;
   creationMatch: VerificationStatus;
   storageTimestamp?: Date;
-  message?: string;
-  abiEncodedConstructorArguments?: string;
-  create2Args?: Create2Args;
-  libraryMap?: StringMap;
-  creatorTxHash?: string;
-  immutableReferences?: ImmutableReferences;
-  runtimeTransformations?: Transformation[];
-  creationTransformations?: Transformation[];
-  runtimeTransformationValues?: TransformationValues;
-  creationTransformationValues?: TransformationValues;
   onchainRuntimeBytecode?: string;
-  onchainCreationBytecode?: string;
-  blockNumber?: number;
-  txIndex?: number;
-  deployer?: string;
   contractName?: string;
+  message?: string;
 }

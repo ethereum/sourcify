@@ -12,18 +12,13 @@ import {
   StringMap,
   Verification,
 } from "@ethereum-sourcify/lib-sourcify";
-import {
-  V1MatchLevelWithoutAny,
-  MatchQuality,
-  PathConfig,
-  Match,
-} from "../../types";
+import { V1MatchLevelWithoutAny, MatchQuality, PathConfig } from "../../types";
 import logger from "../../../common/logger";
 import { getAddress, id as keccak256 } from "ethers";
-import { getMatchStatus, getMatchStatusFromVerification } from "../../common";
 import { WStorageService } from "../StorageService";
 import { WStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
+import { getMatchStatusFromVerification } from "../../apiv1/controllers.common";
 
 export interface RepositoryV2ServiceOptions {
   repositoryPath?: string;

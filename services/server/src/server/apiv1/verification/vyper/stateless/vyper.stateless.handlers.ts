@@ -8,10 +8,10 @@ import {
   VyperJsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 import { NotFoundError, BadRequestError } from "../../../../../common/errors";
-import { getResponseMatchFromVerification } from "../../../../common";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import logger from "../../../../../common/logger";
+import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 
 export type VerifyVyperRequest = Omit<Request, "body"> & {
   body: {
@@ -92,6 +92,6 @@ export async function verifyVyper(
 
   // Return the result
   return res.send({
-    result: [getResponseMatchFromVerification(verification)],
+    result: [getApiV1ResponseFromVerification(verification)],
   });
 }

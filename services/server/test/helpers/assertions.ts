@@ -4,15 +4,29 @@ import config from "config";
 import path from "path";
 import fs from "fs";
 import { getAddress, id } from "ethers";
-import { getMatchStatus } from "../../src/server/common";
 import type { Response } from "superagent";
 import type { Done } from "mocha";
 import { Pool } from "pg";
 import {
   Transformation,
   TransformationValues,
+  VerificationStatus,
 } from "@ethereum-sourcify/lib-sourcify";
 import { ServerFixture } from "./ServerFixture";
+import { Match } from "../../src/server/types";
+
+function getMatchStatus(match: Match): VerificationStatus {
+  if (match.runtimeMatch === "perfect" || match.creationMatch === "perfect") {
+    return "perfect";
+  }
+  if (match.runtimeMatch === "partial" || match.creationMatch === "partial") {
+    return "partial";
+  }
+  if (match.runtimeMatch === "extra-file-input-bug") {
+    return "extra-file-input-bug";
+  }
+  return null;
+}
 
 export const assertValidationError = (
   err: Error | null,

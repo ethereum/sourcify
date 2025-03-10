@@ -32,7 +32,7 @@ import {
   WStorageIdentifiers,
 } from "./storageServices/identifiers";
 import { ConflictError } from "../../common/errors/ConflictError";
-import { isBetterMatch, isBetterVerification } from "./utils/util";
+import { isBetterVerification } from "./utils/util";
 import {
   S3RepositoryService,
   S3RepositoryServiceOptions,
@@ -43,7 +43,7 @@ import { Field } from "./utils/database-util";
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
   init(): Promise<boolean>;
-  storeVerification?(verification: Verification): Promise<void | Match>;
+  storeVerification?(verification: Verification): Promise<void>;
 }
 
 export interface RWStorageService extends WStorageService {
@@ -313,7 +313,7 @@ export class StorageService {
     }
 
     // Initialize an array to hold active service promises
-    const promises: Promise<Match | void>[] = [];
+    const promises: Promise<void>[] = [];
 
     this.getWriteOrErrServices().forEach((service) => {
       if (service.storeVerification) {

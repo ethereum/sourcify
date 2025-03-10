@@ -19,10 +19,10 @@ import {
 import path from "path";
 import logger from "../../../common/logger";
 import { getAddress } from "ethers";
-import { getMatchStatus, getMatchStatusFromVerification } from "../../common";
 import { RWStorageService } from "../StorageService";
 import { RWStorageIdentifiers } from "./identifiers";
 import { exists, readFile } from "../utils/util";
+import { getMatchStatusFromVerification } from "../../apiv1/controllers.common";
 
 export interface RepositoryV1ServiceOptions {
   repositoryPath: string;

@@ -1078,7 +1078,7 @@ describe('Verification Class Tests', () => {
         __dirname,
         '..',
         'sources',
-        'ConstructorModified',
+        'Constructor',
       );
       const { contractAddress, txHash } = await deployFromAbiAndBytecode(
         signer,
@@ -1086,7 +1086,16 @@ describe('Verification Class Tests', () => {
         ['12345'],
       );
 
-      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const modifiedContractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'ConstructorModified',
+      );
+
+      const compilation = await getCompilationFromMetadata(
+        modifiedContractFolderPath,
+      );
       const verification = new Verification(
         compilation,
         sourcifyChainHardhat,
@@ -1117,7 +1126,7 @@ describe('Verification Class Tests', () => {
             ],
             values: {
               cborAuxdata: {
-                '1': '0xa2646970667358221220fdd288b10b21a40b31e4e025a8c19db0027750c1dbb01660f7c8cc8780c0d16664736f6c634300081a0033',
+                '1': '0xa26469706673582212208a693a7ed29129e25fc67a65f83955fb3d86f5fbc378940d697827714b955df564736f6c634300081a0033',
               },
               constructorArguments:
                 '0x0000000000000000000000000000000000000000000000000000000000003039',

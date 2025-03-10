@@ -24,7 +24,6 @@ import {
   ContractMeta,
   ContractWrapper,
   ContractWrapperData,
-  getMatchStatusFromVerification,
 } from "../../common";
 import { ISolidityCompiler } from "@ethereum-sourcify/lib-sourcify";
 import { StorageService } from "../../services/StorageService";
@@ -33,6 +32,7 @@ import { createHash } from "crypto";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { Match } from "../../types";
 import { keccak256 } from "ethers";
+import { getMatchStatusFromVerification } from "../controllers.common";
 
 type PathBuffer = {
   path: string;
@@ -213,19 +213,22 @@ export function updateUnused(unused: string[], session: Session) {
 function extractUnused(
   inputFiles: PathContent[],
   usedFiles: string[],
-  unused: string[],
-): void {
+): string[] {
+  const unused: string[] = [];
   const usedFilesSet = new Set(usedFiles);
   const tmpUnused = inputFiles
     .map((pc) => pc.path)
     .filter((file) => !usedFilesSet.has(file));
   unused.push(...tmpUnused);
+  return unused;
 }
 
 const createSessionContractsFromFiles = async (
   files: PathBuffer[],
-  unused: string[],
-): Promise<ContractWrapperData[]> => {
+): Promise<{
+  contracts: ContractWrapperData[];
+  unused: string[];
+}> => {
   await unzipFiles(files);
   const parsedFiles: PathContent[] = files.map((pathBuffer) => ({
     content: pathBuffer.buffer.toString(),
@@ -295,9 +298,9 @@ const createSessionContractsFromFiles = async (
   }
 
   // Track unused files
-  extractUnused(sourceFiles, usedFiles, unused);
+  const unused = extractUnused(sourceFiles, usedFiles);
 
-  return sessionContracts;
+  return { contracts: sessionContracts, unused };
 };
 
 export const checkContractsInSession = async (session: Session) => {
@@ -311,14 +314,10 @@ export const checkContractsInSession = async (session: Session) => {
   }
 
   try {
-    const unused: string[] = [];
-    const contractsData = await createSessionContractsFromFiles(
-      pathBuffers,
-      unused,
-    );
+    const contractsData = await createSessionContractsFromFiles(pathBuffers);
 
     const newPendingContracts: ContractWrapperMap = {};
-    for (const contractData of contractsData) {
+    for (const contractData of contractsData.contracts) {
       newPendingContracts[
         generateId(JSON.stringify(JSON.stringify(contractData.metadata)))
       ] = {
@@ -344,7 +343,7 @@ export const checkContractsInSession = async (session: Session) => {
         session.contractWrappers[newId] = newContractWrapper;
       }
     }
-    updateUnused(unused, session);
+    updateUnused(contractsData.unused, session);
     logger.debug("Updated session", {
       sessionId: session.id,
       contracts: Object.keys(session.contractWrappers).map(
@@ -442,12 +441,11 @@ export const verifyContractsInSession = async (
       // Create compilation based on contract type
       let compilation;
 
+      // Ensure required properties exist
+      if (!contract.compiledPath || !contract.name) {
+        throw new BadRequestError("Missing required contract information");
+      }
       if (contract.language === "Solidity") {
-        // Ensure required properties exist
-        if (!contract.compiledPath || !contract.name) {
-          throw new BadRequestError("Missing required contract information");
-        }
-
         // Create SolidityMetadataContract
         const metadataContract = new SolidityMetadataContract(
           contract.metadata,
@@ -467,11 +465,6 @@ export const verifyContractsInSession = async (
         // Create compilation
         compilation = await metadataContract.createCompilation(solc);
       } else if (contract.language === "Vyper") {
-        // Ensure required properties exist
-        if (!contract.compiledPath || !contract.name) {
-          throw new BadRequestError("Missing required contract information");
-        }
-
         // Extract compiler version from metadata
         const compilerVersion = contract.metadata.compiler.version;
         if (!compilerVersion) {
@@ -506,9 +499,7 @@ export const verifyContractsInSession = async (
           ),
           settings: {
             ...compilationSettings,
-            outputSelection: {
-              "*": ["evm.deployedBytecode.object"],
-            },
+            outputSelection: {},
           },
         };
 
@@ -524,7 +515,7 @@ export const verifyContractsInSession = async (
       }
 
       // Verify the contract using the new verification flow
-      let verification: Verification | undefined;
+      let verification: Verification;
 
       try {
         verification = await verificationService.verifyFromCompilation(
@@ -533,54 +524,53 @@ export const verifyContractsInSession = async (
           address as string,
           creatorTxHash,
         );
-      } catch (e: any) {
-        if (e instanceof VerificationError) {
-          if (
-            e.code === "extra_file_input_bug" &&
-            compilation instanceof SolidityCompilation
-          ) {
-            logger.debug(
-              "verifyContractsInSession: extra-file-input-bug encountered",
-              {
-                contractId: id,
-              },
-            );
-            const pathBufferInputFiles: PathBuffer[] = Object.values(
-              session.inputFiles,
-            ).map((base64file) => ({
-              path: base64file.path,
-              buffer: Buffer.from(base64file.content, FILE_ENCODING),
-            }));
-
-            const contractWithAllSources =
-              await useAllSourcesAndReturnCompilation(
-                compilation,
-                pathBufferInputFiles,
-              );
-            verification = await verificationService.verifyFromCompilation(
-              contractWithAllSources,
-              chainRepository.sourcifyChainMap[chainId as string],
-              address as string,
-              creatorTxHash,
-            );
-          } else {
-            throw e;
-          }
-        } else {
-          throw e;
-        }
-      }
-
-      if (verification) {
-        // Store the verification result
-        if (!dryRun) {
-          await storageService.storeVerification(verification);
+      } catch (error: any) {
+        // If the compilation is not a SolidityCompilation, log and rethrow
+        // If the error is not a VerificationError, log and rethrow
+        // If the error is not an extra_file_input_bug, log and rethrow
+        if (
+          !(compilation instanceof SolidityCompilation) ||
+          !(error instanceof VerificationError) ||
+          error.code !== "extra_file_input_bug"
+        ) {
+          logger.error("Verification error", { error });
+          throw error;
         }
 
-        // Update contract wrapper with verification result
-        contractWrapper.status = getMatchStatusFromVerification(verification);
-        contractWrapper.statusMessage = ""; // We don't have access to a message property
+        logger.debug(
+          "verifyContractsInSession: extra-file-input-bug encountered",
+          {
+            contractId: id,
+          },
+        );
+        const pathBufferInputFiles: PathBuffer[] = Object.values(
+          session.inputFiles,
+        ).map((base64file) => ({
+          path: base64file.path,
+          buffer: Buffer.from(base64file.content, FILE_ENCODING),
+        }));
+
+        const compilationWithAllSources =
+          await useAllSourcesAndReturnCompilation(
+            compilation,
+            pathBufferInputFiles,
+          );
+        verification = await verificationService.verifyFromCompilation(
+          compilationWithAllSources,
+          chainRepository.sourcifyChainMap[chainId as string],
+          address as string,
+          creatorTxHash,
+        );
       }
+
+      // Store the verification result
+      if (!dryRun) {
+        await storageService.storeVerification(verification);
+      }
+
+      // Update contract wrapper with verification result
+      contractWrapper.status = getMatchStatusFromVerification(verification);
+      contractWrapper.statusMessage = ""; // We don't have access to a message property
     } catch (error: any) {
       logger.warn("Error verifying contract in session", {
         error: error.message,

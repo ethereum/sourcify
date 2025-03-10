@@ -52,7 +52,6 @@ const HARDHAT_OUTPUT_FORMAT_REGEX = /"hh-sol-build-info-1"/;
 export function createMetadataContractsFromPaths(
   paths: string[],
   ignoring?: string[],
-  unused?: string[],
 ) {
   const files: PathBuffer[] = [];
   paths.forEach((path) => {
@@ -67,13 +66,15 @@ export function createMetadataContractsFromPaths(
     }
   });
 
-  return createMetadataContractsFromFiles(files, unused);
+  return createMetadataContractsFromFiles(files);
 }
 
 export async function createMetadataContractsFromFiles(
   files: PathBuffer[],
-  unused?: string[],
-) {
+): Promise<{
+  contracts: SolidityMetadataContract[];
+  unused: string[];
+}> {
   logInfo('Creating metadata contracts from files', {
     numberOfFiles: files.length,
   });
@@ -110,14 +111,13 @@ export async function createMetadataContractsFromFiles(
   });
 
   // Track unused files if the parameter is provided
-  if (unused) {
-    extractUnused(sourceFiles, usedFiles, unused);
-  }
+  const unused: string[] = [];
+  extractUnused(sourceFiles, usedFiles, unused);
 
   logInfo('SolidityMetadataContracts', {
     contracts: metadataContracts.map((c) => c.name),
   });
-  return metadataContracts;
+  return { contracts: metadataContracts, unused };
 }
 
 /**
@@ -341,12 +341,12 @@ export async function useAllSourcesAndReturnCompilation(
 /**
  * Validates metadata content keccak hashes for all files and
  * returns mapping of file contents by file name
- * @param  {any}       metadata
- * @param  {Map<string, any>}  byHash    Map from keccak to source
+ * @param  {Metadata}       metadata
+ * @param  {Map<string, PathContent>}  byHash    Map from keccak to source
  * @return foundSources, missingSources, invalidSources
  */
 export function rearrangeSources(
-  metadata: any,
+  metadata: Metadata,
   byHash: Map<string, PathContent>,
 ) {
   const foundSources: StringMap = {};
@@ -387,7 +387,7 @@ export function rearrangeSources(
     } else {
       missingSources[sourcePath] = {
         keccak256: expectedHash,
-        urls: sourceInfoFromMetadata.urls,
+        urls: sourceInfoFromMetadata.urls || [],
       };
     }
   }

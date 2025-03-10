@@ -4,7 +4,6 @@ import {
   processEtherscanVyperContract,
   processRequestFromEtherscan,
 } from "../etherscan.common";
-import { getResponseMatchFromVerification } from "../../../../common";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import {
@@ -13,6 +12,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { Services } from "../../../../services/services";
 import { BadRequestError } from "../../../../../common/errors";
+import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
   const services = req.app.get("services") as Services;
@@ -70,5 +70,5 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   await services.storage.storeVerification(verification);
 
   // Return the verification result
-  res.send({ result: [getResponseMatchFromVerification(verification)] });
+  res.send({ result: [getApiV1ResponseFromVerification(verification)] });
 }

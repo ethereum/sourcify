@@ -6,9 +6,9 @@ import {
   createMetadataContractsFromFiles,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
-import { getResponseMatchFromVerification } from "../../../../common";
 import { Services } from "../../../../services/services";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
+import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 
 export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   const services = req.app.get("services") as Services;
@@ -44,9 +44,8 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     );
 
   // Create metadata contracts from the files
-  const metadataContracts = (await createMetadataContractsFromFiles(
-    metadataAndSourcesPathBuffers,
-  )) as SolidityMetadataContract[];
+  const { contracts: metadataContracts } =
+    await createMetadataContractsFromFiles(metadataAndSourcesPathBuffers);
 
   // Find the contract to verify
   const contractToVerify = metadataContracts.find(
@@ -74,5 +73,5 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   await services.storage.storeVerification(verification);
 
   // Return the verification result
-  return res.send({ result: [getResponseMatchFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
+  return res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
 }

@@ -37,7 +37,7 @@ export default abstract class AbstractDatabaseService {
 
   async insertNewVerifiedContract(
     databaseColumns: DatabaseUtil.DatabaseColumns,
-  ): Promise<number> {
+  ): Promise<string> {
     // Get a client from the pool, so that we can execute all the insert queries within the same transaction
     const client = await this.database.pool.connect();
 
@@ -131,7 +131,7 @@ export default abstract class AbstractDatabaseService {
   async updateExistingVerifiedContract(
     existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
     databaseColumns: DatabaseUtil.DatabaseColumns,
-  ): Promise<number | false> {
+  ): Promise<string | false> {
     // runtime bytecodes must exist
     if (databaseColumns.recompiledRuntimeCode.bytecode === undefined) {
       throw new Error("Missing normalized runtime bytecode");
@@ -240,23 +240,15 @@ export default abstract class AbstractDatabaseService {
 
   async insertOrUpdateVerification(verification: Verification): Promise<{
     type: "update" | "insert";
-    verifiedContractId: number | false;
-    oldVerifiedContractId?: number;
+    verifiedContractId: string | false;
+    oldVerifiedContractId?: string;
   }> {
     this.validateVerificationBeforeStoring(verification);
 
     await this.init();
 
-    // Normalize both creation and runtime recompiled bytecodes before storing them to the database
-    const { normalizedRuntimeBytecode, normalizedCreationBytecode } =
-      DatabaseUtil.withVerification.normalizeRecompiledBytecodes(verification);
-
     const databaseColumns =
-      await DatabaseUtil.withVerification.getDatabaseColumnsFromVerification(
-        verification,
-        normalizedCreationBytecode,
-        normalizedRuntimeBytecode,
-      );
+      await DatabaseUtil.getDatabaseColumnsFromVerification(verification);
 
     // Get all the verified contracts existing in the DatabaseUtil for these exact onchain bytecodes.
     const existingVerifiedContractResult =
