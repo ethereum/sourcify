@@ -10,23 +10,9 @@ import { Pool } from "pg";
 import {
   Transformation,
   TransformationValues,
-  VerificationStatus,
 } from "@ethereum-sourcify/lib-sourcify";
 import { ServerFixture } from "./ServerFixture";
-import { Match } from "../../src/server/types";
-
-function getMatchStatus(match: Match): VerificationStatus {
-  if (match.runtimeMatch === "perfect" || match.creationMatch === "perfect") {
-    return "perfect";
-  }
-  if (match.runtimeMatch === "partial" || match.creationMatch === "partial") {
-    return "partial";
-  }
-  if (match.runtimeMatch === "extra-file-input-bug") {
-    return "extra-file-input-bug";
-  }
-  return null;
-}
+import { getMatchStatus } from "../../src/server/apiv1/controllers.common";
 
 export const assertValidationError = (
   err: Error | null,
@@ -289,8 +275,6 @@ async function assertContractSaved(
           getMatchStatus({
             runtimeMatch: contract.runtime_match,
             creationMatch: contract.creation_match,
-            address: "0x" + contract.address.toString("hex"),
-            chainId: contract.chain_id,
           }),
         )
         .to.equal(expectedStatus);

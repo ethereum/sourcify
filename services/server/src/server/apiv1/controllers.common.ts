@@ -78,7 +78,7 @@ export async function checkPerfectMatch(
     );
 
     if (result) {
-      return res.send({ result: [getResponseMatchFromMatch(result)] });
+      return res.send({ result: [getApiV1ResponseFromMatch(result)] });
     }
 
     next();
@@ -113,22 +113,22 @@ export interface ApiV1Response
   status: VerificationStatus;
 }
 
-export function getMatchStatusFromVerification(
-  verification: Verification,
+export function getMatchStatus(
+  verificationStatus: Verification["status"],
 ): VerificationStatus {
   if (
-    verification.status.runtimeMatch === "perfect" ||
-    verification.status.creationMatch === "perfect"
+    verificationStatus.runtimeMatch === "perfect" ||
+    verificationStatus.creationMatch === "perfect"
   ) {
     return "perfect";
   }
   if (
-    verification.status.runtimeMatch === "partial" ||
-    verification.status.creationMatch === "partial"
+    verificationStatus.runtimeMatch === "partial" ||
+    verificationStatus.creationMatch === "partial"
   ) {
     return "partial";
   }
-  if (verification.status.runtimeMatch === "extra-file-input-bug") {
+  if (verificationStatus.runtimeMatch === "extra-file-input-bug") {
     return "extra-file-input-bug";
   }
   return null;
@@ -137,7 +137,7 @@ export function getMatchStatusFromVerification(
 export function getApiV1ResponseFromVerification(
   verification: Verification,
 ): ApiV1Response {
-  const status = getMatchStatusFromVerification(verification);
+  const status = getMatchStatus(verification.status);
   let onchainCreationBytecode;
   try {
     onchainCreationBytecode = verification.onchainCreationBytecode;
@@ -167,21 +167,8 @@ export function getApiV1ResponseFromVerification(
   };
 }
 
-export function getMatchStatusFromMatch(match: Match): VerificationStatus {
-  if (match.runtimeMatch === "perfect" || match.creationMatch === "perfect") {
-    return "perfect";
-  }
-  if (match.runtimeMatch === "partial" || match.creationMatch === "partial") {
-    return "partial";
-  }
-  if (match.runtimeMatch === "extra-file-input-bug") {
-    return "extra-file-input-bug";
-  }
-  return null;
-}
-
-export function getResponseMatchFromMatch(match: Match): ApiV1Response {
-  const status = getMatchStatusFromMatch(match);
+export function getApiV1ResponseFromMatch(match: Match): ApiV1Response {
+  const status = getMatchStatus(match);
   return {
     address: match.address,
     chainId: match.chainId.toString(),
