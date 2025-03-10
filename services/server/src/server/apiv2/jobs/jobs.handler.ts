@@ -13,10 +13,7 @@ interface GetJobRequest extends Request {
 
 type GetJobResponse = TypedResponse<VerificationJob>;
 
-export async function getJobEndpoint(
-  req: GetJobRequest,
-  res: GetJobResponse,
-): Promise<GetJobResponse> {
+export async function getJobEndpoint(req: GetJobRequest, res: GetJobResponse) {
   logger.debug("getJobEndpoint", {
     verificationId: req.params.verificationId,
   });
@@ -33,5 +30,5 @@ export async function getJobEndpoint(
     );
   }
 
-  return res.status(StatusCodes.OK).json(job);
+  res.status(StatusCodes.OK).json(job);
 }
