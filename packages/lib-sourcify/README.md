@@ -13,6 +13,7 @@ lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for
 - [Compiler Setup](#compiler-setup)
 - [Validation](#validation)
 - [Verification](#verification)
+- [Error Handling](#error-handling)
 - [Usage Examples](#usage-examples)
 - [Logging](#logging)
 - [Migration Guide from v1 to v2](#migration-guide-from-v1-to-v2)
@@ -110,7 +111,7 @@ class Vyper implements IVyperCompiler {
     return await useVyperCompiler(
       this.vyperRepoPath,
       version,
-      solcJsonInput,
+      vyperJsonInput,
     );
   }
 }
@@ -192,7 +193,7 @@ const verification = new Verification(
 await verification.verify();
 
 // Check verification status
-console.log(verification.status); // 'perfect', 'partial', or null
+console.log(verification.status.runtimeMatch); // 'perfect', 'partial', or null
 ```
 
 ### Verification Class Properties
@@ -414,6 +415,16 @@ The `creationBytecodeCborAuxdata` and `runtimeBytecodeCborAuxdata` properties (a
 ```
 
 This information is used to handle metadata hashes during verification.
+
+## Error Handling
+
+During verification, various errors can occur. In lib-sourcify v2, errors related to verification are thrown as `VerificationError` instances, which extend the `SourcifyLibError` class. These errors include a message and an error code that can be used to handle different error cases.
+
+### Error Codes
+
+The `VerificationErrorCode` type defines the following error codes:
+
+https://github.com/ethereum/sourcify/blob/06363e3c27c3c2a6bff01670dd3cf7ce635ba60c/packages/lib-sourcify/src/Verification/VerificationTypes.ts#L14-L23
 
 ## Usage Examples
 
