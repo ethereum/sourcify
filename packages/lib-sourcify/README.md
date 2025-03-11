@@ -133,7 +133,7 @@ lib-sourcify v2 consists of several key components:
 
 ## Compiler Setup
 
-The `lib-sourcify` library does not come with compilers as dependencies. Instead, you need to provide a class that implements either the `ISolidityCompiler` or `IVyperCompiler` interface and pass it to any function that requires a compiler. We suggest you to use the official `@ethereum-sourcify/compilers` package.
+The `lib-sourcify` library does not come with compilers as dependencies. Instead, you need to provide a class that implements either the `ISolidityCompiler` or `IVyperCompiler` interface and pass it to any function that requires a compiler. We suggest you to use the official [`@ethereum-sourcify/compilers`](https://github.com/ethereum/sourcify/tree/staging/packages/compilers) package.
 
 ### Solidity Compiler Example
 
@@ -166,7 +166,10 @@ class Solc implements ISolidityCompiler {
   }
 }
 
-const solc = new Solc();
+const solc = new Solc(
+  "/path/to/solc",
+  "/path/to/solcjs",
+);
 ```
 
 ### Vyper Compiler Example
@@ -196,7 +199,9 @@ class Vyper implements IVyperCompiler {
     );
   }
 }
-const vyper = new Vyper();
+const vyper = new Vyper(
+  "/path/to/vyper",
+);
 ```
 
 ## SourcifyChain
