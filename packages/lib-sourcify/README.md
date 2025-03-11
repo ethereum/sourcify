@@ -29,6 +29,7 @@ lib-sourcify provides tools to validate, compile, and verify smart contracts. Th
 - **Compiler independence**: Bring your own compiler implementation
 - **Source fetching**: Automatically fetch missing source files from IPFS, Swarm, etc.
 - **Bytecode matching**: Advanced bytecode analysis to handle various edge cases
+- **Resilient RPC management**: Multi-provider support with automatic fallback and timeout handling
 
 ## Installation
 
