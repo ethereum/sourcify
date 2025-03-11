@@ -7,10 +7,8 @@ import {
   checkByChainAndAddressesEnpoint,
   getFileEndpoint,
   createPaginatedContractEndpoint,
-  CheckAllByChainAndAddressEndpointRequest,
 } from "./repository.handlers";
 import { validateAddress } from "../controllers.common";
-import { safeHandler } from "../../common";
 
 const REPOSITORY_CONTROLLER_PREFIX = "/files";
 
@@ -113,17 +111,11 @@ const router: Router = Router();
         ? REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain/:address"
         : REPOSITORY_CONTROLLER_PREFIX + pair.prefix + "/:chain",
     )
-    .get(validateAddress, safeHandler(pair.method));
+    .get(validateAddress, pair.method);
 });
 
 // check(All)ByAddresses endpoints have different format then the ones above. check(All)ByAddresses take query params instead of path params.
-router
-  .route("/check-all-by-addresses")
-  .get(
-    safeHandler<CheckAllByChainAndAddressEndpointRequest>(
-      checkAllByChainAndAddressEndpoint,
-    ),
-  );
+router.route("/check-all-by-addresses").get(checkAllByChainAndAddressEndpoint);
 
 /**
  * The following two routes are the replacement for the removed static file route that exposed RepositoryV1
@@ -133,12 +125,10 @@ router
 
 // This route covers constructor-args.txt, creator-tx-hash.txt, library-map.json, immutable-references.json files
 router
-  .route("/repository/contracts/:match/:chain/:address/*")
-  .get(validateAddress, safeHandler(getFileEndpoint));
+  .route("/repository/contracts/:match/:chain/:address/*filePath")
+  .get(validateAddress, getFileEndpoint);
 
-router
-  .route("/check-by-addresses")
-  .get(safeHandler(checkByChainAndAddressesEnpoint));
+router.route("/check-by-addresses").get(checkByChainAndAddressesEnpoint);
 
 export const deprecatedRoutesRepository = {
   "/checkAllByAddresses": {

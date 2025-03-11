@@ -17,14 +17,14 @@ import { BadRequestError } from "../../../../../common/errors";
 export async function verifyFromEtherscan(req: Request, res: Response) {
   const services = req.app.get("services") as Services;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
-  chainRepository.checkSupportedChainId(req.body.chain);
+  chainRepository.checkSupportedChainId(req.body?.chain);
 
   const solc = req.app.get("solc") as ISolidityCompiler;
   const vyperCompiler = req.app.get("vyper") as IVyperCompiler;
 
-  const chain = req.body.chain as string;
-  const address = req.body.address;
-  const apiKey = req.body.apiKey;
+  const chain = req.body?.chain as string;
+  const address = req.body?.address;
+  const apiKey = req.body?.apiKey;
   const sourcifyChain = chainRepository.supportedChainMap[chain];
 
   logger.info("verifyFromEtherscan", { chain, address, apiKey });
