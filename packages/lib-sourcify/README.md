@@ -12,6 +12,7 @@ lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for
 - [Key Concepts](#key-concepts)
 - [Architecture](#architecture)
 - [Compiler Setup](#compiler-setup)
+- [SourcifyChain](#sourcifychain)
 - [Validation](#validation)
 - [Verification](#verification)
 - [Error Handling](#error-handling)
@@ -40,7 +41,7 @@ npm install @ethereum-sourcify/lib-sourcify
 Here's how to quickly get started with verifying a Solidity contract using lib-sourcify:
 
 ```typescript
-import { createMetadataContractsFromFiles, Verification } from "@ethereum-sourcify/lib-sourcify";
+import { createMetadataContractsFromFiles, Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import { useSolidityCompiler } from "@ethereum-sourcify/compilers";
 import * as fs from "fs";
 
@@ -92,15 +93,23 @@ await metadataContract.fetchMissing();
 // Step 5: Create a compilation
 const compilation = await metadataContract.createCompilation(solc);
 
-// Step 6: Verify the contract
+// Step 6: Set up a SourcifyChain instance for Ethereum Mainnet
+const mainnetChain = new SourcifyChain({
+  name: "Ethereum Mainnet",
+  chainId: 1,
+  rpc: ["https://eth.llamarpc.com"],
+  supported: true
+});
+
+// Step 7: Verify the contract
 const verification = new Verification(
   compilation,
-  { id: 1, name: "Ethereum Mainnet", rpc: "https://eth.llamarpc.com" },
+  mainnetChain,
   "0xc0ffee254729296a45a3885639AC7E10F9d54979"
 );
 await verification.verify();
 
-// Step 7: Check verification status
+// Step 8: Check verification status
 console.log(verification.status); // { runtimeMatch: 'perfect', creationMatch: null }
 ```
 
@@ -190,6 +199,90 @@ class Vyper implements IVyperCompiler {
 const vyper = new Vyper();
 ```
 
+## SourcifyChain
+
+The `SourcifyChain` class provides a standardized way to interact with blockchain networks during verification. It handles RPC providers, network identification, and specialized chain-specific functionality like transaction tracing.
+
+### Creating a SourcifyChain Instance
+
+```typescript
+import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+
+// Create a SourcifyChain for Ethereum Mainnet
+const mainnetChain = new SourcifyChain({
+  name: "Ethereum Mainnet",
+  chainId: 1,
+  rpc: ["https://eth.llamarpc.com"],
+  supported: true
+});
+
+// Create a SourcifyChain for a local Hardhat network
+const hardhatChain = new SourcifyChain({
+  name: "Hardhat Network Localhost",
+  shortName: "Hardhat Network",
+  chainId: 31337,
+  rpc: ["http://localhost:8545"],
+  supported: true
+});
+```
+
+### SourcifyChain Properties
+
+- `name`: The human-readable name of the chain
+- `chainId`: The numeric chain identifier
+- `rpc`: An array of RPC endpoints (strings or FetchRequest objects)
+- `supported`: Whether the chain is supported for verification
+- `providers`: JsonRPC providers initialized from the RPC endpoints
+- `traceSupport`: Whether the chain supports call tracing (for creation bytecode retrieval)
+- `traceSupportedRPCs`: RPCs that support tracing with their specific trace methods
+- `etherscanApi`: Configuration for Etherscan-compatible block explorers
+
+### SourcifyChain Methods
+
+The SourcifyChain class provides several methods for interacting with the blockchain:
+
+```typescript
+// Get bytecode from a contract address
+const bytecode = await sourcifyChain.getBytecode("0x123...");
+
+// Get transaction data
+const tx = await sourcifyChain.getTx("0xabc...");
+
+// Get transaction receipt
+const receipt = await sourcifyChain.getTxReceipt("0xabc...");
+
+// Get contract creation bytecode and receipt
+const { creationBytecode, txReceipt } = await sourcifyChain.getContractCreationBytecodeAndReceipt(
+  "0x123...",  // Contract address
+  "0xabc..."   // Creation transaction hash (optional)
+);
+```
+
+### Advanced Configuration
+
+For chains that support special trace methods or have specific block explorers:
+
+```typescript
+const arbitrumChain = new SourcifyChain({
+  name: "Arbitrum One",
+  chainId: 42161,
+  rpc: ["https://arb1.arbitrum.io/rpc"],
+  supported: true,
+  // Specify trace support for factory contract verification
+  traceSupportedRPCs: [
+    {
+      type: "geth",
+      urls: ["https://arb1.arbitrum.io/rpc"]
+    }
+  ],
+  // Configure Etherscan API access
+  etherscanApi: {
+    apiURL: "https://api.arbiscan.io/api",
+    apiKeyEnvName: "ARBISCAN_API_KEY"
+  }
+});
+```
+
 ## Validation
 
 Note: Vyper contracts do not support validation through metadata files since they do not include a metadata JSON field in their bytecode. Instead, Vyper contracts must be verified directly using their source files and compiler settings.
@@ -251,12 +344,20 @@ const isCompilable = metadataContract.isCompilable(); // true or false
 In v2, the verification process is handled by the `Verification` class:
 
 ```typescript
-import { Verification } from "@ethereum-sourcify/lib-sourcify";
+import { Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+
+// Set up the SourcifyChain
+const chain = new SourcifyChain({
+  name: "Ethereum Mainnet",
+  chainId: 1,
+  rpc: ["https://eth.llamarpc.com"],
+  supported: true
+});
 
 // Create a verification instance
 const verification = new Verification(
   compilation,
-  sourcifyChain,
+  chain,
   contractAddress,
   creatorTxHash // optional, for creation bytecode verification
 );
@@ -503,7 +604,7 @@ https://github.com/ethereum/sourcify/blob/06363e3c27c3c2a6bff01670dd3cf7ce635ba6
 ### Using SolidityMetadataContract
 
 ```typescript
-import { SolidityMetadataContract, Verification } from "@ethereum-sourcify/lib-sourcify";
+import { SolidityMetadataContract, Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 
 // Create a SolidityMetadataContract with metadata and sources
 const metadataContract = new SolidityMetadataContract(metadata, sources);
@@ -511,10 +612,18 @@ const metadataContract = new SolidityMetadataContract(metadata, sources);
 // Create a compilation for verification
 const compilation = await metadataContract.createCompilation(new TestSolidityCompiler());
 
+// Create a SourcifyChain instance
+const hardhatChain = new SourcifyChain({
+  name: "Hardhat Network Localhost",
+  chainId: 31337,
+  rpc: ["http://localhost:8545"],
+  supported: true
+});
+
 // Verify against an on-chain contract
 const verification = new Verification(
   compilation,
-  sourcifyChainHardhat,
+  hardhatChain,
   contractAddress
 );
 await verification.verify();
@@ -526,7 +635,7 @@ console.log(verification.status);
 ### Using SolidityCompilation Directly
 
 ```typescript
-import { SolidityCompilation, Verification } from "@ethereum-sourcify/lib-sourcify";
+import { SolidityCompilation, Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 
 // Create a compilation directly
 const compilation = new SolidityCompilation(
@@ -536,10 +645,18 @@ const compilation = new SolidityCompilation(
   { path, name } // compilationTarget
 );
 
+// Create a SourcifyChain instance
+const hardhatChain = new SourcifyChain({
+  name: "Hardhat Network Localhost",
+  chainId: 31337,
+  rpc: ["http://localhost:8545"],
+  supported: true
+});
+
 // Verify against an on-chain contract
 const verification = new Verification(
   compilation,
-  sourcifyChainHardhat,
+  hardhatChain,
   contractAddress
 );
 await verification.verify();
