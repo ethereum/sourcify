@@ -8,6 +8,7 @@ lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for
 
 - [Overview](#overview)
 - [Installation](#installation)
+- [Quick Start](#quick-start)
 - [Key Concepts](#key-concepts)
 - [Architecture](#architecture)
 - [Compiler Setup](#compiler-setup)
@@ -33,6 +34,77 @@ lib-sourcify provides tools to validate, compile, and verify smart contracts. Th
 ```bash
 npm install @ethereum-sourcify/lib-sourcify
 ```
+
+## Quick Start
+
+Here's how to quickly get started with verifying a Solidity contract using lib-sourcify:
+
+```typescript
+import { createMetadataContractsFromFiles, Verification } from "@ethereum-sourcify/lib-sourcify";
+import { useSolidityCompiler } from "@ethereum-sourcify/compilers";
+import * as fs from "fs";
+
+// Step 1: Setup your compiler
+class Solc implements ISolidityCompiler {
+  constructor(
+    private solcRepoPath: string,
+    private solJsonRepoPath: string,
+  ) {}
+
+  async compile(
+    version: string,
+    solcJsonInput: JsonInput,
+    forceEmscripten: boolean = false,
+  ): Promise<SolidityOutput> {
+    return await useSolidityCompiler(
+      this.solcRepoPath, // useSolidityCompiler will automatically download and store solc here
+      this.solJsonRepoPath, // useSolidityCompiler will automatically download and store solcjs here
+      version,
+      solcJsonInput,
+      forceEmscripten,
+    );
+  }
+}
+const solc = new Solc(
+  "/path/to/solc", 
+  "/path/to/solcjs",
+);
+
+// Step 2: Prepare contract files
+const pathBuffers = [
+  {
+    path: "metadata.json", 
+    buffer: fs.readFileSync("metadata.json")
+  },
+  {
+    path: "Contract.sol",
+    buffer: fs.readFileSync("Contract.sol")
+  }
+];
+
+// Step 3: Create a metadata contract
+const metadataContracts = await createMetadataContractsFromFiles(pathBuffers);
+const metadataContract = metadataContracts[0];
+
+// Step 4: Fetch any missing sources
+await metadataContract.fetchMissing();
+
+// Step 5: Create a compilation
+const compilation = await metadataContract.createCompilation(solc);
+
+// Step 6: Verify the contract
+const verification = new Verification(
+  compilation,
+  { id: 1, name: "Ethereum Mainnet", rpc: "https://eth.llamarpc.com" },
+  "0xc0ffee254729296a45a3885639AC7E10F9d54979"
+);
+await verification.verify();
+
+// Step 7: Check verification status
+console.log(verification.status); // { runtimeMatch: 'perfect', creationMatch: null }
+```
+
+This example shows the complete verification flow for a Solidity contract. For Vyper contracts or more advanced use cases, see the detailed sections below.
 
 ## Architecture
 
