@@ -206,7 +206,22 @@ const vyper = new Vyper(
 
 ## SourcifyChain
 
-The `SourcifyChain` class provides a standardized way to interact with blockchain networks during verification. It handles RPC providers, network identification, and specialized chain-specific functionality like transaction tracing.
+The `SourcifyChain` class is a crucial component that provides a standardized and resilient way to interact with blockchain networks during smart contract verification. It handles multiple aspects of blockchain interaction, in particular:
+
+### Core Features
+- **Resilient RPC management**
+  - Manages multiple RPC providers for a single chain with automatic fallback
+  - Implements sequential provider retry logic to ensure reliable network access
+  - Gracefully handles provider failures without disrupting verification flow
+
+- **Comprehensive bytecode retrieval**
+  - Fetches both runtime and creation bytecode
+  - Supports advanced factory contract scenarios through trace API integration
+
+- **Robust error handling**
+  - Implements configurable timeout handling to prevent hanging on unresponsive RPCs
+  - Provides detailed error reporting with provider-specific context
+  - Maintains connection stability through automatic retry mechanisms
 
 ### Creating a SourcifyChain Instance
 
@@ -240,7 +255,6 @@ const hardhatChain = new SourcifyChain({
 - `providers`: JsonRPC providers initialized from the RPC endpoints
 - `traceSupport`: Whether the chain supports call tracing (for creation bytecode retrieval)
 - `traceSupportedRPCs`: RPCs that support tracing with their specific trace methods
-- `etherscanApi`: Configuration for Etherscan-compatible block explorers
 
 ### SourcifyChain Methods
 
@@ -280,11 +294,6 @@ const arbitrumChain = new SourcifyChain({
       urls: ["https://arb1.arbitrum.io/rpc"]
     }
   ],
-  // Configure Etherscan API access
-  etherscanApi: {
-    apiURL: "https://api.arbiscan.io/api",
-    apiKeyEnvName: "ARBISCAN_API_KEY"
-  }
 });
 ```
 
