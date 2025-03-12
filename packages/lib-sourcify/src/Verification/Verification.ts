@@ -10,7 +10,11 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import { VyperCompilation } from '../Compilation/VyperCompilation';
-import { StringMap } from '../Compilation/CompilationTypes';
+import {
+  CompiledContractCborAuxdata,
+  Metadata,
+  StringMap,
+} from '../Compilation/CompilationTypes';
 
 import {
   extractAuxdataTransformation,
@@ -25,9 +29,14 @@ import {
   BytecodeMatchingResult,
   SolidityBugType,
   VerificationError,
+  VerificationExport,
   VerificationStatus,
 } from './VerificationTypes';
-import { SoliditySettings } from '../Compilation/SolidityTypes';
+import {
+  SolidityOutputContract,
+  SoliditySettings,
+} from '../Compilation/SolidityTypes';
+import { VyperOutputContract } from '../Compilation/VyperTypes';
 
 export class Verification {
   // Bytecodes
@@ -509,5 +518,129 @@ export class Verification {
 
   get chainId() {
     return this.sourcifyChain.chainId;
+  }
+
+  /**
+   * Create a plain serializable object from the verification result
+   */
+  export(): VerificationExport {
+    let onchainRuntimeBytecode: string | undefined;
+    try {
+      onchainRuntimeBytecode = this.onchainRuntimeBytecode;
+    } catch {
+      // pass
+    }
+    let onchainCreationBytecode: string | undefined;
+    try {
+      onchainCreationBytecode = this.onchainCreationBytecode;
+    } catch {
+      // pass
+    }
+
+    let compilerOutputSources: Record<string, { id: number }> | undefined;
+    if (this.compilation.compilerOutput?.sources) {
+      compilerOutputSources = {};
+      for (const source of Object.keys(
+        this.compilation.compilerOutput.sources,
+      )) {
+        compilerOutputSources[source] = {
+          id: this.compilation.compilerOutput.sources[source].id,
+        };
+      }
+    }
+
+    let contractCompilerOutput:
+      | SolidityOutputContract
+      | VyperOutputContract
+      | undefined;
+    try {
+      contractCompilerOutput = this.compilation.contractCompilerOutput;
+    } catch {
+      // pass
+    }
+
+    let recompiledRuntimeBytecode: string | undefined;
+    try {
+      recompiledRuntimeBytecode = this.compilation.runtimeBytecode;
+    } catch {
+      // pass
+    }
+
+    let recompiledCreationBytecode: string | undefined;
+    try {
+      recompiledCreationBytecode = this.compilation.creationBytecode;
+    } catch {
+      // pass
+    }
+
+    let runtimeBytecodeCborAuxdata: CompiledContractCborAuxdata | undefined;
+    try {
+      runtimeBytecodeCborAuxdata = this.compilation.runtimeBytecodeCborAuxdata;
+    } catch {
+      // pass
+    }
+
+    let creationBytecodeCborAuxdata: CompiledContractCborAuxdata | undefined;
+    try {
+      creationBytecodeCborAuxdata =
+        this.compilation.creationBytecodeCborAuxdata;
+    } catch {
+      // pass
+    }
+
+    let metadata: Metadata | undefined;
+    try {
+      metadata = this.compilation.metadata;
+    } catch {
+      // pass
+    }
+
+    return {
+      address: this.address,
+      chainId: this.chainId,
+      status: this.status,
+      onchainRuntimeBytecode,
+      onchainCreationBytecode,
+      transformations: this.transformations,
+      deploymentInfo: this.deploymentInfo,
+      libraryMap: this.libraryMap,
+      compilation: {
+        language: this.compilation.language,
+        compilationTarget: this.compilation.compilationTarget,
+        compilerOutput: { sources: compilerOutputSources },
+        contractCompilerOutput: {
+          abi: contractCompilerOutput?.abi,
+          userdoc: contractCompilerOutput?.userdoc,
+          devdoc: contractCompilerOutput?.devdoc,
+          storageLayout: (contractCompilerOutput as SolidityOutputContract)
+            ?.storageLayout,
+          evm: {
+            bytecode: {
+              sourceMap: (contractCompilerOutput as SolidityOutputContract)?.evm
+                ?.bytecode?.sourceMap,
+              linkReferences: (contractCompilerOutput as SolidityOutputContract)
+                ?.evm?.bytecode?.linkReferences,
+            },
+            deployedBytecode: {
+              sourceMap:
+                contractCompilerOutput?.evm?.deployedBytecode?.sourceMap,
+              linkReferences: (contractCompilerOutput as SolidityOutputContract)
+                ?.evm?.deployedBytecode?.linkReferences,
+              immutableReferences: (
+                contractCompilerOutput as SolidityOutputContract
+              )?.evm?.deployedBytecode?.immutableReferences,
+            },
+          },
+        },
+        runtimeBytecode: recompiledRuntimeBytecode,
+        creationBytecode: recompiledCreationBytecode,
+        runtimeBytecodeCborAuxdata,
+        creationBytecodeCborAuxdata,
+        metadata,
+        jsonInput: {
+          settings: this.compilation.jsonInput.settings,
+        },
+      },
+    };
   }
 }

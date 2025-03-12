@@ -73,8 +73,8 @@ export interface Userdoc {
 
 export interface MetadataOutput {
   abi: Abi;
-  devdoc: Devdoc;
-  userdoc: Userdoc;
+  devdoc?: Devdoc;
+  userdoc?: Userdoc;
 }
 
 // Metadata JSON's "settings" does have extra "compilationTarget" and its "libraries" field is in a different format
