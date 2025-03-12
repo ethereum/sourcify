@@ -6,6 +6,7 @@
 </p>
 
 [![codecov](https://codecov.io/gh/ethereum/sourcify/branch/staging/graph/badge.svg?token=eN6XDAwWfV)](https://codecov.io/gh/ethereum/sourcify)
+[![](https://img.shields.io/gitter/room/ethereum/sourcify)](https://app.gitter.im/#/room/#ethereum_source-verify:gitter.im)
 [![Matrix Chat](https://img.shields.io/badge/Matrix%20-chat-brightgreen?style=plastic&logo=matrix)](https://matrix.to/#/#ethereum_source-verify:gitter.im)
 [![Discord](https://img.shields.io/badge/Discord%20-chat-brightgreen?style=plastic&logo=discord)](https://discord.com/invite/6aqd9cfZ9s)
 [![X Follow](https://img.shields.io/twitter/follow/SourcifyEth?style=plastic&logo=x)](https://X.com/SourcifyEth)
