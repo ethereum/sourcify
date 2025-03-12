@@ -618,18 +618,6 @@ export async function getDatabaseColumnsFromVerification(
   const compilationTargetName = verification.compilation.compilationTarget.name;
   const compilerOutput = verification.compilation.contractCompilerOutput;
 
-  // If during verification `generateCborAuxdataPositions` was not called, we call it now
-  if (
-    verification.compilation.runtimeBytecodeCborAuxdata === undefined &&
-    verification.compilation.creationBytecodeCborAuxdata === undefined
-  ) {
-    if (!(await verification.compilation.generateCborAuxdataPositions())) {
-      throw new Error(
-        `cannot generate contract artifacts address=${verification.address} chainId=${verification.chainId}`,
-      );
-    }
-  }
-
   // Prepare compilation_artifacts.sources by removing everything except id
   let sources: Nullable<CompilationArtifactsSources> = null;
   if (verification.compilation.compilerOutput?.sources) {

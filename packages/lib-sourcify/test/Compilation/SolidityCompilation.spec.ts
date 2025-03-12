@@ -91,8 +91,7 @@ describe('SolidityCompilation', () => {
     );
 
     await compilation.compile();
-    const success = await compilation.generateCborAuxdataPositions();
-    expect(success).to.be.true;
+    await compilation.generateCborAuxdataPositions();
     expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({
       '1': {
         offset: 250,
@@ -145,8 +144,8 @@ describe('SolidityCompilation', () => {
     );
 
     await compilation.compile();
-    const success = await compilation.generateCborAuxdataPositions();
-    expect(success).to.be.true;
+    await compilation.generateCborAuxdataPositions();
+
     expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({
       '1': {
         offset: 4116,
@@ -221,9 +220,8 @@ describe('SolidityCompilation', () => {
     );
 
     await compilation.compile();
-    const result = await compilation.generateCborAuxdataPositions();
+    await compilation.generateCborAuxdataPositions();
 
-    expect(result).to.be.true;
     expect(compilation.creationBytecodeCborAuxdata).to.deep.equal({});
     expect(compilation.runtimeBytecodeCborAuxdata).to.deep.equal({});
   });

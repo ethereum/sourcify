@@ -6,6 +6,7 @@ import {
   CompilationLanguage,
   StringMap,
   LinkReferences,
+  CompilationError,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
@@ -48,7 +49,7 @@ export abstract class AbstractCompilation {
   abstract compile(forceEmscripten?: boolean): Promise<void>;
   abstract generateCborAuxdataPositions(
     forceEmscripten?: boolean,
-  ): Promise<boolean>;
+  ): Promise<void>;
 
   public async compileAndReturnCompilationTarget(
     forceEmscripten = false,
@@ -69,11 +70,10 @@ export abstract class AbstractCompilation {
       forceEmscripten,
     );
     if (this.compilerOutput === undefined) {
-      const error = new Error('Compiler error');
       logWarn('Compiler error', {
         errorMessages: ['compilerOutput is undefined'],
       });
-      throw error;
+      throw new CompilationError('Compiler error', 'compiler_error');
     }
 
     // We call contractCompilerOutput() before logging because it can throw an error

@@ -8,6 +8,7 @@ import {
   SolidityOutputContract,
 } from './SolidityTypes';
 import {
+  CompilationError,
   CompilationLanguage,
   CompilationTarget,
   LinkReferences,
@@ -16,6 +17,7 @@ import {
   findAuxdataPositions,
   findAuxdatasInLegacyAssembly,
 } from './auxdataUtils';
+import { logWarn } from '../logger';
 
 /**
  * Abstraction of a solidity compilation
@@ -90,100 +92,107 @@ export class SolidityCompilation extends AbstractCompilation {
   /**
    * Finds the positions of the auxdata in the runtime and creation bytecodes.
    * Saves the CborAuxdata position (offset) and value in the runtime- and creationBytecodeCborAuxdata fields.
-   * @returns false if the auxdata positions cannot be generated or if the auxdata in legacyAssembly differs from the auxdata in the bytecode, true otherwise.
    */
   public async generateCborAuxdataPositions(forceEmscripten = false) {
-    // Auxdata array extracted from the compiler's `legacyAssembly` field
-    const auxdatasFromCompilerOutput = findAuxdatasInLegacyAssembly(
-      (this.contractCompilerOutput as SolidityOutputContract).evm
-        .legacyAssembly,
-    );
-
-    // Case: there is not auxadata
-    if (auxdatasFromCompilerOutput.length === 0) {
-      this._creationBytecodeCborAuxdata = {};
-      this._runtimeBytecodeCborAuxdata = {};
-      return true;
-    }
-
-    // Case: there is only one auxdata, no need to recompile if we find both runtime and creation auxdata at the end of the bytecode (creation auxdata can be in a different place)
-    if (auxdatasFromCompilerOutput.length === 1) {
-      // Extract the auxdata from the end of the recompiled runtime bytecode
-      const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
-        this.runtimeBytecode,
-        this.auxdataStyle,
+    try {
+      // Auxdata array extracted from the compiler's `legacyAssembly` field
+      const auxdatasFromCompilerOutput = findAuxdatasInLegacyAssembly(
+        (this.contractCompilerOutput as SolidityOutputContract).evm
+          .legacyAssembly,
       );
 
-      const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
+      // Case: there is not auxadata
+      if (auxdatasFromCompilerOutput.length === 0) {
+        this._creationBytecodeCborAuxdata = {};
+        this._runtimeBytecodeCborAuxdata = {};
+        return;
+      }
 
-      // we divide by 2 because we store the length in bytes (without 0x)
-      this._runtimeBytecodeCborAuxdata = {
-        '1': {
-          offset:
-            this.runtimeBytecode.substring(2).length / 2 -
-            parseInt(runtimeCborLengthHex, 16) -
-            2, // bytecode has 2 bytes of cbor length prefix at the end
-          value: `0x${auxdataFromRawRuntimeBytecode}`,
-        },
-      };
+      // Case: there is only one auxdata, no need to recompile if we find both runtime and creation auxdata at the end of the bytecode (creation auxdata can be in a different place)
+      if (auxdatasFromCompilerOutput.length === 1) {
+        // Extract the auxdata from the end of the recompiled runtime bytecode
+        const [, runtimeAuxdataCbor, runtimeCborLengthHex] = splitAuxdata(
+          this.runtimeBytecode,
+          this.auxdataStyle,
+        );
 
-      // Try to extract the auxdata from the end of the recompiled creation bytecode
-      const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
-        this.creationBytecode,
-        this.auxdataStyle,
-      );
+        const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
 
-      // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
-      if (creationAuxdataCbor) {
-        const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
         // we divide by 2 because we store the length in bytes (without 0x)
-        this._creationBytecodeCborAuxdata = {
+        this._runtimeBytecodeCborAuxdata = {
           '1': {
             offset:
-              this.creationBytecode.substring(2).length / 2 -
-              parseInt(creationCborLengthHex, 16) -
+              this.runtimeBytecode.substring(2).length / 2 -
+              parseInt(runtimeCborLengthHex, 16) -
               2, // bytecode has 2 bytes of cbor length prefix at the end
-            value: `0x${auxdataFromRawCreationBytecode}`,
+            value: `0x${auxdataFromRawRuntimeBytecode}`,
           },
         };
-        return true;
+
+        // Try to extract the auxdata from the end of the recompiled creation bytecode
+        const [, creationAuxdataCbor, creationCborLengthHex] = splitAuxdata(
+          this.creationBytecode,
+          this.auxdataStyle,
+        );
+
+        // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
+        if (creationAuxdataCbor) {
+          const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
+          // we divide by 2 because we store the length in bytes (without 0x)
+          this._creationBytecodeCborAuxdata = {
+            '1': {
+              offset:
+                this.creationBytecode.substring(2).length / 2 -
+                parseInt(creationCborLengthHex, 16) -
+                2, // bytecode has 2 bytes of cbor length prefix at the end
+              value: `0x${auxdataFromRawCreationBytecode}`,
+            },
+          };
+          return;
+        }
       }
-    }
 
-    // Case: multiple auxdatas or creation auxdata not found at the end of the bytecode,
-    // we need to recompile with a slightly edited file to check the differences
-    const editedContractCompilerOutput = await this.generateEditedContract({
-      version: this.compilerVersion,
-      solcJsonInput: this.jsonInput,
-      forceEmscripten,
-    });
-    const editedContract =
-      editedContractCompilerOutput.contracts[this.compilationTarget.path][
-        this.compilationTarget.name
-      ];
+      // Case: multiple auxdatas or creation auxdata not found at the end of the bytecode,
+      // we need to recompile with a slightly edited file to check the differences
+      const editedContractCompilerOutput = await this.generateEditedContract({
+        version: this.compilerVersion,
+        solcJsonInput: this.jsonInput,
+        forceEmscripten,
+      });
+      const editedContract =
+        editedContractCompilerOutput.contracts[this.compilationTarget.path][
+          this.compilationTarget.name
+        ];
 
-    const editedContractAuxdatasFromCompilerOutput =
-      findAuxdatasInLegacyAssembly(editedContract.evm.legacyAssembly);
+      const editedContractAuxdatasFromCompilerOutput =
+        findAuxdatasInLegacyAssembly(editedContract.evm.legacyAssembly);
 
-    // Potentially we already found runtimeBytecodeCborAuxdata in the case of creation auxdata not found at the end of the bytecode
-    // so no need to call `findAuxdataPositions`
-    if (this._runtimeBytecodeCborAuxdata === undefined) {
-      this._runtimeBytecodeCborAuxdata = findAuxdataPositions(
-        this.runtimeBytecode,
-        `0x${editedContract.evm.deployedBytecode.object}`,
+      // Potentially we already found runtimeBytecodeCborAuxdata in the case of creation auxdata not found at the end of the bytecode
+      // so no need to call `findAuxdataPositions`
+      if (this._runtimeBytecodeCborAuxdata === undefined) {
+        this._runtimeBytecodeCborAuxdata = findAuxdataPositions(
+          this.runtimeBytecode,
+          `0x${editedContract.evm.deployedBytecode.object}`,
+          auxdatasFromCompilerOutput,
+          editedContractAuxdatasFromCompilerOutput,
+        );
+      }
+
+      this._creationBytecodeCborAuxdata = findAuxdataPositions(
+        this.creationBytecode,
+        `0x${editedContract.evm.bytecode.object}`,
         auxdatasFromCompilerOutput,
         editedContractAuxdatasFromCompilerOutput,
       );
+    } catch (error) {
+      logWarn('Cannot generate cbor auxdata positions', {
+        error,
+      });
+      throw new CompilationError(
+        'Cannot generate cbor auxdata positions',
+        'cannot_generate_cbor_auxdata_positions',
+      );
     }
-
-    this._creationBytecodeCborAuxdata = findAuxdataPositions(
-      this.creationBytecode,
-      `0x${editedContract.evm.bytecode.object}`,
-      auxdatasFromCompilerOutput,
-      editedContractAuxdatasFromCompilerOutput,
-    );
-
-    return true;
   }
 
   public async compile(forceEmscripten = false) {

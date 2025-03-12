@@ -1,5 +1,6 @@
 import { Abi } from 'abitype';
 import { SoliditySettings } from './SolidityTypes';
+import { SourcifyLibError } from '../SourcifyLibError';
 
 export interface LinkReferences {
   [filePath: string]: {
@@ -125,3 +126,15 @@ export interface CompilationTarget {
 }
 
 export type CompilationLanguage = 'Solidity' | 'Vyper';
+
+export type CompilationErrorCode =
+  | 'cannot_generate_cbor_auxdata_positions'
+  | 'invalid_compiler_version'
+  | 'contract_not_found_in_compiler_output'
+  | 'compiler_error';
+
+export class CompilationError extends SourcifyLibError {
+  constructor(message: string, code: CompilationErrorCode) {
+    super(message, code);
+  }
+}
