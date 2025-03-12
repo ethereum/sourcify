@@ -127,7 +127,7 @@ export class Verification {
     // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
     try {
       await this.compilation.generateCborAuxdataPositions();
-    } finally {
+    } catch {
       // Continue verification even if cbor auxdata positions cannot be generated
       // In case of an auxdata transformation, the error will be thrown later
     }
