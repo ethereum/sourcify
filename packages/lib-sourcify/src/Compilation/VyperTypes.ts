@@ -1,3 +1,7 @@
+import { Abi } from 'abitype';
+import { Devdoc } from './CompilationTypes';
+import { Userdoc } from './CompilationTypes';
+
 export interface VyperSettings {
   /** EVM version to compile for */
   evmVersion?: 'london' | 'paris' | 'shanghai' | 'cancun' | 'istanbul';
@@ -55,10 +59,10 @@ interface VyperOutputSource {
 }
 
 export interface VyperOutputContract {
-  abi: any[];
-  devdoc: any;
+  abi: Abi;
+  userdoc: Userdoc;
+  devdoc: Devdoc;
   ir: string;
-  userdoc: any;
   evm: {
     bytecode: {
       object: string;

@@ -1,4 +1,20 @@
-import { StringMap } from '../Compilation/CompilationTypes';
+import { Abi } from 'abitype';
+import {
+  CompilationLanguage,
+  CompilationTarget,
+  CompiledContractCborAuxdata,
+  Devdoc,
+  LinkReferences,
+  Metadata,
+  StringMap,
+  Userdoc,
+} from '../Compilation/CompilationTypes';
+import {
+  ImmutableReferences,
+  SoliditySettings,
+  StorageLayout,
+} from '../Compilation/SolidityTypes';
+import { VyperSettings } from '../Compilation/VyperTypes';
 import { SourcifyLibError } from '../SourcifyLibError';
 import { Transformation, TransformationValues } from './Transformations';
 
@@ -40,3 +56,67 @@ export type VerificationStatus =
   | 'extra-file-input-bug'
   | 'error'
   | null;
+
+export interface VerificationExport {
+  address: string;
+  chainId: number;
+  status: {
+    runtimeMatch: VerificationStatus;
+    creationMatch: VerificationStatus;
+  };
+  onchainRuntimeBytecode?: string;
+  onchainCreationBytecode?: string;
+  transformations: {
+    runtime: {
+      list: Transformation[];
+      values: TransformationValues;
+    };
+    creation: {
+      list: Transformation[];
+      values: TransformationValues;
+    };
+  };
+  deploymentInfo: {
+    blockNumber?: number;
+    txIndex?: number;
+    deployer?: string;
+    txHash?: string;
+  };
+  libraryMap: {
+    runtime?: StringMap;
+    creation?: StringMap;
+  };
+  compilation: {
+    language: CompilationLanguage;
+    compilationTarget: CompilationTarget;
+    compilerOutput: {
+      // The export should not include the AST object to reduce the size
+      sources?: Record<string, { id: number }>;
+    };
+    contractCompilerOutput: {
+      abi?: Abi;
+      userdoc?: Userdoc;
+      devdoc?: Devdoc;
+      storageLayout?: StorageLayout;
+      evm: {
+        bytecode: {
+          sourceMap?: string;
+          linkReferences?: LinkReferences;
+        };
+        deployedBytecode: {
+          sourceMap?: string;
+          linkReferences?: LinkReferences;
+          immutableReferences?: ImmutableReferences;
+        };
+      };
+    };
+    runtimeBytecode?: string;
+    creationBytecode?: string;
+    runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
+    creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
+    metadata?: Metadata;
+    jsonInput: {
+      settings: SoliditySettings | VyperSettings;
+    };
+  };
+}

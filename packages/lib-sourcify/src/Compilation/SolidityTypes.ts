@@ -1,4 +1,5 @@
 import { Abi } from 'abitype';
+import { Devdoc, Userdoc, LinkReferences } from './CompilationTypes';
 
 interface File {
   keccak256?: string;
@@ -113,13 +114,7 @@ interface SolidityOutputEvmBytecode {
   object: string;
   opcodes?: string;
   sourceMap?: string;
-  linkReferences?:
-    | {}
-    | {
-        [globalName: string]: {
-          [name: string]: { start: number; length: number }[];
-        };
-      };
+  linkReferences?: LinkReferences;
 }
 
 export interface ImmutableReferences {
@@ -160,8 +155,8 @@ export interface StorageLayout {
 export interface SolidityOutputContract {
   abi: Abi;
   metadata: string;
-  userdoc?: any;
-  devdoc?: any;
+  userdoc?: Userdoc;
+  devdoc?: Devdoc;
   ir?: string;
   irAst?: any;
   irOptimized?: string;
