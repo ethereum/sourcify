@@ -1,4 +1,3 @@
-import { safeHandler } from "../../common";
 import {
   validateAddress,
   validateChainId,
@@ -10,9 +9,7 @@ import { Router } from "express";
 
 const router = Router();
 
-router
-  .route("/contracts/:chainId")
-  .get(validateChainId, safeHandler(listContractsEndpoint));
+router.route("/contracts/:chainId").get(validateChainId, listContractsEndpoint);
 
 router
   .route("/contract/:chainId/:address")
@@ -20,7 +17,7 @@ router
     validateChainId,
     validateAddress,
     validateFieldsAndOmit,
-    safeHandler(getContractEndpoint),
+    getContractEndpoint,
   );
 
 export default router;

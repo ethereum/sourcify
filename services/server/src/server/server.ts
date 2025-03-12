@@ -1,5 +1,5 @@
 import path from "path";
-import express, { Request } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import util from "util";
 import * as OpenApiValidator from "express-openapi-validator";
@@ -142,8 +142,8 @@ export class Server {
     });
 
     // In every request support both chain and chainId
-    this.app.use((req: any, res: any, next: any) => {
-      if (req.body.chainId) {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.body?.chainId) {
         req.body.chain = req.body.chainId;
       }
       next();
@@ -253,7 +253,7 @@ export class Server {
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
     this.app.set("trust proxy", true);
     // Enable session only for session endpoints
-    this.app.use("/*session*", getSessionMiddleware(options.sessionOptions));
+    this.app.use("/session", getSessionMiddleware(options.sessionOptions));
 
     this.app.use("/", routes);
 

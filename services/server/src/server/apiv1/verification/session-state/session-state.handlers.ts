@@ -87,8 +87,8 @@ export async function restartSessionEndpoint(req: Request, res: Response) {
 }
 
 export async function addInputContractEndpoint(req: Request, res: Response) {
-  const address: string = req.body.address;
-  const chainId: string = req.body.chainId;
+  const address: string = req.body?.address;
+  const chainId: string = req.body?.chainId;
   const solc = req.app.get("solc") as ISolidityCompiler;
   const vyper = req.app.get("vyper") as IVyperCompiler;
   const services = req.app.get("services") as Services;

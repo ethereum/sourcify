@@ -149,9 +149,9 @@ server.services.init().then(() => {
   server
     .loadSwagger(yamljs.load(path.join(__dirname, "..", "openapi.yaml"))) // load the openapi file with the $refs resolved
     .then((swaggerDocument: any) => {
-      server.app.get("/api-docs/swagger.json", (req, res) =>
-        res.json(swaggerDocument),
-      );
+      server.app.get("/api-docs/swagger.json", (req, res) => {
+        res.json(swaggerDocument);
+      });
       server.app.use(
         "/api-docs",
         swaggerUi.serve,
