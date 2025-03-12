@@ -133,8 +133,8 @@ describe('VyperCompilation', () => {
     );
 
     await compilation.compile();
-    const success = await compilation.generateCborAuxdataPositions();
-    expect(success).to.be.true;
+    await compilation.generateCborAuxdataPositions();
+
     expect(compilation.creationBytecodeCborAuxdata).to.deep.equal({
       '1': { offset: 158, value: '0x84188f8000a16576797065728300030a0012' },
     });
@@ -294,8 +294,9 @@ describe('VyperCompilation', () => {
     );
 
     await compilation.compile();
-    const success = await compilation.generateCborAuxdataPositions();
-    expect(success).to.be.false;
+    await expect(compilation.generateCborAuxdataPositions())
+      .to.eventually.be.rejectedWith()
+      .and.have.property('code', 'cannot_generate_cbor_auxdata_positions');
   });
 
   it('should handle beta versions of Vyper, transforming the version to a valid semver', async () => {

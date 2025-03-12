@@ -199,6 +199,8 @@ export async function verifyDeprecated(
     // We need to compile the compilation before creating the Verification object
     // because we are not going to call verify() on the Verification object
     await compilation.compile();
+    // We don't expect `generateCborAuxdataPositions` to throw an error, so let's throw it if it does
+    // We don't need to log a specific error here because this function is not called by users
     await compilation.generateCborAuxdataPositions();
 
     // Create a mock Verification object for deprecated chains

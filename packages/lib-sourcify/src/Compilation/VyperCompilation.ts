@@ -14,6 +14,7 @@ import {
   VyperOutputContract,
 } from './VyperTypes';
 import {
+  CompilationError,
   CompilationLanguage,
   CompilationTarget,
   CompiledContractCborAuxdata,
@@ -117,7 +118,10 @@ export class VyperCompilation extends AbstractCompilation {
           .split('+')[0]
           .replace(/(b\d+|rc\d+)$/, '')}+${this.compilerVersion.split('+')[1]}`;
       } else {
-        throw new Error('Invalid Vyper compiler version');
+        throw new CompilationError(
+          'Invalid Vyper compiler version',
+          'invalid_compiler_version',
+        );
       }
     }
 
@@ -175,7 +179,6 @@ export class VyperCompilation extends AbstractCompilation {
   }
   /**
    * Generate the cbor auxdata positions for the creation and runtime bytecodes.
-   * @returns false if the auxdata positions cannot be generated, true otherwise.
    */
   public async generateCborAuxdataPositions() {
     try {
@@ -208,13 +211,14 @@ export class VyperCompilation extends AbstractCompilation {
         creationAuxdataCbor,
         creationCborLengthHex,
       );
-
-      return true;
     } catch (error) {
       logWarn('Cannot generate cbor auxdata positions', {
         error,
       });
-      return false;
+      throw new CompilationError(
+        'Cannot generate cbor auxdata positions',
+        'cannot_generate_cbor_auxdata_positions',
+      );
     }
   }
 

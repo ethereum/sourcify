@@ -125,7 +125,12 @@ export class Verification {
 
     // We need to manually generate the auxdata positions because they are not automatically produced during compilation
     // Read more: https://docs.sourcify.dev/blog/finding-auxdatas-in-bytecode/
-    await this.compilation.generateCborAuxdataPositions();
+    try {
+      await this.compilation.generateCborAuxdataPositions();
+    } catch {
+      // Continue verification even if cbor auxdata positions cannot be generated
+      // In case of an auxdata transformation, the error will be thrown later
+    }
 
     // Try to match onchain runtime bytecode with compiled runtime bytecode
     try {
