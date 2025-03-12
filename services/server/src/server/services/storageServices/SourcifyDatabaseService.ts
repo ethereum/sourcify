@@ -1,7 +1,7 @@
 import {
   VerificationStatus,
   StringMap,
-  Verification,
+  VerificationExport,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
@@ -535,7 +535,7 @@ export class SourcifyDatabaseService
     return response;
   };
 
-  validateVerificationBeforeStoring(verification: Verification): boolean {
+  validateVerificationBeforeStoring(verification: VerificationExport): boolean {
     if (
       verification.compilation.runtimeBytecode === undefined &&
       verification.compilation.creationBytecode === undefined
@@ -794,7 +794,7 @@ export class SourcifyDatabaseService
   };
 
   // Override this method to include the SourcifyMatch
-  async storeVerification(verification: Verification) {
+  async storeVerification(verification: VerificationExport) {
     const { type, verifiedContractId, oldVerifiedContractId } =
       await super.insertOrUpdateVerification(verification);
 

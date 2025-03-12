@@ -71,7 +71,7 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
   );
 
   // Store the verification result
-  await services.storage.storeVerification(verification);
+  await services.storage.storeVerification(verification.export());
 
   // Return the verification result
   return res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)

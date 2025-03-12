@@ -9,7 +9,7 @@ import {
 import { getAddress } from "ethers";
 import {
   VerificationStatus,
-  Verification,
+  VerificationExport,
 } from "@ethereum-sourcify/lib-sourcify";
 
 export const getFileRelativePath = (
@@ -89,7 +89,7 @@ export function getStatusDiff(
  * than the existing verification
  */
 export function isBetterVerification(
-  newVerification: Verification,
+  newVerification: VerificationExport,
   existingMatch: Match,
 ): boolean {
   if (

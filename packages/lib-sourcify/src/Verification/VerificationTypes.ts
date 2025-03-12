@@ -57,6 +57,8 @@ export type VerificationStatus =
   | 'error'
   | null;
 
+// When changing this type, be sure that it doesn't break the behavior
+// of the server's storage services.
 export interface VerificationExport {
   address: string;
   chainId: number;
@@ -89,6 +91,8 @@ export interface VerificationExport {
   compilation: {
     language: CompilationLanguage;
     compilationTarget: CompilationTarget;
+    compilerVersion: string;
+    sources: StringMap;
     compilerOutput: {
       // The export should not include the AST object to reduce the size
       sources?: Record<string, { id: number }>;
@@ -106,7 +110,6 @@ export interface VerificationExport {
         deployedBytecode: {
           sourceMap?: string;
           linkReferences?: LinkReferences;
-          immutableReferences?: ImmutableReferences;
         };
       };
     };
@@ -114,6 +117,7 @@ export interface VerificationExport {
     creationBytecode?: string;
     runtimeBytecodeCborAuxdata?: CompiledContractCborAuxdata;
     creationBytecodeCborAuxdata?: CompiledContractCborAuxdata;
+    immutableReferences?: ImmutableReferences;
     metadata?: Metadata;
     jsonInput: {
       settings: SoliditySettings | VyperSettings;

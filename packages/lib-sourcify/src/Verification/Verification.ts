@@ -33,6 +33,7 @@ import {
   VerificationStatus,
 } from './VerificationTypes';
 import {
+  ImmutableReferences,
   SolidityOutputContract,
   SoliditySettings,
 } from '../Compilation/SolidityTypes';
@@ -595,6 +596,13 @@ export class Verification {
       // pass
     }
 
+    let immutableReferences: ImmutableReferences | undefined;
+    try {
+      immutableReferences = this.compilation.immutableReferences;
+    } catch {
+      // pass
+    }
+
     return {
       address: this.address,
       chainId: this.chainId,
@@ -607,6 +615,8 @@ export class Verification {
       compilation: {
         language: this.compilation.language,
         compilationTarget: this.compilation.compilationTarget,
+        compilerVersion: this.compilation.compilerVersion,
+        sources: this.compilation.sources,
         compilerOutput: { sources: compilerOutputSources },
         contractCompilerOutput: {
           abi: contractCompilerOutput?.abi,
@@ -626,9 +636,6 @@ export class Verification {
                 contractCompilerOutput?.evm?.deployedBytecode?.sourceMap,
               linkReferences: (contractCompilerOutput as SolidityOutputContract)
                 ?.evm?.deployedBytecode?.linkReferences,
-              immutableReferences: (
-                contractCompilerOutput as SolidityOutputContract
-              )?.evm?.deployedBytecode?.immutableReferences,
             },
           },
         },
@@ -636,6 +643,7 @@ export class Verification {
         creationBytecode: recompiledCreationBytecode,
         runtimeBytecodeCborAuxdata,
         creationBytecodeCborAuxdata,
+        immutableReferences: immutableReferences,
         metadata,
         jsonInput: {
           settings: this.compilation.jsonInput.settings,

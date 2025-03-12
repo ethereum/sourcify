@@ -1,4 +1,4 @@
-import { Verification } from "@ethereum-sourcify/lib-sourcify";
+import { VerificationExport } from "@ethereum-sourcify/lib-sourcify";
 import {
   RepositoryV1Service,
   RepositoryV1ServiceOptions,
@@ -43,7 +43,7 @@ import { Field } from "./utils/database-util";
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
   init(): Promise<boolean>;
-  storeVerification?(verification: Verification): Promise<void>;
+  storeVerification?(verification: VerificationExport): Promise<void>;
 }
 
 export interface RWStorageService extends WStorageService {
@@ -283,7 +283,7 @@ export class StorageService {
     }
   }
 
-  async storeVerification(verification: Verification) {
+  async storeVerification(verification: VerificationExport) {
     logger.info("Storing verification on StorageService", {
       address: verification.address,
       chainId: verification.chainId,

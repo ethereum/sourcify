@@ -1,6 +1,5 @@
 import {
   ImmutableReferences,
-  Libraries,
   Metadata,
   VerificationStatus,
   StorageLayout,
@@ -12,7 +11,7 @@ import {
   SolidityJsonInput,
   SolidityOutput,
   VyperOutput,
-  Verification,
+  VerificationExport,
   SolidityOutputContract,
   SoliditySettings,
   VyperSettings,
@@ -469,7 +468,7 @@ export function bytesFromString<T extends BytesTypes>(
 //   Creation bytecode:
 //     1. Replace library address placeholders ("__$53aea86b7d70b31448b230b20ae141a537$__") with zeros
 //     2. Immutables are already set to zeros
-export function normalizeRecompiledBytecodes(verification: Verification) {
+export function normalizeRecompiledBytecodes(verification: VerificationExport) {
   let normalizedRuntimeBytecode = verification.compilation.runtimeBytecode;
   let normalizedCreationBytecode = verification.compilation.creationBytecode;
 
@@ -516,35 +515,26 @@ export function normalizeRecompiledBytecodes(verification: Verification) {
 }
 
 function getKeccak256Bytecodes(
-  verification: Verification,
-  normalizedCreationBytecode: string,
-  normalizedRuntimeBytecode: string,
+  verification: VerificationExport,
+  normalizedCreationBytecode: string | undefined,
+  normalizedRuntimeBytecode: string | undefined,
 ) {
-  if (verification.compilation.runtimeBytecode === undefined) {
+  if (normalizedRuntimeBytecode === undefined) {
     throw new Error("normalizedRuntimeBytecode cannot be undefined");
   }
   if (verification.onchainRuntimeBytecode === undefined) {
     throw new Error("onchainRuntimeBytecode cannot be undefined");
   }
 
-  let onchainCreationBytecode = undefined;
-  try {
-    onchainCreationBytecode = verification.onchainCreationBytecode;
-  } catch (e) {
-    // If the onchain creation bytecode is undefined, we don't store it
-  }
-
   return {
-    keccak256OnchainCreationBytecode: onchainCreationBytecode
-      ? keccak256(bytesFromString(onchainCreationBytecode))
+    keccak256OnchainCreationBytecode: verification.onchainCreationBytecode
+      ? keccak256(bytesFromString(verification.onchainCreationBytecode))
       : undefined,
     keccak256OnchainRuntimeBytecode: keccak256(
       bytesFromString(verification.onchainRuntimeBytecode),
     ),
     keccak256RecompiledCreationBytecode: normalizedCreationBytecode
-      ? keccak256(
-          bytesFromString(normalizedCreationBytecode), // eslint-disable-line indent
-        ) // eslint-disable-line indent
+      ? keccak256(bytesFromString(normalizedCreationBytecode))
       : undefined,
     keccak256RecompiledRuntimeBytecode: keccak256(
       bytesFromString(normalizedRuntimeBytecode),
@@ -552,7 +542,7 @@ function getKeccak256Bytecodes(
   };
 }
 export async function getDatabaseColumnsFromVerification(
-  verification: Verification,
+  verification: VerificationExport,
 ): Promise<DatabaseColumns> {
   // Normalize both creation and runtime recompiled bytecodes before storing them to the database
   const { normalizedRuntimeBytecode, normalizedCreationBytecode } =
@@ -618,19 +608,6 @@ export async function getDatabaseColumnsFromVerification(
   const compilationTargetName = verification.compilation.compilationTarget.name;
   const compilerOutput = verification.compilation.contractCompilerOutput;
 
-  // Prepare compilation_artifacts.sources by removing everything except id
-  let sources: Nullable<CompilationArtifactsSources> = null;
-  if (verification.compilation.compilerOutput?.sources) {
-    sources = {};
-    for (const source of Object.keys(
-      verification.compilation.compilerOutput.sources,
-    )) {
-      sources[source] = {
-        id: verification.compilation.compilerOutput.sources[source].id,
-      };
-    }
-  }
-
   // For some property we cast compilerOutput as SolidityOutputContract because VyperOutput does not have them
   const compilationArtifacts = {
     abi: compilerOutput?.abi || null,
@@ -638,7 +615,7 @@ export async function getDatabaseColumnsFromVerification(
     devdoc: compilerOutput?.devdoc || null,
     storageLayout:
       (compilerOutput as SolidityOutputContract)?.storageLayout || null,
-    sources,
+    sources: verification.compilation.compilerOutput?.sources || null,
   };
   const creationCodeArtifacts = {
     sourceMap:
@@ -649,14 +626,18 @@ export async function getDatabaseColumnsFromVerification(
         ?.linkReferences || null,
     cborAuxdata: verification.compilation.creationBytecodeCborAuxdata || null,
   };
+
+  let immutableReferences = null;
+  // immutableReferences for Vyper are not a compiler output and should not be stored
+  if (verification.compilation.language === "Solidity") {
+    immutableReferences = verification.compilation.immutableReferences || null;
+  }
   const runtimeCodeArtifacts = {
     sourceMap: compilerOutput?.evm.deployedBytecode?.sourceMap || null,
     linkReferences:
       (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
         ?.linkReferences || null,
-    immutableReferences:
-      (compilerOutput as SolidityOutputContract)?.evm?.deployedBytecode
-        ?.immutableReferences || null,
+    immutableReferences: immutableReferences,
     cborAuxdata: verification.compilation.runtimeBytecodeCborAuxdata || null,
   };
 
@@ -761,7 +742,7 @@ export async function getDatabaseColumnsFromVerification(
 }
 
 export function prepareCompilerSettingsFromVerification(
-  verification: Verification,
+  verification: VerificationExport,
 ): Omit<SoliditySettings | VyperSettings, "outputSelection"> {
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { outputSelection, ...restSettings } =

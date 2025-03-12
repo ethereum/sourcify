@@ -1,7 +1,7 @@
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
 import { WStorageService } from "../StorageService";
-import { Verification } from "@ethereum-sourcify/lib-sourcify";
+import { VerificationExport } from "@ethereum-sourcify/lib-sourcify";
 import { WStorageIdentifiers } from "./identifiers";
 
 export class AllianceDatabaseService
@@ -10,7 +10,7 @@ export class AllianceDatabaseService
 {
   IDENTIFIER = WStorageIdentifiers.AllianceDatabase;
 
-  async storeVerification(verification: Verification) {
+  async storeVerification(verification: VerificationExport) {
     if (!verification.status.creationMatch) {
       throw new Error("Can't store to AllianceDatabase without creationMatch");
     }

@@ -67,7 +67,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
   );
 
   // Store the verification result
-  await services.storage.storeVerification(verification);
+  await services.storage.storeVerification(verification.export());
 
   // Return the verification result
   res.send({ result: [getApiV1ResponseFromVerification(verification)] });
