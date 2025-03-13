@@ -506,8 +506,9 @@ ${
         AND chain_id = $1
         AND address = $2
         AND transaction_hash = $3
+        AND contract_id = $4
       `,
-        [chain_id, address, transaction_hash],
+        [chain_id, address, transaction_hash, contract_id],
       );
     }
     return contractDeploymentInsertResult;
