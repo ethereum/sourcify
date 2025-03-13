@@ -6,14 +6,14 @@ import apiV1Routes from "./apiv1/routes";
 
 const router: Router = Router();
 
-router.get("/health", (_req, res) =>
-  res.status(200).send("Alive and kicking!"),
-);
+router.get("/health", (_req, res) => {
+  res.status(200).send("Alive and kicking!");
+});
 
 // Authenticated route to change the logging level.
 // Authentication handled by the express-openapi-validator middleware
 router.post("/change-log-level", (req, res) => {
-  const { level } = req.body;
+  const { level } = req.body ?? {};
   try {
     setLogLevel(level);
     res.status(200).send(`Logging level changed to: ${level}`);

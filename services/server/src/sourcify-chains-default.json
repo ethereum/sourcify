@@ -1138,7 +1138,7 @@
   },
   "641230": {
     "sourcifyName": "Bear Network Chain Mainnet",
-    "supported": false,
+    "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://brnkscan.bearnetwork.net/"
@@ -1896,7 +1896,7 @@
   },
   "4000": {
     "sourcifyName": "Ozone Chain Mainnet",
-    "supported": false,
+    "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://ozonescan.io/"
@@ -2299,6 +2299,15 @@
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://explorer.testnet.citrea.xyz"
+      }
+    }
+  },
+  "180": {
+    "sourcifyName": "AME Chain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://amescan.io/"
       }
     }
   }

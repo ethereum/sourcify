@@ -841,13 +841,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // // Bear Network Chain Mainnet
-  // verifyContract(
-  //   "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
-  //   "641230",
-  //   "Bear Network Chain Mainnet",
-  //   "shared/",
-  // );
+  // Bear Network Chain Mainnet
+  verifyContract(
+    "0x115B83FE885D2Acf6099B6f3aAa75502CEBBA154",
+    "641230",
+    "Bear Network Chain Mainnet",
+    "shared/",
+  );
 
   // Lyra Mainnet
   verifyContract(
@@ -1433,12 +1433,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Ozone Chain Mainnet
-  // verifyContract(
-  //   "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
-  //   "4000",
-  //   "Ozone Chain Mainnet",
-  //   "shared/",
-  // );
+  verifyContract(
+    "0xf776d21c74BEde463E0Ac7aD7cF12a9b2c904D03",
+    "4000",
+    "Ozone Chain Mainnet",
+    "shared/",
+  );
 
   // Endurance Smart Chain Mainnet
   verifyContract(
@@ -1796,6 +1796,14 @@ describe("Test Supported Chains", function () {
     "0xad90c25cA57A3871241D88c42dca829ae59EC144",
     "5115",
     "Citrea Testnet",
+    "shared/",
+  );
+
+  // Citrea Testnet
+  verifyContract(
+    "0xF32a986F3741cC19Cfe05B806b3ECBAe7eB5F4eA",
+    "180",
+    "AME Chain Mainnet",
     "shared/",
   );
 

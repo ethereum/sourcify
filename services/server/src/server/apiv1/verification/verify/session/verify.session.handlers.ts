@@ -32,7 +32,7 @@ export async function verifyContractsInSessionEndpoint(
 
   const dryRun = Boolean(req.query.dryrun);
 
-  const receivedContracts: SendableContract[] = req.body.contracts;
+  const receivedContracts: SendableContract[] = req.body?.contracts;
 
   /* eslint-disable indent */
   logger.info("verifyContractsInSession", {
