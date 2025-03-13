@@ -56,7 +56,7 @@ paths:
       tags:
         - Verify Contracts
       summary: Verify Contract (using Solidity metadata.json)
-      description: Endpoint to submit a verification with the Solidity metadata.json
+      description: 'Endpoint to submit a verification with the Solidity [metadata.json](https://docs.soliditylang.org/en/latest/metadata.html)'
       operationId: verify-metadata
       parameters:
         - $ref: '#/components/parameters/chainId'
@@ -277,7 +277,7 @@ components:
                 $ref: '#/components/schemas/Language'
               stdJsonInput:
                 type: object
-                description: 'Full [standard JSON object](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description) to pass to the compiler'
+                description: 'Full [standard JSON object](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description) to pass to the compiler.'
               compilerVersion:
                 $ref: '#/components/schemas/SolidityCompilerVersion'
               contractIdentifier:
@@ -285,8 +285,17 @@ components:
                 description: The fully qualified file path and contract name to indicate which contract to verify.
                 examples:
                   - 'contracts/Storage.sol:Storage'
+              creationTransactionHash:
+                $ref: '#/components/schemas/Keccak256'
+                description: The hash of the transaction that created this contract. Optional.
               dryRun:
                 type: boolean
+                description: 'If true, the result is not stored on the Sourcify server.'
+                default: false
+            required:
+              - stdJsonInput
+              - compilerVersion
+              - contractIdentifier
     MetadataVerificationRequest:
       description: ''
       content:
@@ -300,8 +309,13 @@ components:
                   type: string
               metadata:
                 type: object
+              creationTransactionHash:
+                $ref: '#/components/schemas/Keccak256'
+                description: The hash of the transaction that created this contract. Optional.
               dryRun:
                 type: boolean
+                description: 'If true, the result is not stored on the Sourcify server.'
+                default: false
             required:
               - sources
           examples:
@@ -344,9 +358,11 @@ components:
             properties:
               apiKey:
                 type: string
-                description: API key to use when importing from the Etherscan instance or Etherscan-alike API
+                description: API key to use when importing from the Etherscan instance or Etherscan-alike API.
               dryRun:
                 type: boolean
+                description: 'If true, the result is not stored on the Sourcify server.'
+                default: false
   responses:
     VerificationJobResponse:
       description: |-
@@ -427,7 +443,7 @@ components:
                   recompiledRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
                   onchainCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
                   onchainRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
-                  creatorTransactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+                  creationTransactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
                 contract:
                   match: null
                   creationMatch: null
@@ -981,6 +997,12 @@ components:
       pattern: 'v\d+\.\d+\.\d+(-nightly\.\d{4}\.\d+\.\d+)?\+commit\.[a-f0-9]{8}'
       examples:
         - 0.8.7+commit.e28d00a7
+    Keccak256:
+      type: string
+      title: Keccak256
+      pattern: '(\b0x[a-f0-9]{64}\b)'
+      examples:
+        - '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
     MatchingErrorResponse:
       examples:
         - customCode: non_matching_bytecodes
@@ -990,7 +1012,7 @@ components:
           recompiledRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
           onchainCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
           onchainRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
-          creatorTransactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+          creationTransactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
       allOf:
         - $ref: '#/components/schemas/GenericErrorResponse'
         - type: object
@@ -1003,7 +1025,7 @@ components:
               $ref: '#/components/schemas/BytecodeString'
             onchainRuntimeCode:
               $ref: '#/components/schemas/BytecodeString'
-            creatorTransactionHash:
+            creationTransactionHash:
               $ref: '#/components/schemas/Keccak256'
     GenericErrorResponse:
       type: object
@@ -1036,12 +1058,6 @@ components:
       pattern: '^0x([0-9|a-f][0-9|a-f])*$'
       examples:
         - '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
-    Keccak256:
-      type: string
-      title: Keccak256
-      pattern: '(\b0x[a-f0-9]{64}\b)'
-      examples:
-        - '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
     VerifiedContractMinimal:
       type: object
       title: VerifiedContractMinimal
