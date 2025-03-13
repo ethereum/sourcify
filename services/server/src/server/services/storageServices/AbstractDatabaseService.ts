@@ -1,4 +1,4 @@
-import { Verification } from "@ethereum-sourcify/lib-sourcify";
+import { VerificationExport } from "@ethereum-sourcify/lib-sourcify";
 import * as DatabaseUtil from "../utils/database-util";
 import { bytesFromString } from "../utils/database-util";
 import { Database, DatabaseOptions } from "../utils/Database";
@@ -16,20 +16,26 @@ export default abstract class AbstractDatabaseService {
     return await this.database.initDatabasePool(this.IDENTIFIER);
   }
 
-  validateVerificationBeforeStoring(verification: Verification): boolean {
+  validateVerificationBeforeStoring(verification: VerificationExport): boolean {
     if (
-      verification.compilation.runtimeBytecode === undefined ||
-      verification.compilation.creationBytecode === undefined ||
-      verification.status.runtimeMatch === undefined ||
-      verification.status.creationMatch === undefined
+      verification.status.runtimeMatch === null ||
+      verification.status.creationMatch === null
     ) {
       throw new Error(
-        `can only store contracts with both runtimeBytecode and creationBytecode address=${verification.address} chainId=${verification.chainId}`,
+        `can only store contracts with both runtimeMatch and creationMatch. address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
+    if (
+      verification.compilation.runtimeBytecode === undefined ||
+      verification.compilation.creationBytecode === undefined
+    ) {
+      throw new Error(
+        `can only store contracts with both runtimeBytecode and creationBytecode. address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     if (verification.deploymentInfo.txHash === undefined) {
       throw new Error(
-        `can only store matches with creatorTxHash address=${verification.address} chainId=${verification.chainId}`,
+        `can only store matches with creatorTxHash. address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     return true;
@@ -238,7 +244,7 @@ export default abstract class AbstractDatabaseService {
     }
   }
 
-  async insertOrUpdateVerification(verification: Verification): Promise<{
+  async insertOrUpdateVerification(verification: VerificationExport): Promise<{
     type: "update" | "insert";
     verifiedContractId: string | false;
     oldVerifiedContractId?: string;

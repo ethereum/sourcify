@@ -565,7 +565,7 @@ export const verifyContractsInSession = async (
 
       // Store the verification result
       if (!dryRun) {
-        await storageService.storeVerification(verification);
+        await storageService.storeVerification(verification.export());
       }
 
       // Update contract wrapper with verification result

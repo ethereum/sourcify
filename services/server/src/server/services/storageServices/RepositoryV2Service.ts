@@ -10,7 +10,7 @@ import fs from "fs";
 import {
   VerificationStatus,
   StringMap,
-  Verification,
+  VerificationExport,
 } from "@ethereum-sourcify/lib-sourcify";
 import { V1MatchLevelWithoutAny, MatchQuality, PathConfig } from "../../types";
 import logger from "../../../common/logger";
@@ -88,7 +88,7 @@ export class RepositoryV2Service implements WStorageService {
     logger.silly(`Saved file to ${this.IDENTIFIER}`, { abolsutePath });
   }
 
-  public async storeVerification(verification: Verification) {
+  public async storeVerification(verification: VerificationExport) {
     if (
       verification.address &&
       (verification.status.runtimeMatch === "perfect" ||

@@ -88,7 +88,7 @@ export async function verifyVyper(
   );
 
   // Store verification result
-  await services.storage.storeVerification(verification);
+  await services.storage.storeVerification(verification.export());
 
   // Return the result
   return res.send({

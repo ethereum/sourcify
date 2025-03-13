@@ -4,7 +4,7 @@ import fs from "fs";
 import {
   VerificationStatus,
   StringMap,
-  Verification,
+  VerificationExport,
 } from "@ethereum-sourcify/lib-sourcify";
 import {
   ContractData,
@@ -492,7 +492,7 @@ export class RepositoryV1Service implements RWStorageService {
     return { sanitizedPath, originalPath };
   }
 
-  public async storeVerification(verification: Verification) {
+  public async storeVerification(verification: VerificationExport) {
     if (
       verification.address &&
       (verification.status.runtimeMatch === "perfect" ||

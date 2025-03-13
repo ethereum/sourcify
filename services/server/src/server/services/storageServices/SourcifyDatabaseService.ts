@@ -1,7 +1,7 @@
 import {
   VerificationStatus,
   StringMap,
-  Verification,
+  VerificationExport,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
@@ -535,13 +535,21 @@ export class SourcifyDatabaseService
     return response;
   };
 
-  validateVerificationBeforeStoring(verification: Verification): boolean {
+  validateVerificationBeforeStoring(verification: VerificationExport): boolean {
+    if (
+      verification.status.runtimeMatch === null &&
+      verification.status.creationMatch === null
+    ) {
+      throw new Error(
+        `can only store contracts with at least runtimeMatch or creationMatch. address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
     if (
       verification.compilation.runtimeBytecode === undefined &&
       verification.compilation.creationBytecode === undefined
     ) {
       throw new Error(
-        `can only store contracts with at least runtimeBytecode or creationBytecode address=${verification.address} chainId=${verification.chainId}`,
+        `can only store contracts with at least runtimeBytecode or creationBytecode. address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     return true;
@@ -794,7 +802,7 @@ export class SourcifyDatabaseService
   };
 
   // Override this method to include the SourcifyMatch
-  async storeVerification(verification: Verification) {
+  async storeVerification(verification: VerificationExport) {
     const { type, verifiedContractId, oldVerifiedContractId } =
       await super.insertOrUpdateVerification(verification);
 

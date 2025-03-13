@@ -121,7 +121,7 @@ export async function legacyVerifyEndpoint(
     }
   }
 
-  await services.storage.storeVerification(verification);
+  await services.storage.storeVerification(verification.export());
   return res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
 }
 
@@ -231,7 +231,7 @@ export async function verifyDeprecated(
     (verification as any).deployer = undefined; // null bytea
 
     // Store the verification
-    await services.storage.storeVerification(verification);
+    await services.storage.storeVerification(verification.export());
 
     return res.send({
       result: [getApiV1ResponseFromVerification(verification)],
