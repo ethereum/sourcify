@@ -1138,7 +1138,7 @@
   },
   "641230": {
     "sourcifyName": "Bear Network Chain Mainnet",
-    "supported": false,
+    "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutScrape": {
         "url": "https://brnkscan.bearnetwork.net/"
@@ -2311,5 +2311,4 @@
       }
     }
   }
-
 }
