@@ -18,16 +18,24 @@ export default abstract class AbstractDatabaseService {
 
   validateVerificationBeforeStoring(verification: VerificationExport): boolean {
     if (
+      verification.status.runtimeMatch === null ||
+      verification.status.creationMatch === null
+    ) {
+      throw new Error(
+        `can only store contracts with both runtimeMatch and creationMatch. address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
+    if (
       verification.compilation.runtimeBytecode === undefined ||
       verification.compilation.creationBytecode === undefined
     ) {
       throw new Error(
-        `can only store contracts with both runtimeBytecode and creationBytecode address=${verification.address} chainId=${verification.chainId}`,
+        `can only store contracts with both runtimeBytecode and creationBytecode. address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     if (verification.deploymentInfo.txHash === undefined) {
       throw new Error(
-        `can only store matches with creatorTxHash address=${verification.address} chainId=${verification.chainId}`,
+        `can only store matches with creatorTxHash. address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     return true;

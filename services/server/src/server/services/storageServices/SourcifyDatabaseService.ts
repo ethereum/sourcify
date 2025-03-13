@@ -537,11 +537,19 @@ export class SourcifyDatabaseService
 
   validateVerificationBeforeStoring(verification: VerificationExport): boolean {
     if (
+      verification.status.runtimeMatch === null &&
+      verification.status.creationMatch === null
+    ) {
+      throw new Error(
+        `can only store contracts with at least runtimeMatch or creationMatch. address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
+    if (
       verification.compilation.runtimeBytecode === undefined &&
       verification.compilation.creationBytecode === undefined
     ) {
       throw new Error(
-        `can only store contracts with at least runtimeBytecode or creationBytecode address=${verification.address} chainId=${verification.chainId}`,
+        `can only store contracts with at least runtimeBytecode or creationBytecode. address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     return true;
