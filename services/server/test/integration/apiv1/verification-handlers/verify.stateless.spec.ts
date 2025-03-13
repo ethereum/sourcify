@@ -370,7 +370,7 @@ describe("/", function () {
 
     const contractDeploymentWithoutCreatorTransactionHash =
       await serverFixture.sourcifyDatabase.query(
-        "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments order by id desc limit 1",
+        "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments",
       );
 
     const contractIdWithoutCreatorTransactionHash =
@@ -404,7 +404,7 @@ describe("/", function () {
 
     const contractDeploymentWithCreatorTransactionHash =
       await serverFixture.sourcifyDatabase.query(
-        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments order by id desc limit 1",
+        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments order by created_at desc limit 1",
       );
 
     const contractIdWithCreatorTransactionHash =
