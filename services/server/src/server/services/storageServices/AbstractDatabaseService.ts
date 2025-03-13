@@ -419,19 +419,15 @@ export default abstract class AbstractDatabaseService {
       // Start the sql transaction
       await client.query("BEGIN");
 
-      let recompiledCreationCodeInsertResult:
-        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
-        | undefined;
-      let onchainCreationCodeInsertResult:
-        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
-        | undefined;
+      let contractDeploymentId: string =
+        existingVerifiedContractResult[0].deployment_id;
       // Check if contracts_deployed needs to be updated
       if (
         existingVerifiedContractResult[0].transaction_hash === null &&
         match.creatorTxHash != null &&
         databaseColumns.onchainCreationCode
       ) {
-        onchainCreationCodeInsertResult = await this.database.insertCode(
+        const onchainCreationCodeInsertResult = await this.database.insertCode(
           client,
           databaseColumns.onchainCreationCode,
         );
@@ -453,14 +449,18 @@ export default abstract class AbstractDatabaseService {
         );
 
         // add the onchain contract in contract_deployments
-        await this.database.updateContractDeployment(client, {
-          ...databaseColumns.contractDeployment,
-          contract_id: contractInsertResult.rows[0].id,
-          id: existingVerifiedContractResult[0].deployment_id,
-        });
+        const contractDeploymentInsertResult =
+          await this.database.insertContractDeployment(client, {
+            ...databaseColumns.contractDeployment,
+            contract_id: contractInsertResult.rows[0].id,
+          });
+        contractDeploymentId = contractDeploymentInsertResult.rows[0].id;
       }
 
       // Add recompiled bytecodes
+      let recompiledCreationCodeInsertResult:
+        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
+        | undefined;
       if (
         recompiledContract.normalizedCreationBytecode &&
         databaseColumns.recompiledCreationCode
@@ -497,7 +497,7 @@ export default abstract class AbstractDatabaseService {
         await this.database.insertVerifiedContract(client, {
           ...databaseColumns.verifiedContract,
           compilation_id: compiledContractsInsertResult.rows[0].id,
-          deployment_id: existingVerifiedContractResult[0].deployment_id,
+          deployment_id: contractDeploymentId,
         });
 
       // Commit the transaction

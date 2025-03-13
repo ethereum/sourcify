@@ -107,6 +107,11 @@ exports.up = function (db, callback) {
             CONSTRAINT verification_jobs_ephemeral_id_fk FOREIGN KEY (id) REFERENCES verification_jobs(id) ON DELETE CASCADE ON UPDATE CASCADE
         );`,
       ),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE contract_deployments DROP CONSTRAINT contract_deployments_pseudo_pkey;
+        ALTER TABLE contract_deployments ADD CONSTRAINT contract_deployments_pseudo_pkey UNIQUE (chain_id, address, transaction_hash, contract_id);`,
+      ),
     ],
     callback,
   );
@@ -142,6 +147,11 @@ exports.down = function (db, callback) {
       db.runSql.bind(
         db,
         `ALTER TABLE contracts ALTER COLUMN creation_code_hash SET NOT NULL;`,
+      ),
+      db.runSql.bind(
+        db,
+        `ALTER TABLE contract_deployments DROP CONSTRAINT IF EXISTS contract_deployments_pseudo_pkey;
+        ALTER TABLE contract_deployments ADD CONSTRAINT contract_deployments_pseudo_pkey UNIQUE (chain_id, address, transaction_hash);`,
       ),
     ],
     callback,

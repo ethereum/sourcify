@@ -370,7 +370,7 @@ describe("/", function () {
 
     const contractDeploymentWithoutCreatorTransactionHash =
       await serverFixture.sourcifyDatabase.query(
-        "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments",
+        "SELECT transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments order by id desc limit 1",
       );
 
     const contractIdWithoutCreatorTransactionHash =
@@ -404,7 +404,7 @@ describe("/", function () {
 
     const contractDeploymentWithCreatorTransactionHash =
       await serverFixture.sourcifyDatabase.query(
-        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments",
+        "SELECT encode(transaction_hash, 'hex') as transaction_hash, block_number, transaction_index, contract_id FROM contract_deployments order by id desc limit 1",
       );
 
     const contractIdWithCreatorTransactionHash =
@@ -438,13 +438,16 @@ describe("/", function () {
     ]);
 
     const verifiedContractsResult = await serverFixture.sourcifyDatabase.query(
-      "SELECT creation_match FROM verified_contracts",
+      "SELECT creation_match FROM verified_contracts order by id desc",
     );
 
-    chai.expect(verifiedContractsResult?.rows).to.have.length(1);
+    chai.expect(verifiedContractsResult?.rows).to.have.length(2);
     chai.expect(verifiedContractsResult?.rows).to.deep.equal([
       {
         creation_match: true,
+      },
+      {
+        creation_match: false,
       },
     ]);
   });
