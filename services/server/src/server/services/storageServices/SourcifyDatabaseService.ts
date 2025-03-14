@@ -41,7 +41,7 @@ import semver from "semver";
 import { DatabaseOptions } from "../utils/Database";
 import {
   getVerificationErrorMessage,
-  VerificationError,
+  VerificationErrorCode,
 } from "../../apiv2/errors";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
@@ -783,18 +783,20 @@ export class SourcifyDatabaseService
 
     if (row.error_code && row.error_id) {
       job.error = {
-        customCode: row.error_code as VerificationError,
+        customCode: row.error_code as VerificationErrorCode,
         message: getVerificationErrorMessage(
-          row.error_code as VerificationError,
-          row.chain_id,
-          address,
+          row.error_code as VerificationErrorCode,
+          {
+            chainId: row.chain_id,
+            address,
+          },
         ),
         errorId: row.error_id,
         recompiledCreationCode: row.recompiled_creation_code || undefined,
         recompiledRuntimeCode: row.recompiled_runtime_code || undefined,
         onchainCreationCode: row.onchain_creation_code || undefined,
         onchainRuntimeCode: row.onchain_runtime_code || undefined,
-        creatorTransactionHash: row.creator_transaction_hash || undefined,
+        creationTransactionHash: row.creator_transaction_hash || undefined,
       };
     }
 
