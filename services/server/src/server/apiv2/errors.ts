@@ -4,12 +4,17 @@ import {
   InternalServerError,
 } from "../../common/errors";
 import { v4 as uuidv4 } from "uuid";
-import { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction } from "express";
 import { error as openApiValidatorErrors } from "express-openapi-validator";
 import logger from "../../common/logger";
+import {
+  ErrorMessagePayload,
+  getErrorMessageFromCode,
+  SourcifyLibErrorCode,
+} from "@ethereum-sourcify/lib-sourcify";
 
 export type ErrorCode =
-  | VerificationError
+  | VerificationErrorCode
   | "unknown_error"
   | "route_not_found"
   | "unsupported_chain"
@@ -24,11 +29,18 @@ export interface GenericErrorResponse {
 }
 
 export interface MatchingErrorResponse extends GenericErrorResponse {
+  customCode: VerificationErrorCode;
   recompiledCreationCode?: string;
   recompiledRuntimeCode?: string;
   onchainCreationCode?: string;
   onchainRuntimeCode?: string;
-  creatorTransactionHash?: string;
+  creationTransactionHash?: string;
+}
+
+export class MatchingError extends Error {
+  constructor(public response: MatchingErrorResponse) {
+    super(response.message);
+  }
 }
 
 export class UnknownError extends InternalServerError {
@@ -121,23 +133,21 @@ export function errorHandler(
   next(new UnknownError("The server encountered an unexpected error."));
 }
 
-// TODO: Add sensible error codes here,
-// possibly from lib-sourcify after the verification flow refactoring
-export type VerificationError =
-  | "non_existing_contract"
-  | "non_matching_bytecodes";
+export type VerificationErrorCode =
+  | SourcifyLibErrorCode
+  | "unsupported_language"
+  | "unknown_error";
 
 export function getVerificationErrorMessage(
-  code: VerificationError,
-  chainId: string,
-  address: string,
+  code: VerificationErrorCode,
+  payload?: ErrorMessagePayload,
 ) {
   switch (code) {
-    case "non_existing_contract":
-      return `Contract ${address} does not exist on chain ${chainId}`;
-    case "non_matching_bytecodes":
-      return `The onchain and recompiled bytecodes don't match`;
+    case "unsupported_language":
+      return "The provided language is not supported.";
+    case "unknown_error":
+      return "The server encountered an unexpected error.";
     default:
-      return `Unknown verification error`;
+      return getErrorMessageFromCode(code, payload);
   }
 }
