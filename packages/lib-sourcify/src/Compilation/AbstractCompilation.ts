@@ -34,6 +34,7 @@ export abstract class AbstractCompilation {
 
   protected _metadata?: Metadata;
   compilerOutput?: SolidityOutput | VyperOutput;
+  compilationTime?: number;
 
   abstract auxdataStyle: AuxdataStyle;
   abstract language: CompilationLanguage;
@@ -86,14 +87,14 @@ export abstract class AbstractCompilation {
     const compilationTargetContract = this.contractCompilerOutput;
 
     const compilationEndTime = Date.now();
-    const compilationDuration = compilationEndTime - compilationStartTime;
+    this.compilationTime = compilationEndTime - compilationStartTime;
     logSilly('Compilation output', { compilerOutput: this.compilerOutput });
     logInfo('Compiled contract', {
       version,
       contract: this.compilationTarget.name,
       path: this.compilationTarget.path,
       forceEmscripten,
-      compilationDuration: `${compilationDuration}ms`,
+      compilationDuration: `${this.compilationTime}ms`,
     });
 
     return compilationTargetContract;
