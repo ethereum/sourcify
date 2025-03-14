@@ -117,10 +117,7 @@ export class VyperCompilation extends AbstractCompilation {
           .split('+')[0]
           .replace(/(b\d+|rc\d+)$/, '')}+${this.compilerVersion.split('+')[1]}`;
       } else {
-        throw new CompilationError(
-          'Invalid Vyper compiler version',
-          'invalid_compiler_version',
-        );
+        throw new CompilationError('invalid_compiler_version');
       }
     }
 
@@ -214,10 +211,7 @@ export class VyperCompilation extends AbstractCompilation {
       logWarn('Cannot generate cbor auxdata positions', {
         error,
       });
-      throw new CompilationError(
-        'Cannot generate cbor auxdata positions',
-        'cannot_generate_cbor_auxdata_positions',
-      );
+      throw new CompilationError('cannot_generate_cbor_auxdata_positions');
     }
   }
 

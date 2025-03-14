@@ -15,7 +15,7 @@ import {
   StorageLayout,
 } from '../Compilation/SolidityTypes';
 import { VyperSettings } from '../Compilation/VyperTypes';
-import { SourcifyLibError } from '../SourcifyLibError';
+import { ErrorMessagePayload, SourcifyLibError } from '../SourcifyLibError';
 import { Transformation, TransformationValues } from './Transformations';
 
 export interface BytecodeMatchingResult {
@@ -28,7 +28,7 @@ export interface BytecodeMatchingResult {
 }
 
 export type VerificationErrorCode =
-  | 'cant_fetch_bytecode'
+  | 'cannot_fetch_bytecode'
   | 'contract_not_deployed'
   | 'compiled_bytecode_is_zero'
   | 'extra_file_input_bug'
@@ -39,8 +39,8 @@ export type VerificationErrorCode =
   | 'bytecode_length_mismatch';
 
 export class VerificationError extends SourcifyLibError {
-  constructor(message: string, code: VerificationErrorCode) {
-    super(message, code);
+  constructor(code: VerificationErrorCode, payload?: ErrorMessagePayload) {
+    super(code, payload);
   }
 }
 

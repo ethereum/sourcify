@@ -28,5 +28,8 @@ export { unzipFiles } from './Validation/zipUtils';
 export { default as SourcifyChain } from './SourcifyChain/SourcifyChain';
 export * from './SourcifyChain/SourcifyChainTypes';
 
+// SourcifyLibError exports
+export * from './SourcifyLibError';
+
 // Utils exports
 export * from './utils';

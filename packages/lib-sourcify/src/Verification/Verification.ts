@@ -79,17 +79,17 @@ export class Verification {
         this.address,
       );
     } catch (e: any) {
-      throw new VerificationError(
-        `Cannot fetch bytecode for chain #${this.sourcifyChain.chainId} and address ${this.address}`,
-        'cant_fetch_bytecode',
-      );
+      throw new VerificationError('cannot_fetch_bytecode', {
+        address: this.address,
+        chainId: this.sourcifyChain.chainId.toString(),
+      });
     }
 
     if (this.onchainRuntimeBytecode === '0x') {
-      throw new VerificationError(
-        `Chain #${this.sourcifyChain.chainId} does not have a contract deployed at ${this.address}.`,
-        'contract_not_deployed',
-      );
+      throw new VerificationError('contract_not_deployed', {
+        address: this.address,
+        chainId: this.sourcifyChain.chainId.toString(),
+      });
     }
 
     // Compile the contract
@@ -99,10 +99,7 @@ export class Verification {
     const compiledCreationBytecode = this.compilation.creationBytecode;
 
     if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
-      throw new VerificationError(
-        `The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?`,
-        'compiled_bytecode_is_zero',
-      );
+      throw new VerificationError('compiled_bytecode_is_zero');
     }
 
     // Early bytecode length check:
@@ -121,16 +118,10 @@ export class Verification {
       if (this.compilation instanceof SolidityCompilation) {
         const solidityBugType = this.handleSolidityExtraFileInputBug();
         if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
-          throw new VerificationError(
-            "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-            'extra_file_input_bug',
-          );
+          throw new VerificationError('extra_file_input_bug');
         }
       }
-      throw new VerificationError(
-        `The recompiled bytecode length doesn't match the onchain bytecode length.`,
-        'bytecode_length_mismatch',
-      );
+      throw new VerificationError('bytecode_length_mismatch');
     }
 
     // We need to manually generate the auxdata positions because they are not automatically produced during compilation
@@ -164,10 +155,7 @@ export class Verification {
       // Handle Solidity extra file input bug
       let solidityBugType = this.handleSolidityExtraFileInputBug();
       if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
-        throw new VerificationError(
-          "It seems your contract's metadata hashes match but not the bytecodes. If you are verifying via metadata.json, use the original full standard JSON input file that has all files including those not needed by this contract. See the issue for more information: https://github.com/ethereum/sourcify/issues/618",
-          'extra_file_input_bug',
-        );
+        throw new VerificationError('extra_file_input_bug');
       }
 
       // Handle Solidity IR output ordering bug
@@ -223,10 +211,7 @@ export class Verification {
       return;
     }
 
-    throw new VerificationError(
-      "The deployed and recompiled bytecode don't match.",
-      'no_match',
-    );
+    throw new VerificationError('no_match');
   }
 
   handleSolidityExtraFileInputBug(): SolidityBugType {
@@ -470,20 +455,14 @@ export class Verification {
 
   get onchainRuntimeBytecode() {
     if (!this._onchainRuntimeBytecode) {
-      throw new VerificationError(
-        'Onchain runtime bytecode not available',
-        'onchain_runtime_bytecode_not_available',
-      );
+      throw new VerificationError('onchain_runtime_bytecode_not_available');
     }
     return this._onchainRuntimeBytecode;
   }
 
   get onchainCreationBytecode() {
     if (!this._onchainCreationBytecode) {
-      throw new VerificationError(
-        'Onchain creation bytecode not available',
-        'onchain_creation_bytecode_not_available',
-      );
+      throw new VerificationError('onchain_creation_bytecode_not_available');
     }
     return this._onchainCreationBytecode;
   }
