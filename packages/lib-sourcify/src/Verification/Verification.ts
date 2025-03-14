@@ -627,6 +627,7 @@ export class Verification {
         jsonInput: {
           settings: this.compilation.jsonInput.settings,
         },
+        compilationTime: this.compilation.compilationTime,
       },
     };
   }

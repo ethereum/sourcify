@@ -122,5 +122,6 @@ export interface VerificationExport {
     jsonInput: {
       settings: SoliditySettings | VyperSettings;
     };
+    compilationTime?: number;
   };
 }
