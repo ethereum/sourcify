@@ -64,16 +64,22 @@ export abstract class AbstractCompilation {
       forceEmscripten,
     });
     logSilly('Compilation input', { solcJsonInput: this.jsonInput });
-    this.compilerOutput = await this.compiler.compile(
-      version,
-      this.jsonInput as any,
-      forceEmscripten,
-    );
-    if (this.compilerOutput === undefined) {
+    try {
+      this.compilerOutput = await this.compiler.compile(
+        version,
+        this.jsonInput as any,
+        forceEmscripten,
+      );
+    } catch (e: any) {
       logWarn('Compiler error', {
-        errorMessages: ['compilerOutput is undefined'],
+        error: e.message,
       });
-      throw new CompilationError('Compiler error', 'compiler_error');
+      throw new CompilationError('compiler_error');
+    }
+
+    if (this.compilerOutput === undefined) {
+      logWarn('Compiler error: compilerOutput is undefined');
+      throw new CompilationError('no_compiler_output');
     }
 
     // We call contractCompilerOutput() before logging because it can throw an error
@@ -96,7 +102,7 @@ export abstract class AbstractCompilation {
   get contractCompilerOutput(): SolidityOutputContract | VyperOutputContract {
     if (!this.compilerOutput) {
       logWarn('Compiler output is undefined');
-      throw new Error('Compiler output is undefined');
+      throw new CompilationError('no_compiler_output');
     }
     if (
       !this.compilerOutput.contracts ||
@@ -105,9 +111,8 @@ export abstract class AbstractCompilation {
         this.compilationTarget.name
       ]
     ) {
-      const error = new Error('Contract not found in compiler output');
       logWarn('Contract not found in compiler output');
-      throw error;
+      throw new CompilationError('contract_not_found_in_compiler_output');
     }
     return this.compilerOutput.contracts[this.compilationTarget.path][
       this.compilationTarget.name
@@ -124,7 +129,7 @@ export abstract class AbstractCompilation {
 
   get metadata() {
     if (!this._metadata) {
-      throw new Error('Metadata is not set');
+      throw new CompilationError('metadata_not_set');
     }
     return this._metadata;
   }
@@ -142,14 +147,14 @@ export abstract class AbstractCompilation {
 
   get creationBytecodeCborAuxdata(): CompiledContractCborAuxdata {
     if (!this._creationBytecodeCborAuxdata) {
-      throw new Error('Creation bytecode cbor auxdata is not set');
+      throw new CompilationError('creation_bytecode_cbor_auxdata_not_set');
     }
     return this._creationBytecodeCborAuxdata;
   }
 
   get runtimeBytecodeCborAuxdata(): CompiledContractCborAuxdata {
     if (!this._runtimeBytecodeCborAuxdata) {
-      throw new Error('Runtime bytecode cbor auxdata is not set');
+      throw new CompilationError('runtime_bytecode_cbor_auxdata_not_set');
     }
     return this._runtimeBytecodeCborAuxdata;
   }

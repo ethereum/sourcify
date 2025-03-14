@@ -603,7 +603,7 @@ describe('Verification Class Tests', () => {
 
       await expect(verification.verify())
         .to.eventually.be.rejectedWith()
-        .and.have.property('code', 'cant_fetch_bytecode');
+        .and.have.property('code', 'cannot_fetch_bytecode');
     });
   });
 

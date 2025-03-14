@@ -235,7 +235,7 @@ describe('VyperCompilation', () => {
       await compilation.compile();
       expect.fail('Should have thrown an error');
     } catch (error: any) {
-      expect(error.message).to.equal('Contract not found in compiler output');
+      expect(error.message).to.equal('Contract not found in compiler output.');
     }
   });
 
@@ -399,7 +399,7 @@ describe('VyperCompilation', () => {
             path: contractFileName,
           },
         ),
-    ).to.throw('Invalid Vyper compiler version');
+    ).to.throw('Invalid compiler version');
   });
 
   it('should handle bytecode decoding errors in getImmutableReferences', async () => {
