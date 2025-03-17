@@ -28,7 +28,9 @@ exports.up = function (db, callback) {
         `ALTER TABLE contract_deployments ALTER COLUMN transaction_hash DROP NOT NULL;
         ALTER TABLE contract_deployments ALTER COLUMN block_number DROP NOT NULL;
         ALTER TABLE contract_deployments ALTER COLUMN transaction_index DROP NOT NULL;
-        ALTER TABLE contract_deployments ALTER COLUMN deployer DROP NOT NULL;`,
+        ALTER TABLE contract_deployments ALTER COLUMN deployer DROP NOT NULL;
+        ALTER TABLE contract_deployments DROP CONSTRAINT IF EXISTS contract_deployments_pseudo_pkey;
+        ALTER TABLE contract_deployments ADD CONSTRAINT contract_deployments_pseudo_pkey UNIQUE (chain_id, address, transaction_hash, contract_id);`,
       ),
       db.runSql.bind(
         db,
@@ -137,7 +139,9 @@ exports.down = function (db, callback) {
         `ALTER TABLE contract_deployments ALTER COLUMN deployer SET NOT NULL;
         ALTER TABLE contract_deployments ALTER COLUMN transaction_index SET NOT NULL;
         ALTER TABLE contract_deployments ALTER COLUMN block_number SET NOT NULL;
-        ALTER TABLE contract_deployments ALTER COLUMN transaction_hash SET NOT NULL;`,
+        ALTER TABLE contract_deployments ALTER COLUMN transaction_hash SET NOT NULL;
+        ALTER TABLE contract_deployments DROP CONSTRAINT IF EXISTS contract_deployments_pseudo_pkey;
+        ALTER TABLE contract_deployments ADD CONSTRAINT contract_deployments_pseudo_pkey UNIQUE (chain_id, address, transaction_hash);`,
       ),
       db.runSql.bind(
         db,
