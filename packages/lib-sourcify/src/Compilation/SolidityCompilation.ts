@@ -116,6 +116,10 @@ export class SolidityCompilation extends AbstractCompilation {
           this.auxdataStyle,
         );
 
+        if (!runtimeAuxdataCbor) {
+          throw new Error('runtimeAuxdataCbor is undefined');
+        }
+
         const auxdataFromRawRuntimeBytecode = `${runtimeAuxdataCbor}${runtimeCborLengthHex}`;
 
         // we divide by 2 because we store the length in bytes (without 0x)
@@ -134,6 +138,10 @@ export class SolidityCompilation extends AbstractCompilation {
           this.creationBytecode,
           this.auxdataStyle,
         );
+
+        if (!creationAuxdataCbor) {
+          throw new Error('creationAuxdataCbor is undefined');
+        }
 
         // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
         if (creationAuxdataCbor) {
