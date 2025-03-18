@@ -27,6 +27,7 @@ import {
   useSolidityCompiler,
 } from '@ethereum-sourcify/compilers';
 import { SourcifyChain } from '../../src';
+import Sinon from 'sinon';
 
 use(chaiAsPromised);
 
@@ -143,13 +144,22 @@ const hardhatChain = {
 
 const sourcifyChainHardhat: SourcifyChain = new SourcifyChain(hardhatChain);
 
-let hardhatNodeProcess: ChildProcess;
-let signer: JsonRpcSigner;
-
 describe('Verification Class Tests', () => {
+  let hardhatNodeProcess: ChildProcess;
+  let signer: JsonRpcSigner;
+  let sandbox: sinon.SinonSandbox;
+
   before(async () => {
     hardhatNodeProcess = await startHardhatNetwork(HARDHAT_PORT);
     signer = await sourcifyChainHardhat.providers[0].getSigner();
+  });
+
+  beforeEach(() => {
+    sandbox = Sinon.createSandbox();
+  });
+
+  afterEach(() => {
+    sandbox.restore();
   });
 
   after(async () => {
@@ -343,6 +353,33 @@ describe('Verification Class Tests', () => {
       });
     });
 
+    it('should fully verify a library with call protection when viaIR is enabled', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'CallProtectionForLibrariesViaIR',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
+        },
+      });
+    });
+
     it('should return partial match when there is perfect bytecode match but no auxdata', async () => {
       const contractFolderPath = path.join(
         __dirname,
@@ -370,6 +407,35 @@ describe('Verification Class Tests', () => {
           creationMatch: null,
         },
       });
+    });
+
+    it('should throw an error when generateCborAuxdataPositions failed for a contract with cborAuxdata', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Storage',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+
+      sandbox
+        .stub(compilation, 'generateCborAuxdataPositions')
+        .throws(new Error('Cbor auxdata positions could not be generated'));
+
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+
+      await expect(verification.verify()).to.eventually.be.rejectedWith(
+        "The deployed and recompiled bytecode don't match.",
+      );
     });
 
     it('should throw an error when bytecodes dont match and no auxdata to ignore for a partial match', async () => {
@@ -765,6 +831,40 @@ describe('Verification Class Tests', () => {
       );
 
       const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
+        },
+      });
+    });
+
+    // https://github.com/ethereum/sourcify/issues/1159
+    it('should verify a contract compiled with nightly solidity', async function () {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'Nightly',
+      );
+
+      // The artifact has the bytecode from the Emscripten compiler.
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      // Get compilation using the helper
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+
+      // Create and verify using the Verification class directly
       const verification = new Verification(
         compilation,
         sourcifyChainHardhat,

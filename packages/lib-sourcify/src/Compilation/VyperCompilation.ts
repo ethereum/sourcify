@@ -59,7 +59,6 @@ export class VyperCompilation extends AbstractCompilation {
         ...acc,
         [path]: {
           keccak256: keccak256str(source.content),
-          content: source.content,
         },
       }),
       {},

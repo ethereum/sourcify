@@ -64,14 +64,16 @@ export async function legacyVerifyEndpoint(
   try {
     await contract.fetchMissing();
   } catch (error: any) {
-    logger.silly("Error fetching missing files", {
+    logger.debug("Error fetching missing files", {
       error: error,
     });
   }
 
   if (!contract.isCompilable()) {
     throw new BadRequestError(
-      "Invalid or missing sources in:\n" + contract.name,
+      `Invalid or missing sources in ${contract.name}:\n` +
+        `Missing sources: ${Object.keys(contract.missingSources).join(", ")}\n` +
+        `Invalid sources: ${Object.keys(contract.invalidSources).join(", ")}`,
     );
   }
 
@@ -174,7 +176,7 @@ export async function verifyDeprecated(
   try {
     await contract.fetchMissing();
   } catch (error: any) {
-    logger.silly("Error fetching missing files", {
+    logger.debug("Error fetching missing files", {
       error: error,
     });
   }
