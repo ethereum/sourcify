@@ -283,64 +283,64 @@ describe('SourcifyChain', () => {
       ).to.be.rejectedWith('received empty or malformed response');
     });
   });
+});
 
-  describe('Unit tests', () => {
-    let hardhatNodeProcess: ChildProcess;
-    let sourcifyChain: SourcifyChain;
-    before(async () => {
-      hardhatNodeProcess = await startHardhatNetwork(8546);
-      sourcifyChain = new SourcifyChain({
-        name: 'TestChain',
-        chainId: 1,
-        rpc: ['http://localhost:8546'],
-        supported: true,
-        traceSupportedRPCs: [{ index: 0, type: 'trace_transaction' }],
-      });
+describe('SourcifyChain unit tests', () => {
+  let hardhatNodeProcess: ChildProcess;
+  let sourcifyChain: SourcifyChain;
+  before(async () => {
+    hardhatNodeProcess = await startHardhatNetwork(8546);
+    sourcifyChain = new SourcifyChain({
+      name: 'TestChain',
+      chainId: 1,
+      rpc: ['http://localhost:8546'],
+      supported: true,
+      traceSupportedRPCs: [{ index: 0, type: 'trace_transaction' }],
     });
-    after(async () => {
-      await stopHardhatNetwork(hardhatNodeProcess);
-    });
-    it("Should fail to instantiate with empty rpc's", function () {
-      const emptyRpc = { ...sourcifyChain, rpc: [] };
-      try {
-        new SourcifyChain(emptyRpc);
-        throw new Error('Should have failed');
-      } catch (err) {
-        if (err instanceof Error) {
-          expect(err.message).to.equal(
-            'No RPC provider was given for this chain with id ' +
-              emptyRpc.chainId +
-              ' and name ' +
-              emptyRpc.name,
-          );
-        } else {
-          throw err;
-        }
-      }
-    });
-    it('Should getBlock', async function () {
-      const block = await sourcifyChain.getBlock(0);
-      expect(block?.number).equals(0);
-    });
-    it('Should getBlockNumber', async function () {
-      const blockNumber = await sourcifyChain.getBlockNumber();
-      expect(blockNumber > 0);
-    });
-    it('Should fail to get non-existing transaction', async function () {
-      try {
-        await sourcifyChain.getTx(
-          '0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a',
+  });
+  after(async () => {
+    await stopHardhatNetwork(hardhatNodeProcess);
+  });
+  it("Should fail to instantiate with empty rpc's", function () {
+    const emptyRpc = { ...sourcifyChain, rpc: [] };
+    try {
+      new SourcifyChain(emptyRpc);
+      throw new Error('Should have failed');
+    } catch (err) {
+      if (err instanceof Error) {
+        expect(err.message).to.equal(
+          'No RPC provider was given for this chain with id ' +
+            emptyRpc.chainId +
+            ' and name ' +
+            emptyRpc.name,
         );
-        throw new Error('Should have failed');
-      } catch (err) {
-        if (err instanceof Error) {
-          expect(err.message).to.equal(
-            `None of the RPCs responded fetching tx 0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a on chain ${sourcifyChain.chainId}`,
-          );
-        } else {
-          throw err;
-        }
+      } else {
+        throw err;
       }
-    });
+    }
+  });
+  it('Should getBlock', async function () {
+    const block = await sourcifyChain.getBlock(0);
+    expect(block?.number).equals(0);
+  });
+  it('Should getBlockNumber', async function () {
+    const blockNumber = await sourcifyChain.getBlockNumber();
+    expect(blockNumber > 0);
+  });
+  it('Should fail to get non-existing transaction', async function () {
+    try {
+      await sourcifyChain.getTx(
+        '0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a',
+      );
+      throw new Error('Should have failed');
+    } catch (err) {
+      if (err instanceof Error) {
+        expect(err.message).to.equal(
+          `None of the RPCs responded fetching tx 0x79ab5d59fcb70ca3f290aa39ed3f156a5c4b3897176aebd455cd20b6a30b107a on chain ${sourcifyChain.chainId}`,
+        );
+      } else {
+        throw err;
+      }
+    }
   });
 });
