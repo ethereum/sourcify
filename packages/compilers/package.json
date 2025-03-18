@@ -46,7 +46,7 @@
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
     "semver": "7.7.1",
-    "solc": "0.8.28"
+    "solc": "0.8.29"
   },
   "devDependencies": {
     "@types/chai": "4.3.20",
