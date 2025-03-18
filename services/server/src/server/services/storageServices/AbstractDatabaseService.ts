@@ -189,10 +189,7 @@ export default abstract class AbstractDatabaseService {
       let recompiledCreationCodeInsertResult:
         | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
         | undefined;
-      if (
-        recompiledContract.normalizedCreationBytecode &&
-        databaseColumns.recompiledCreationCode
-      ) {
+      if (databaseColumns.recompiledCreationCode) {
         recompiledCreationCodeInsertResult = await this.database.insertCode(
           client,
           databaseColumns.recompiledCreationCode,

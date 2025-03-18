@@ -17,7 +17,7 @@ export async function addInputSolcJsonEndpoint(req: Request, res: Response) {
   if (!inputFiles) throw new BadRequestError("No files found");
 
   const solc = req.app.get("solc") as ISolidityCompiler;
-  const { verification } = req.app.get("services") as Services;
+  const services = req.app.get("services") as Services;
   const compilerVersion = req.body?.compilerVersion;
 
   for (const inputFile of inputFiles) {
