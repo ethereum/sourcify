@@ -147,6 +147,13 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
+    "0x247a8A599c99336dF37af1975661b32f7A26a88E",
+    "560048",
+    "Ethereum Hoodi Testnet",
+    "shared/",
+  );
+
+  verifyContract(
     "0x43C0A11653F57a96d1d3b6A5A6be453444558A5E",
     "369",
     "PulseChain",
