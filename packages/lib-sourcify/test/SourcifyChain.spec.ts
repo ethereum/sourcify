@@ -286,8 +286,16 @@ describe('SourcifyChain', () => {
 
   describe('Unit tests', () => {
     let hardhatNodeProcess: ChildProcess;
+    let sourcifyChain: SourcifyChain;
     before(async () => {
-      hardhatNodeProcess = await startHardhatNetwork(8545);
+      hardhatNodeProcess = await startHardhatNetwork(8546);
+      sourcifyChain = new SourcifyChain({
+        name: 'TestChain',
+        chainId: 1,
+        rpc: ['http://localhost:8546'],
+        supported: true,
+        traceSupportedRPCs: [{ index: 0, type: 'trace_transaction' }],
+      });
     });
     after(async () => {
       await stopHardhatNetwork(hardhatNodeProcess);
