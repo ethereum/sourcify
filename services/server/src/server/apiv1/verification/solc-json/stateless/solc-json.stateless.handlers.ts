@@ -30,10 +30,10 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
       `Couldn't parse JSON ${inputFiles[0].path}. Make sure the contents of the file are syntaxed correctly.`,
     );
   }
-  const compilerVersion = req.body.compilerVersion;
-  const contractName = req.body.contractName;
-  const chain = req.body.chain;
-  const address = req.body.address;
+  const compilerVersion = req.body?.compilerVersion;
+  const contractName = req.body?.contractName;
+  const chain = req.body?.chain;
+  const address = req.body?.address;
 
   // Get metadata and sources from the Solidity JSON input
   const metadataAndSourcesPathBuffers =
@@ -67,12 +67,12 @@ export async function verifySolcJsonEndpoint(req: Request, res: Response) {
     compilation,
     chainRepository.sourcifyChainMap[chain],
     address,
-    req.body.creatorTxHash,
+    req.body?.creatorTxHash,
   );
 
   // Store the verification result
   await services.storage.storeVerification(verification.export());
 
   // Return the verification result
-  return res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
+  res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
 }

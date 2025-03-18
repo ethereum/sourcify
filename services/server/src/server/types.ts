@@ -93,10 +93,11 @@ export interface VerifiedContract extends VerifiedContractMinimal {
 }
 
 // TODO:
-// onchainRuntimeBytecode is a temporary solution for running the proxy detection inside the getContractEndpoint handler.
-// Remove onchainRuntimeBytecode, when proxy detection result is stored in database.
+// onchain bytecodes are a temporary solution for running the proxy detection inside the getContractEndpoint handler.
+// Remove onchainRuntimeBytecode and onchainCreationBytecode when proxy detection result is stored in database.
 export type ProxyResolution = Partial<ProxyDetectionResult> & {
   onchainRuntimeBytecode?: string;
+  onchainCreationBytecode?: Nullable<string>;
   proxyResolutionError?: GenericErrorResponse;
 };
 

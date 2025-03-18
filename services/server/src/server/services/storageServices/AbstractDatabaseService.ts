@@ -152,49 +152,47 @@ export default abstract class AbstractDatabaseService {
       // Start the sql transaction
       await client.query("BEGIN");
 
-      let recompiledCreationCodeInsertResult:
-        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
-        | undefined;
       let onchainCreationCodeInsertResult:
         | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
         | undefined;
-      // Check if contracts_deployed needs to be updated
-      if (
-        existingVerifiedContractResult[0].transaction_hash === null &&
-        databaseColumns.contractDeployment.transaction_hash != null &&
-        databaseColumns.onchainCreationCode
-      ) {
+
+      // Add onchain bytecodes
+      if (databaseColumns.onchainCreationCode) {
         onchainCreationCodeInsertResult = await this.database.insertCode(
           client,
           databaseColumns.onchainCreationCode,
         );
-
-        const onchainRuntimeCodeInsertResult = await this.database.insertCode(
-          client,
-          databaseColumns.onchainRuntimeCode,
-        );
-
-        // Add the onchain contract in contracts
-        const contractInsertResult = await this.database.insertContract(
-          client,
-          {
-            creation_bytecode_hash:
-              onchainCreationCodeInsertResult.rows[0].bytecode_hash,
-            runtime_bytecode_hash:
-              onchainRuntimeCodeInsertResult.rows[0].bytecode_hash,
-          },
-        );
-
-        // add the onchain contract in contract_deployments
-        await this.database.updateContractDeployment(client, {
-          ...databaseColumns.contractDeployment,
-          contract_id: contractInsertResult.rows[0].id,
-          id: existingVerifiedContractResult[0].deployment_id,
-        });
       }
 
+      const onchainRuntimeCodeInsertResult = await this.database.insertCode(
+        client,
+        databaseColumns.onchainRuntimeCode,
+      );
+
+      // Add the onchain contract in contracts
+      const contractInsertResult = await this.database.insertContract(client, {
+        creation_bytecode_hash:
+          onchainCreationCodeInsertResult?.rows[0].bytecode_hash,
+        runtime_bytecode_hash:
+          onchainRuntimeCodeInsertResult.rows[0].bytecode_hash,
+      });
+
+      // add the onchain contract in contract_deployments
+      const contractDeploymentInsertResult =
+        await this.database.insertContractDeployment(client, {
+          ...databaseColumns.contractDeployment,
+          contract_id: contractInsertResult.rows[0].id,
+        });
+      const contractDeploymentId = contractDeploymentInsertResult.rows[0].id;
+
       // Add recompiled bytecodes
-      if (databaseColumns.recompiledCreationCode) {
+      let recompiledCreationCodeInsertResult:
+        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
+        | undefined;
+      if (
+        recompiledContract.normalizedCreationBytecode &&
+        databaseColumns.recompiledCreationCode
+      ) {
         recompiledCreationCodeInsertResult = await this.database.insertCode(
           client,
           databaseColumns.recompiledCreationCode,
@@ -227,7 +225,7 @@ export default abstract class AbstractDatabaseService {
         await this.database.insertVerifiedContract(client, {
           ...databaseColumns.verifiedContract,
           compilation_id: compiledContractsInsertResult.rows[0].id,
-          deployment_id: existingVerifiedContractResult[0].deployment_id,
+          deployment_id: contractDeploymentId,
         });
 
       // Commit the transaction

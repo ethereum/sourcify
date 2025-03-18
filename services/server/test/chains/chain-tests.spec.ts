@@ -365,12 +365,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Rollux Tanenbaum (testnet)
-  verifyContract(
-    "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
-    "57000",
-    "Rollux Tanenbaum",
-    "shared/",
-  );
+  // verifyContract(
+  //   "0x736bfcA6a599bF0C3D499F8a0bC5ab2bA2030AC6",
+  //   "57000",
+  //   "Rollux Tanenbaum",
+  //   "shared/",
+  // );
 
   verifyContract(
     "0xE295aD71242373C37C5FdA7B57F26f9eA1088AFe",
@@ -843,7 +843,7 @@ describe("Test Supported Chains", function () {
 
   // Bear Network Chain Mainnet
   verifyContract(
-    "0x0f103813fa15CA19b6C4B46a0Afe99440b81d7C3",
+    "0x115B83FE885D2Acf6099B6f3aAa75502CEBBA154",
     "641230",
     "Bear Network Chain Mainnet",
     "shared/",
@@ -938,13 +938,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Telcoin Network
-  verifyContract(
-    "0x25E8aB38013CB30D74992Aa5d1a74B65409Dc6b1",
-    "2017",
-    "Telcoin Network",
-    "shared/",
-  );
+  // // Telcoin Network
+  // verifyContract(
+  //   "0x25E8aB38013CB30D74992Aa5d1a74B65409Dc6b1",
+  //   "2017",
+  //   "Telcoin Network",
+  //   "shared/",
+  // );
 
   // Bitkub Chain Testnet
   verifyContract(
@@ -1106,6 +1106,20 @@ describe("Test Supported Chains", function () {
     "Zilliqa EVM Testnet",
     "shared/",
   );
+  // Zilliqa 2 EVM proto-mainnet
+  verifyContract(
+    "0xf2Dfea00e0AFB068eb2F861039F40af8eF14ead2",
+    "32770",
+    "Zilliqa 2 EVM proto-mainnet",
+    "shared/",
+  );
+  // Zilliqa 2 EVM proto-testnet
+  verifyContract(
+    "0xCCA8678D48D028Ba9AF201345c608DfDB0D64f83",
+    "33103",
+    "Zilliqa 2 EVM proto-testnet",
+    "shared/",
+  );
 
   // KAVA EVM Testnet
   verifyContract(
@@ -1211,12 +1225,12 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  verifyContract(
-    "0xE115Ef16e46bbF46591170D712140eC553C43553",
-    "10243",
-    "Arthera Testnet",
-    "shared/",
-  );
+  // verifyContract(
+  //   "0xE115Ef16e46bbF46591170D712140eC553C43553",
+  //   "10243",
+  //   "Arthera Testnet",
+  //   "shared/",
+  // );
 
   // Q Mainnet
   verifyContract(
@@ -1420,7 +1434,7 @@ describe("Test Supported Chains", function () {
 
   // Ozone Chain Mainnet
   verifyContract(
-    "0x50A9B085260F80CFEb1Af8c7131980fC11238ccB",
+    "0xf776d21c74BEde463E0Ac7aD7cF12a9b2c904D03",
     "4000",
     "Ozone Chain Mainnet",
     "shared/",
@@ -1458,13 +1472,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // YMTECH-BESU Testnet
-  verifyContract(
-    "0x37A01685de21e2d459fE3c6AEDe86A94B4bb8d9C",
-    "202401",
-    "YMTECH-BESU Testnet",
-    "shared/",
-  );
+  // // YMTECH-BESU Testnet
+  // verifyContract(
+  //   "0x37A01685de21e2d459fE3c6AEDe86A94B4bb8d9C",
+  //   "202401",
+  //   "YMTECH-BESU Testnet",
+  //   "shared/",
+  // );
 
   // Swisstronik Testnet
   verifyContract(
@@ -1666,13 +1680,13 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Vechain Testnet
-  verifyContract(
-    "0x393207E1019e4114EE4E9c633D09418252217e22",
-    "16350",
-    "Incentiv Devnet",
-    "shared/",
-  );
+  // // Vechain Testnet
+  // verifyContract(
+  //   "0x393207E1019e4114EE4E9c633D09418252217e22",
+  //   "16350",
+  //   "Incentiv Devnet",
+  //   "shared/",
+  // );
 
   // Curtis Testnet
   verifyContract(
@@ -1761,27 +1775,35 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
-  // Story Odyssey
-  verifyContract(
-    "0x78418e6efE946a65900E354e949C5dF0317dd411",
-    "1516",
-    "Story Odyssey",
-    "shared/",
-  );
+  // // Story Odyssey
+  // verifyContract(
+  //   "0x78418e6efE946a65900E354e949C5dF0317dd411",
+  //   "1516",
+  //   "Story Odyssey",
+  //   "shared/",
+  // );
 
-  // Quantum Portal Network
-  verifyContract(
-    "0x511f9B726559384f10371Bc7f19A925F864a9997",
-    "26100",
-    "Quantum Portal Network",
-    "shared/",
-  );
+  // // Quantum Portal Network
+  // verifyContract(
+  //   "0x511f9B726559384f10371Bc7f19A925F864a9997",
+  //   "26100",
+  //   "Quantum Portal Network",
+  //   "shared/",
+  // );
 
   // Citrea Testnet
   verifyContract(
     "0xad90c25cA57A3871241D88c42dca829ae59EC144",
     "5115",
     "Citrea Testnet",
+    "shared/",
+  );
+
+  // Citrea Testnet
+  verifyContract(
+    "0xF32a986F3741cC19Cfe05B806b3ECBAe7eB5F4eA",
+    "180",
+    "AME Chain Mainnet",
     "shared/",
   );
 

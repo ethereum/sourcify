@@ -66,7 +66,7 @@ export async function verifyVyper(
     // Create VyperCompilation
     compilation = new VyperCompilation(
       vyperCompiler,
-      req.body.compilerVersion,
+      req.body?.compilerVersion,
       vyperJsonInput,
       compilationTarget,
     );
@@ -83,15 +83,15 @@ export async function verifyVyper(
   const verification = await services.verification.verifyFromCompilation(
     compilation,
     chainRepository.sourcifyChainMap[req.body.chain],
-    req.body.address,
-    req.body.creatorTxHash,
+    req.body?.address,
+    req.body?.creatorTxHash,
   );
 
   // Store verification result
   await services.storage.storeVerification(verification.export());
 
   // Return the result
-  return res.send({
+  res.send({
     result: [getApiV1ResponseFromVerification(verification)],
   });
 }

@@ -1,5 +1,5 @@
 import path from "path";
-import express, { Request } from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import util from "util";
 import * as OpenApiValidator from "express-openapi-validator";
@@ -33,10 +33,7 @@ import {
 import { ChainRepository } from "../sourcify-chain-repository";
 import { SessionOptions } from "express-session";
 import { makeV1ValidatorFormats } from "./apiv1/validation";
-import {
-  RouteNotFoundError,
-  errorHandler as v2ErrorHandler,
-} from "./apiv2/errors";
+import { errorHandler as v2ErrorHandler } from "./apiv2/errors";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -145,8 +142,8 @@ export class Server {
     });
 
     // In every request support both chain and chainId
-    this.app.use((req: any, res: any, next: any) => {
-      if (req.body.chainId) {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      if (req.body?.chainId) {
         req.body.chain = req.body.chainId;
       }
       next();
@@ -256,14 +253,9 @@ export class Server {
     // for the case "X-Forwarded-For: 2.2.2.2, 192.168.1.5", we want 2.2.2.2 to be used
     this.app.set("trust proxy", true);
     // Enable session only for session endpoints
-    this.app.use("/*session*", getSessionMiddleware(options.sessionOptions));
+    this.app.use("/session", getSessionMiddleware(options.sessionOptions));
 
     this.app.use("/", routes);
-
-    // Any request that could not be handled by a route earlier will match this
-    this.app.use((req, res, next) => {
-      next(new RouteNotFoundError("The requested resource was not found"));
-    });
 
     // Error handlers cannot be registered on the routes, so we need to register them here
     this.app.use("/v2", v2ErrorHandler);

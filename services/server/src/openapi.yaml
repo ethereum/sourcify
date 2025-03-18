@@ -13,8 +13,8 @@ tags:
     description: API v2 - Tools and endpoints for looking up contract information
   - name: Stateless Verification 
     description: API v1 - Main verification endpoints
-  - name: Repository
-    description: API v1 - Access to already verified contracts and files
+  - name: (Deprecated) Repository
+    description: API v1 - Access to already verified contracts and files. - Deprecated. Please use the API v2 Contract Lookup instead.
   - name: Session Verification
     description: API v1 - Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
 paths:

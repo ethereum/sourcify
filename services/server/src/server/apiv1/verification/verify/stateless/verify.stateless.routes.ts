@@ -4,13 +4,10 @@ import {
   verifyDeprecated,
 } from "./verify.stateless.handlers";
 import { checkPerfectMatch } from "../../../controllers.common";
-import { safeHandler } from "../../../../common";
 
 const router: Router = Router();
 
-router
-  .route("/verify")
-  .post(checkPerfectMatch, safeHandler(legacyVerifyEndpoint));
+router.route("/verify").post(checkPerfectMatch, legacyVerifyEndpoint);
 
 router.route("/verify-deprecated").post(
   // Middleware to check if verifyDeprecated is enabled
@@ -23,7 +20,7 @@ router.route("/verify-deprecated").post(
     }
   },
   checkPerfectMatch,
-  safeHandler(verifyDeprecated),
+  verifyDeprecated,
 );
 
 export const deprecatedRoutesVerifyStateless = {

@@ -37,7 +37,7 @@ export async function legacyVerifyEndpoint(
     throw new BadRequestError(error.message);
   }
 
-  if (metadataContracts.length !== 1 && !req.body.chosenContract) {
+  if (metadataContracts.length !== 1 && !req.body?.chosenContract) {
     const contractNames = metadataContracts.map((c) => c.name).join(", ");
     const msg = `Detected ${metadataContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
     const contractsToChoose = metadataContracts.map((contract) => ({
@@ -49,14 +49,14 @@ export async function legacyVerifyEndpoint(
       .send({ error: msg, contractsToChoose });
   }
 
-  const contract: SolidityMetadataContract = req.body.chosenContract
-    ? metadataContracts[req.body.chosenContract]
+  const contract: SolidityMetadataContract = req.body?.chosenContract
+    ? metadataContracts[req.body?.chosenContract]
     : metadataContracts[0];
 
   if (!contract) {
     throw new NotFoundError(
       "Chosen contract not found. Received chosenContract: " +
-        req.body.chosenContract,
+        req.body?.chosenContract,
     );
   }
 
@@ -84,8 +84,8 @@ export async function legacyVerifyEndpoint(
     verification = await services.verification.verifyFromCompilation(
       compilation,
       chainRepository.sourcifyChainMap[req.body.chain],
-      req.body.address,
-      req.body.creatorTxHash,
+      req.body?.address,
+      req.body?.creatorTxHash,
     );
   } catch (error) {
     // If the error is not a VerificationError, log and rethrow
@@ -124,7 +124,7 @@ export async function legacyVerifyEndpoint(
   }
 
   await services.storage.storeVerification(verification.export());
-  return res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
+  res.send({ result: [getApiV1ResponseFromVerification(verification)] }); // array is an old expected behavior (e.g. by frontend)
 }
 
 export async function verifyDeprecated(
@@ -149,7 +149,7 @@ export async function verifyDeprecated(
     throw new BadRequestError(error.message);
   }
 
-  if (metadataContracts.length !== 1 && !req.body.chosenContract) {
+  if (metadataContracts.length !== 1 && !req.body?.chosenContract) {
     const contractNames = metadataContracts.map((c) => c.name).join(", ");
     const msg = `Detected ${metadataContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
     const contractsToChoose = metadataContracts.map((contract) => ({
@@ -161,14 +161,14 @@ export async function verifyDeprecated(
       .send({ error: msg, contractsToChoose });
   }
 
-  const contract: SolidityMetadataContract = req.body.chosenContract
-    ? metadataContracts[req.body.chosenContract]
+  const contract: SolidityMetadataContract = req.body?.chosenContract
+    ? metadataContracts[req.body?.chosenContract]
     : metadataContracts[0];
 
   if (!contract) {
     throw new NotFoundError(
       "Chosen contract not found. Received chosenContract: " +
-        req.body.chosenContract,
+        req.body?.chosenContract,
     );
   }
 
@@ -235,7 +235,7 @@ export async function verifyDeprecated(
     // Store the verification
     await services.storage.storeVerification(verification.export());
 
-    return res.send({
+    res.send({
       result: [getApiV1ResponseFromVerification(verification)],
     });
   } catch (error: any) {

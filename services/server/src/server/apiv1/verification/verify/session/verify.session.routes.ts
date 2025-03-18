@@ -1,12 +1,9 @@
 import { Router } from "express";
 import { verifyContractsInSessionEndpoint } from "./verify.session.handlers";
-import { safeHandler } from "../../../../common";
 
 const router: Router = Router();
 
-router
-  .route("/session/verify-checked")
-  .post(safeHandler(verifyContractsInSessionEndpoint));
+router.route("/session/verify-checked").post(verifyContractsInSessionEndpoint);
 
 export const deprecatedRoutesVerifySession = {
   "/session/verify-validated": {

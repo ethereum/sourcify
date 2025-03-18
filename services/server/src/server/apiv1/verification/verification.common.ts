@@ -50,7 +50,7 @@ export type LegacyVerifyRequest = Request & {
 export const extractFiles = (req: Request, shouldThrow = false) => {
   if (req.is("multipart/form-data") && (req.files as any)?.files) {
     return extractFilesFromForm((req.files as any).files);
-  } else if (req.is("application/json") && req.body.files) {
+  } else if (req.is("application/json") && req.body?.files) {
     return extractFilesFromJSON(req.body.files);
   }
 

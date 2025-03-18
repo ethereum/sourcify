@@ -484,7 +484,7 @@ ${
         block_number,
         transaction_index,
         deployer
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, address, transaction_hash) DO NOTHING RETURNING *`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) ON CONFLICT (chain_id, address, transaction_hash, contract_id) DO NOTHING RETURNING *`,
       [
         chain_id,
         address,
@@ -506,8 +506,9 @@ ${
         AND chain_id = $1
         AND address = $2
         AND transaction_hash = $3
+        AND contract_id = $4
       `,
-        [chain_id, address, transaction_hash],
+        [chain_id, address, transaction_hash, contract_id],
       );
     }
     return contractDeploymentInsertResult;
