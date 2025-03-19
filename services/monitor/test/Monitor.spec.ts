@@ -16,6 +16,7 @@ import { ChildProcess } from "child_process";
 import storageContractArtifact from "./sources/Storage/1_Storage.json";
 import nock from "nock";
 import { RpcObject } from "../src/types";
+import { FetchRequestRPC } from "@ethereum-sourcify/lib-sourcify";
 
 const HARDHAT_PORT = 8546;
 // Configured in hardhat.config.js
@@ -109,18 +110,18 @@ describe("Monitor", function () {
       const rpc = ["https://rpc.ethpandaops.io/test"];
       const result = authenticateRpcs({ chainId: 1, rpc: rpc, name: "Test" });
 
-      expect(result[0]).to.be.instanceOf(FetchRequest);
-      const fetchRequest = result[0] as FetchRequest;
+      const fetchRequest = result[0] as FetchRequestRPC;
       expect(fetchRequest.url).to.equal("https://rpc.ethpandaops.io/test");
-      expect(fetchRequest.getHeader("Content-Type")).to.equal(
-        "application/json",
-      );
-      expect(fetchRequest.getHeader("CF-Access-Client-Id")).to.equal(
-        "client123",
-      );
-      expect(fetchRequest.getHeader("CF-Access-Client-Secret")).to.equal(
-        "secret456",
-      );
+      expect(fetchRequest.headers).to.be.an("array");
+      expect(fetchRequest.headers).to.have.lengthOf(2);
+      expect(fetchRequest.headers).to.deep.include({
+        headerName: "CF-Access-Client-Id",
+        headerEnvName: "CF_ACCESS_CLIENT_ID",
+      });
+      expect(fetchRequest.headers).to.deep.include({
+        headerName: "CF-Access-Client-Secret",
+        headerEnvName: "CF_ACCESS_CLIENT_SECRET",
+      });
     });
 
     it("should throw error for invalid RPC object", () => {

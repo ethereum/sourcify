@@ -8,7 +8,6 @@ import {
   BaseRPC,
   TraceSupportedRPC,
 } from "@ethereum-sourcify/lib-sourcify";
-import { FetchRequest } from "ethers";
 import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
 import logger from "./common/logger";
@@ -78,7 +77,7 @@ function buildCustomRpcs(
   sourcifyRpcs: Array<string | BaseRPC | APIKeyRPC | FetchRequestRPC>,
 ) {
   const traceSupportedRPCs: TraceSupportedRPC[] = [];
-  const rpc: (string | FetchRequest)[] = [];
+  const rpc: (string | FetchRequestRPC)[] = [];
   const rpcWithoutApiKeys: string[] = [];
   sourcifyRpcs.forEach((sourcifyRpc, index) => {
     // simple url, can't have traceSupport
@@ -128,19 +127,8 @@ function buildCustomRpcs(
       rpc.push(url);
       rpcWithoutApiKeys.push(sourcifyRpc.url);
       return;
-    }
-    // Build ethers.js FetchRequest object for custom rpcs with auth headers
-    else if (sourcifyRpc.type === "FetchRequest") {
-      const ethersFetchReq = new FetchRequest(sourcifyRpc.url);
-      ethersFetchReq.setHeader("Content-Type", "application/json");
-      const headers = sourcifyRpc.headers;
-      if (headers) {
-        headers.forEach(({ headerName, headerEnvName }) => {
-          const headerValue = process.env[headerEnvName];
-          ethersFetchReq.setHeader(headerName, headerValue || "");
-        });
-      }
-      rpc.push(ethersFetchReq);
+    } else if (sourcifyRpc.type === "FetchRequest") {
+      rpc.push(sourcifyRpc);
       rpcWithoutApiKeys.push(sourcifyRpc.url);
       return;
     }
@@ -166,8 +154,7 @@ if (process.env.NODE_ENV !== "production") {
 // iterate over chainid.network's chains.json file and get the chains included in sourcify-chains.json.
 // Merge the chains.json object with the values from sourcify-chains.json
 // Must iterate over all chains because it's not a mapping but an array.
-for (const i in allChains) {
-  const chain = allChains[i];
+for (const chain of allChains) {
   const chainId = chain.chainId;
   if (chainId in sourcifyChainsMap) {
     // Don't throw on test chains in development, override the chain.json item as test chains are found in chains.json.
@@ -185,7 +172,7 @@ for (const i in allChains) {
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
 
-    let rpc: (string | FetchRequest)[] = [];
+    let rpc: (string | FetchRequestRPC)[] = [];
     let rpcWithoutApiKeys: string[] = [];
     let traceSupportedRPCs: TraceSupportedRPC[] | undefined = undefined;
     if (sourcifyExtension.rpc) {
