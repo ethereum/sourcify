@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.5.0 - 2025-03-19
+
+- Add @ethereum-sourcify/compilers package
+- Update launch.json
+- Update dependencies
+
 ## sourcify-monorepo@1.4.7 - 2025-02-18
 
 - Update CI chain tests commands

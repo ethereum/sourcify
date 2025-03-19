@@ -2,26 +2,47 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.7.0 - 2025-03-19
+
+- Add endpoints for getting verification jobs
+- Deprecate v1 repository endpoints
+- Use @ethereum-sourcify/compilers package instead of built-in
+- Fix proxy detection for EIP1967 when storage slot is only referenced in creation code
+- Fix creation match upgrade (#1969)
+- Update dependencies
+- New chains:
+  - Ethereum Hoodi Testnet (560048)
+  - Zilliqa 2 EVM proto-mainnet (32770)
+  - Zilliqa 2 EVM proto-testnet (33103)
+  - AME Chain Mainnet (180)
+- Deprecated chains:
+  - Rollux Testnet Tanenbaum (57000)
+  - Telcoin Network (2017)
+  - Arthera Testnet (10243)
+  - YMTECH-BESU Testnet (202401)
+  - Incentiv Devnet (16350)
+  - Story Odyssey (1516)
+  - Quantum Portal Network (26100)
+
 ## sourcify-server@2.6.1 - 2025-02-18
 
 - add chain XDC Network (50)
 - GET `/v2/contract/{chainId}/{address}` API endpoint:
-   - rename `*` field to `all`
-   - fix contracts not retrievable if no creation code is stored
-   - fix proxy resolution to not run on unverified contracts
-
+  - rename `*` field to `all`
+  - fix contracts not retrievable if no creation code is stored
+  - fix proxy resolution to not run on unverified contracts
 
 ## sourcify-server@2.6.0 - 2025-02-06
 
 - add API v2 lookup endpoints:
-   - Add GET `/v2/contracts/{chainId}`
-   - Add GET `/v2/contract/{chainId}/{address}`
+  - Add GET `/v2/contracts/{chainId}`
+  - Add GET `/v2/contract/{chainId}/{address}`
 - add chains:
-   - Ronin Mainnet (2020)
-   - Core Blockchain Testnet2 (1114)
-   - exSat Mainnet (7200)
-   - exSat Testnet (839999)
-   - Citrea Testnet (5115)
+  - Ronin Mainnet (2020)
+  - Core Blockchain Testnet2 (1114)
+  - exSat Mainnet (7200)
+  - exSat Testnet (839999)
+  - Citrea Testnet (5115)
 - Add missing Etherscan api key env names
 - Remove ethpandaops from holesky RPCs
 - Enalbe writing to Verifier Alliance DB on production
@@ -50,7 +71,6 @@ All notable changes to this project will be documented in this file.
 
 ## sourcify-server@2.4.0 - 2024-10-29
 
-
 - Refactor database utils into class #1689
 - Add chains that have trace support in Quicknode with trace support
 - Change `AlchemyInfura` type RPCs to generic API key RPCs
@@ -74,8 +94,6 @@ All notable changes to this project will be documented in this file.
   - B2 Mainnet (223)
   - OORT Mainnet (970)
   - TixChain Testnet (723107)
- 
-
 
 ## sourcify-server@2.2.1 - 2024-09-17
 
