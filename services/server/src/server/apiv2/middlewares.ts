@@ -100,3 +100,22 @@ export function validateFieldsAndOmit(
 
   next();
 }
+
+export function validateContractIdentifier(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.body.contractIdentifier) {
+    throw new InvalidParametersError("Contract identifier is required");
+  }
+
+  const splitIdentifier = req.body.contractIdentifier.split(":");
+  if (splitIdentifier.length < 2) {
+    throw new InvalidParametersError(
+      "The contractIdentifier must consist of the file path and the contract name separated by a ':'.",
+    );
+  }
+
+  next();
+}

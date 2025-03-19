@@ -57,7 +57,11 @@ export async function verifyFromJsonInput({
 }: VerifyFromJsonInputs): Promise<VerificationExport> {
   initWorker();
 
-  const [contractPath, contractName] = contractIdentifier.split(":");
+  // The contract path can include a colon itself,
+  // therefore we need to take the last element as the contract name
+  const splitIdentifier = contractIdentifier.split(":");
+  const contractName = splitIdentifier[splitIdentifier.length - 1];
+  const contractPath = splitIdentifier.slice(0, -1).join();
   const compilationTarget: CompilationTarget = {
     name: contractName,
     path: contractPath,
