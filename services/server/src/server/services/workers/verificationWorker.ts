@@ -28,7 +28,7 @@ const initWorker = () => {
   if (chainRepository && solc && vyper) {
     return;
   }
-  chainRepository = new ChainRepository(Piscina.workerData.sourcifyChainsMap);
+  chainRepository = new ChainRepository(Piscina.workerData.sourcifyChainMap);
   solc = new SolcLocal(
     Piscina.workerData.solcRepoPath,
     Piscina.workerData.solJsonRepoPath,

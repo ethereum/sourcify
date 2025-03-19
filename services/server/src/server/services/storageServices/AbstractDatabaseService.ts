@@ -135,9 +135,8 @@ export default abstract class AbstractDatabaseService {
   }
 
   async updateExistingVerifiedContract(
-    existingVerifiedContractResult: DatabaseUtil.GetVerifiedContractByChainAndAddressResult[],
     databaseColumns: DatabaseUtil.DatabaseColumns,
-  ): Promise<string | false> {
+  ): Promise<string> {
     // runtime bytecodes must exist
     if (databaseColumns.recompiledRuntimeCode.bytecode === undefined) {
       throw new Error("Missing normalized runtime bytecode");
@@ -241,7 +240,7 @@ export default abstract class AbstractDatabaseService {
 
   async insertOrUpdateVerification(verification: VerificationExport): Promise<{
     type: "update" | "insert";
-    verifiedContractId: string | false;
+    verifiedContractId: string;
     oldVerifiedContractId?: string;
   }> {
     this.validateVerificationBeforeStoring(verification);
@@ -267,10 +266,8 @@ export default abstract class AbstractDatabaseService {
     } else {
       return {
         type: "update",
-        verifiedContractId: await this.updateExistingVerifiedContract(
-          existingVerifiedContractResult.rows,
-          databaseColumns,
-        ),
+        verifiedContractId:
+          await this.updateExistingVerifiedContract(databaseColumns),
         oldVerifiedContractId: existingVerifiedContractResult.rows[0].id,
       };
     }

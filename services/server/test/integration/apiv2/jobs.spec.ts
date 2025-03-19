@@ -120,7 +120,7 @@ describe("GET /v2/verify/:verificationId", function () {
         recompiled_runtime_code,
         onchain_creation_code,
         onchain_runtime_code,
-        creator_transaction_hash
+        creation_transaction_hash
       ) VALUES ($1, $2, $3, $4, $5, $6)`,
       [
         verificationId,

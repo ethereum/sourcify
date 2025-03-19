@@ -76,6 +76,14 @@ export class Server {
     this.app = express();
 
     this.chainRepository = new ChainRepository(options.chains);
+    logger.info("SourcifyChains.Initialized", {
+      supportedChainsCount: this.chainRepository.supportedChainsArray.length,
+      allChainsCount: this.chainRepository.sourcifyChainsArray.length,
+      supportedChains: this.chainRepository.supportedChainsArray.map(
+        (c) => c.chainId,
+      ),
+      allChains: this.chainRepository.sourcifyChainsArray.map((c) => c.chainId),
+    });
 
     this.services = new Services(
       verificationServiceOptions,

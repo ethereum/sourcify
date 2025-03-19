@@ -782,16 +782,16 @@ ${
       to_char(verification_jobs.started_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as started_at,
       to_char(verification_jobs.completed_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as completed_at,
       verification_jobs.chain_id,
-      concat('0x',encode(verification_jobs.contract_address, 'hex')) as contract_address,
+      nullif(concat('0x',encode(verification_jobs.contract_address, 'hex')), '0x') as contract_address,
       verification_jobs.verified_contract_id,
       verification_jobs.error_code,
       verification_jobs.error_id,
       verification_jobs.compilation_time,
-      concat('0x',encode(verification_jobs_ephemeral.recompiled_creation_code, 'hex')) as recompiled_creation_code,
-      concat('0x',encode(verification_jobs_ephemeral.recompiled_runtime_code, 'hex')) as recompiled_runtime_code,
-      concat('0x',encode(verification_jobs_ephemeral.onchain_creation_code, 'hex')) as onchain_creation_code,
-      concat('0x',encode(verification_jobs_ephemeral.onchain_runtime_code, 'hex')) as onchain_runtime_code,
-      concat('0x',encode(verification_jobs_ephemeral.creator_transaction_hash, 'hex')) as creator_transaction_hash,
+      nullif(concat('0x',encode(verification_jobs_ephemeral.recompiled_creation_code, 'hex')), '0x') as recompiled_creation_code,
+      nullif(concat('0x',encode(verification_jobs_ephemeral.recompiled_runtime_code, 'hex')), '0x') as recompiled_runtime_code,
+      nullif(concat('0x',encode(verification_jobs_ephemeral.onchain_creation_code, 'hex')), '0x') as onchain_creation_code,
+      nullif(concat('0x',encode(verification_jobs_ephemeral.onchain_runtime_code, 'hex')), '0x') as onchain_runtime_code,
+      nullif(concat('0x',encode(verification_jobs_ephemeral.creation_transaction_hash, 'hex')), '0x') as creation_transaction_hash,
       verified_contracts.runtime_match,
       verified_contracts.creation_match,
       verified_contracts.runtime_metadata_match,
@@ -805,6 +805,96 @@ ${
     WHERE verification_jobs.id = $1
     `,
       [verificationId],
+    );
+  }
+
+  async insertVerificationJob({
+    started_at,
+    chain_id,
+    contract_address,
+    verification_endpoint,
+    hardware,
+  }: Pick<
+    Tables.VerificationJob,
+    | "started_at"
+    | "chain_id"
+    | "contract_address"
+    | "verification_endpoint"
+    | "hardware"
+  >): Promise<QueryResult<Tables.VerificationJob>> {
+    return await this.pool.query(
+      `INSERT INTO ${this.schema}.verification_jobs (
+        started_at,
+        chain_id,
+        contract_address,
+        verification_endpoint,
+        hardware
+      ) VALUES ($1, $2, $3, $4, $5)`,
+      [started_at, chain_id, contract_address, verification_endpoint, hardware],
+    );
+  }
+
+  async updateVerificationJob({
+    id,
+    completed_at,
+    verified_contract_id,
+    compilation_time,
+    error_code,
+    error_id,
+  }: Pick<
+    Tables.VerificationJob,
+    | "id"
+    | "completed_at"
+    | "verified_contract_id"
+    | "compilation_time"
+    | "error_code"
+    | "error_id"
+  >): Promise<void> {
+    await this.pool.query(
+      `UPDATE ${this.schema}.verification_jobs 
+      SET 
+        completed_at = $2,
+        verified_contract_id = $3,
+        compilation_time = $4,
+        error_code = $5,
+        error_id = $6
+      WHERE id = $1`,
+      [
+        id,
+        completed_at,
+        verified_contract_id,
+        compilation_time,
+        error_code,
+        error_id,
+      ],
+    );
+  }
+
+  async insertVerificationJobEphemeral({
+    id,
+    recompiled_creation_code,
+    recompiled_runtime_code,
+    onchain_creation_code,
+    onchain_runtime_code,
+    creation_transaction_hash,
+  }: Tables.VerificationJobEphemeral): Promise<void> {
+    await this.pool.query(
+      `INSERT INTO ${this.schema}.verification_jobs_ephemeral (
+        id,
+        recompiled_creation_code,
+        recompiled_runtime_code,
+        onchain_creation_code,
+        onchain_runtime_code,
+        creation_transaction_hash
+      ) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [
+        id,
+        recompiled_creation_code,
+        recompiled_runtime_code,
+        onchain_creation_code,
+        onchain_runtime_code,
+        creation_transaction_hash,
+      ],
     );
   }
 }

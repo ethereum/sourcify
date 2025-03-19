@@ -12,6 +12,7 @@ import {
   getErrorMessageFromCode,
   SourcifyLibErrorCode,
 } from "@ethereum-sourcify/lib-sourcify";
+import { TooManyRequests } from "../../common/errors/TooManyRequests";
 
 export type ErrorCode =
   | VerificationErrorCode
@@ -20,7 +21,8 @@ export type ErrorCode =
   | "unsupported_chain"
   | "invalid_parameter"
   | "proxy_resolution_error"
-  | "job_not_found";
+  | "job_not_found"
+  | "duplicate_verification_request";
 
 export interface GenericErrorResponse {
   customCode: ErrorCode;
@@ -108,6 +110,19 @@ export class JobNotFoundError extends NotFoundError {
   }
 }
 
+export class DuplicateVerificationRequestError extends TooManyRequests {
+  payload: GenericErrorResponse;
+
+  constructor(message: string) {
+    super(message);
+    this.payload = {
+      customCode: "duplicate_verification_request",
+      message,
+      errorId: uuidv4(),
+    };
+  }
+}
+
 // Maps OpenApiValidator errors to our custom error format
 export function errorHandler(
   err: any,
@@ -136,6 +151,7 @@ export function errorHandler(
 export type VerificationErrorCode =
   | SourcifyLibErrorCode
   | "unsupported_language"
+  | "already_verified"
   | "unknown_error";
 
 export function getVerificationErrorMessage(
@@ -145,6 +161,8 @@ export function getVerificationErrorMessage(
   switch (code) {
     case "unsupported_language":
       return "The provided language is not supported.";
+    case "already_verified":
+      return "The contract is already verified and the job didn't yield a better match.";
     case "unknown_error":
       return "The server encountered an unexpected error.";
     default:

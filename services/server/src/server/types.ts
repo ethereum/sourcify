@@ -14,7 +14,6 @@ import {
   VyperJsonInput,
   VyperOutput,
   VerificationStatus,
-  StringMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Response } from "express";
 import { Abi } from "abitype";
@@ -101,9 +100,11 @@ export type ProxyResolution = Partial<ProxyDetectionResult> & {
   proxyResolutionError?: GenericErrorResponse;
 };
 
+export type VerificationJobId = string;
+
 export interface VerificationJob {
   isJobCompleted: boolean;
-  verificationId: string;
+  verificationId: VerificationJobId;
   jobStartTime: string;
   jobFinishTime?: string;
   compilationTime?: string;

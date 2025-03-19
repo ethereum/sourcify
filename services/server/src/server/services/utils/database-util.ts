@@ -124,12 +124,35 @@ export namespace Tables {
     address: string;
     match_type: string;
   }
-}
 
-export interface CompilationArtifactsSources {
-  [globalName: string]: {
-    id: number;
-  };
+  export interface CompilationArtifactsSources {
+    [globalName: string]: {
+      id: number;
+    };
+  }
+
+  export interface VerificationJob {
+    id: string;
+    started_at: Date;
+    completed_at: Nullable<Date>;
+    chain_id: string;
+    contract_address: Bytes;
+    verified_contract_id: Nullable<string>;
+    error_code: Nullable<string>;
+    error_id: Nullable<string>;
+    verification_endpoint: string;
+    hardware: Nullable<string>;
+    compilation_time: Nullable<string>;
+  }
+
+  export interface VerificationJobEphemeral {
+    id: string;
+    recompiled_creation_code: Nullable<Bytes>;
+    recompiled_runtime_code: Nullable<Bytes>;
+    onchain_creation_code: Nullable<Bytes>;
+    onchain_runtime_code: Nullable<Bytes>;
+    creation_transaction_hash: Nullable<Bytes>;
+  }
 }
 
 export interface SourceInformation {
@@ -225,26 +248,32 @@ export type GetSourcifyMatchByChainAddressWithPropertiesResult = Partial<
     }
 >;
 
-export type GetVerificationJobByIdResult = {
+export type GetVerificationJobByIdResult = Pick<
+  Tables.VerificationJob,
+  | "chain_id"
+  | "verified_contract_id"
+  | "error_code"
+  | "error_id"
+  | "compilation_time"
+> & {
   started_at: string;
-  completed_at: string | null;
-  chain_id: string;
+  completed_at: Nullable<string>;
   contract_address: string;
-  verified_contract_id: string | null;
-  error_code: string | null;
-  error_id: string | null;
-  compilation_time: string | null;
-  recompiled_creation_code: string | null;
-  recompiled_runtime_code: string | null;
-  onchain_creation_code: string | null;
-  onchain_runtime_code: string | null;
-  creator_transaction_hash: string | null;
-  runtime_match: boolean | null;
-  creation_match: boolean | null;
-  runtime_metadata_match: boolean | null;
-  creation_metadata_match: boolean | null;
-  match_id: string | null;
-  verified_at: string | null;
+  recompiled_creation_code: Nullable<string>;
+  recompiled_runtime_code: Nullable<string>;
+  onchain_creation_code: Nullable<string>;
+  onchain_runtime_code: Nullable<string>;
+  creation_transaction_hash: Nullable<string>;
+  runtime_match: Nullable<Tables.VerifiedContract["runtime_match"]>;
+  creation_match: Nullable<Tables.VerifiedContract["creation_match"]>;
+  runtime_metadata_match: Nullable<
+    Tables.VerifiedContract["runtime_metadata_match"]
+  >;
+  creation_metadata_match: Nullable<
+    Tables.VerifiedContract["creation_metadata_match"]
+  >;
+  match_id: Nullable<Tables.SourcifyMatch["id"]>;
+  verified_at: Nullable<string>;
 };
 
 const sourcesAggregation =

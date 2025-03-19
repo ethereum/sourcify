@@ -104,7 +104,7 @@ exports.up = function (db, callback) {
             recompiled_runtime_code bytea,
             onchain_creation_code bytea,
             onchain_runtime_code bytea,
-            creator_transaction_hash bytea,
+            creation_transaction_hash bytea,
             CONSTRAINT verification_jobs_ephemeral_pkey PRIMARY KEY (id),
             CONSTRAINT verification_jobs_ephemeral_id_fk FOREIGN KEY (id) REFERENCES verification_jobs(id) ON DELETE CASCADE ON UPDATE CASCADE
         );`,
