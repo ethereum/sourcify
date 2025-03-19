@@ -259,11 +259,10 @@ describe("Test Supported Chains", function () {
   );
 
   verifyContract(
-    "0x0912105a5383b63DF25BBe39Bedc3De407c6c64B",
+    "0x54Add02fC1664435c38BA49e5553F5952F777bD9",
     "216",
     "Happychain Testnet",
     "shared/",
-    "partial",
   );
 
   verifyContract(
