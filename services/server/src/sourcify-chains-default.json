@@ -268,7 +268,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
-        "url": "https://https://happy-testnet-sepolia.explorer.caldera.xyz"
+        "url": "https://explorer.testnet.happy.tech"
       }
     }
   },
