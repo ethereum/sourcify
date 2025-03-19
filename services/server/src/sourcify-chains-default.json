@@ -2252,6 +2252,11 @@
     "sourcifyName": "Zircuit Mainnet",
     "supported": true
   },
+  "48898": {
+    "sourcifyName": "Zircuit Garfield Testnet",
+    "supported": true,
+    "rpc": ["https://garfield-testnet.zircuit.com/"]
+  },
   "48899": {
     "sourcifyName": "Zircuit Testnet",
     "supported": true,

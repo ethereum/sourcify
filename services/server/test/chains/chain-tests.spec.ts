@@ -1758,6 +1758,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Zircuit Garfield Testnet
+  verifyContract(
+    "0x0cfE351147DEb353a57623859F7b2A4984645433",
+    "48898",
+    "Zircuit Garfield Testnet",
+    "shared/",
+  );
+
   // Zircuit Mainnet
   verifyContract(
     "0x0cfE351147DEb353a57623859F7b2A4984645433",
