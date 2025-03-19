@@ -4,32 +4,11 @@
 
 lib-sourcify is [Sourcify](https://sourcify.dev)'s reusable backbone library for verifying contracts. Version 2 introduces a completely redesigned architecture with improved abstractions, better support for both Solidity and Vyper contracts, and a more flexible verification process.
 
-## Table of Contents
-
-- [Overview](#overview)
-- [Installation](#installation)
-- [Quick Start](#quick-start)
-- [Key Concepts](#key-concepts)
-- [Architecture](#architecture)
-- [Compiler Setup](#compiler-setup)
-- [SourcifyChain](#sourcifychain)
-- [Validation](#validation)
-- [Verification](#verification)
-- [Error Handling](#error-handling)
-- [Usage Examples](#usage-examples)
-- [Logging](#logging)
-- [Migration Guide from v1 to v2](#migration-guide-from-v1-to-v2)
-
 ## Overview
 
-lib-sourcify provides tools to validate, compile, and verify smart contracts. The library supports:
+lib-sourcify provides tools to validate, compile, and verify smart contracts.
 
-- **Solidity and Vyper contracts**: First-class support for both languages
-- **Flexible verification workflow**: Validate contracts with metadata or directly with source files
-- **Compiler independence**: Bring your own compiler implementation
-- **Source fetching**: Automatically fetch missing source files from IPFS, Swarm, etc.
-- **Bytecode matching**: Advanced bytecode analysis to handle various edge cases
-- **Resilient RPC management**: Multi-provider support with automatic fallback and timeout handling
+The library supports verification with Solidity metadata.json and with both Solidity and Vyper's standard-JSON input formats
 
 ## Installation
 
@@ -39,19 +18,24 @@ npm install @ethereum-sourcify/lib-sourcify
 
 ## Quick Start
 
-Here's how to quickly get started with verifying a Solidity contract using lib-sourcify:
-
 ```typescript
-import { createMetadataContractsFromFiles, Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
-import { useSolidityCompiler } from "@ethereum-sourcify/compilers";
-import * as fs from "fs";
+import {
+  SolidityCompilation,
+  Verification,
+  SourcifyChain,
+} from '@ethereum-sourcify/lib-sourcify';
+import { useSolidityCompiler } from '@ethereum-sourcify/compilers';
+import * as fs from 'fs';
 
 // Step 1: Setup your compiler
 class Solc implements ISolidityCompiler {
-  constructor(
-    private solcRepoPath: string,
-    private solJsonRepoPath: string,
-  ) {}
+  private solcRepoPath: string;
+  private solJsonRepoPath: string;
+
+  constructor(solcRepoPath: string, solJsonRepoPath: string) {
+    this.solcRepoPath = solcRepoPath;
+    this.solJsonRepoPath = solJsonRepoPath;
+  }
 
   async compile(
     version: string,
@@ -67,69 +51,77 @@ class Solc implements ISolidityCompiler {
     );
   }
 }
-const solc = new Solc(
-  "/path/to/solc", 
-  "/path/to/solcjs",
+
+const solc = new Solc('/path/to/solc', '/path/to/solcjs');
+
+// Step 2: Prepare your standard JSON input
+const jsonInput = {
+  language: 'Solidity',
+  sources: {
+    'Contract.sol': {
+      content: 'contract MyContract { function foo() public {} }',
+    },
+  },
+  settings: {
+    optimizer: {
+      enabled: true,
+      runs: 200,
+    },
+  },
+};
+
+// Step 3: Create a compilation
+const compilation = new SolidityCompilation(
+  solc,
+  '0.8.20', // compiler version
+  jsonInput,
+  {
+    path: 'Contract.sol',
+    name: 'MyContract', // The name of your contract
+  },
 );
 
-// Step 2: Prepare contract files
-const pathBuffers = [
-  {
-    path: "metadata.json", 
-    buffer: fs.readFileSync("metadata.json")
-  },
-  {
-    path: "Contract.sol",
-    buffer: fs.readFileSync("Contract.sol")
-  }
-];
-
-// Step 3: Create a metadata contract
-const metadataContracts = await createMetadataContractsFromFiles(pathBuffers);
-const metadataContract = metadataContracts[0];
-
-// Step 4: Fetch any missing sources
-await metadataContract.fetchMissing();
-
-// Step 5: Create a compilation
-const compilation = await metadataContract.createCompilation(solc);
-
-// Step 6: Set up a SourcifyChain instance for Ethereum Mainnet
-const mainnetChain = new SourcifyChain({
-  name: "Ethereum Mainnet",
-  chainId: 1,
-  rpc: ["https://eth.llamarpc.com"],
-  supported: true
+// Step 4: Set up a SourcifyChain instance
+const myChain = new SourcifyChain({
+  name: 'My EVM Chain',
+  chainId: 1337,
+  rpc: ['http://localhost:8545'],
+  supported: true,
 });
 
-// Step 7: Verify the contract
+// Step 5: Verify the contract
 const verification = new Verification(
   compilation,
-  mainnetChain,
-  "0xc0ffee254729296a45a3885639AC7E10F9d54979"
+  myChain,
+  '0xc0ffee254729296a45a3885639AC7E10F9d54979',
 );
+
 await verification.verify();
 
-// Step 8: Check verification status
+// Step 6: Check verification status
 console.log(verification.status); // { runtimeMatch: 'perfect', creationMatch: null }
 ```
 
-This example shows the complete verification flow for a Solidity contract. For Vyper contracts or more advanced use cases, see the detailed sections below.
+This example shows the complete verification flow for a Solidity contract using standard JSON input. For Vyper contracts or more advanced use cases, see the detailed sections below.
 
 ## Architecture
 
 lib-sourcify v2 consists of several key components:
 
-- **Validation**: Validates contract source files and metadata
+- **Validation**: Based on a Solidity metadata.json file that describes a contract build, checks if all source files are present and valid. Fetches missing sources from IPFS if necessary.
+
   - `SolidityMetadataContract`: Represents a Solidity contract with its metadata and source files
-  - `processFiles`: Utility functions for processing files and extracting metadata
+  - `processFiles.ts`: Utility functions for creating `SolidityMetadataContract` instances from files
 
 - **Compilation**: Handles contract compilation
+
   - `AbstractCompilation`: Base class for compilation
   - `SolidityCompilation`: Handles Solidity compilation
   - `VyperCompilation`: Handles Vyper compilation
 
-- **Verification**: Compares compiled bytecode with on-chain bytecode
+- **SourcifyChain**: Handles blockchain interactions such as fetching bytecode and transaction data
+
+- **Verification**: Compares compiled bytecode from a `Compilation` with an on-chain bytecode from a `SourcifyChain`
   - `Verification`: Main class orchestrating the verification process
 
 ## Compiler Setup
@@ -167,10 +159,7 @@ class Solc implements ISolidityCompiler {
   }
 }
 
-const solc = new Solc(
-  "/path/to/solc",
-  "/path/to/solcjs",
-);
+const solc = new Solc('/path/to/solc/repo', '/path/to/solcjs/repo');
 ```
 
 ### Vyper Compiler Example
@@ -182,119 +171,56 @@ import {
   IVyperCompiler,
   VyperOutput,
   VyperJsonInput,
-} from "@ethereum-sourcify/lib-sourcify";
+} from '@ethereum-sourcify/lib-sourcify';
 
 class Vyper implements IVyperCompiler {
-  constructor(
-    private vyperRepoPath: string,
-  ) {}
+  constructor(private vyperRepoPath: string) {}
 
   async compile(
     version: string,
-    vyperJsonInput: VyperJsonInput
+    vyperJsonInput: VyperJsonInput,
   ): Promise<VyperOutput> {
-    return await useVyperCompiler(
-      this.vyperRepoPath,
-      version,
-      vyperJsonInput,
-    );
+    return await useVyperCompiler(this.vyperRepoPath, version, vyperJsonInput);
   }
 }
-const vyper = new Vyper(
-  "/path/to/vyper",
-);
+const vyper = new Vyper('/path/to/vyper/repo');
 ```
 
 ## SourcifyChain
 
-The `SourcifyChain` class is a crucial component that provides a standardized and resilient way to interact with blockchain networks during smart contract verification. It handles multiple aspects of blockchain interaction, in particular:
+SourcifyChain is a class that handles blockchain interactions such as fetching bytecode and transaction data.
 
-### Core Features
-- **Resilient RPC management**
-  - Manages multiple RPC providers for a single chain with automatic fallback
-  - Implements sequential provider retry logic to ensure reliable network access
-  - Gracefully handles provider failures without disrupting verification flow
+It supports HTTP header authenticated RPCs through ethers.js `FetchRequest` objects.
 
-- **Comprehensive bytecode retrieval**
-  - Fetches both runtime and creation bytecode
-  - Supports advanced factory contract scenarios through trace API integration
-
-- **Robust error handling**
-  - Implements configurable timeout handling to prevent hanging on unresponsive RPCs
-  - Provides detailed error reporting with provider-specific context
-  - Maintains connection stability through automatic retry mechanisms
+Also supports RPCs with `debug_traceTransaction` and `trace_call` methods to be able to fetch creation bytecode for factory contracts.
 
 ### Creating a SourcifyChain Instance
 
 ```typescript
-import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+import { SourcifyChain } from '@ethereum-sourcify/lib-sourcify';
+import { FetchRequest } from 'ethers';
 
 // Create a SourcifyChain for Ethereum Mainnet
 const mainnetChain = new SourcifyChain({
-  name: "Ethereum Mainnet",
+  name: 'Ethereum Mainnet',
   chainId: 1,
-  rpc: ["https://eth.llamarpc.com"],
-  supported: true
-});
-
-// Create a SourcifyChain for a local Hardhat network
-const hardhatChain = new SourcifyChain({
-  name: "Hardhat Network Localhost",
-  shortName: "Hardhat Network",
-  chainId: 31337,
-  rpc: ["http://localhost:8545"],
-  supported: true
-});
-```
-
-### SourcifyChain Properties
-
-- `name`: The human-readable name of the chain
-- `chainId`: The numeric chain identifier
-- `rpc`: An array of RPC endpoints (strings or FetchRequest objects)
-- `supported`: Whether the chain is supported for verification
-- `providers`: JsonRPC providers initialized from the RPC endpoints
-- `traceSupport`: Whether the chain supports call tracing (for creation bytecode retrieval)
-- `traceSupportedRPCs`: RPCs that support tracing with their specific trace methods
-
-### SourcifyChain Methods
-
-The SourcifyChain class provides several methods for interacting with the blockchain:
-
-```typescript
-// Get bytecode from a contract address
-const bytecode = await sourcifyChain.getBytecode("0x123...");
-
-// Get transaction data
-const tx = await sourcifyChain.getTx("0xabc...");
-
-// Get transaction receipt
-const receipt = await sourcifyChain.getTxReceipt("0xabc...");
-
-// Get contract creation bytecode and receipt
-const { creationBytecode, txReceipt } = await sourcifyChain.getContractCreationBytecodeAndReceipt(
-  "0x123...",  // Contract address
-  "0xabc..."   // Creation transaction hash (optional)
-);
-```
-
-### Advanced Configuration
-
-For chains that support special trace methods or have specific block explorers:
-
-```typescript
-const arbitrumChain = new SourcifyChain({
-  name: "Arbitrum One",
-  chainId: 42161,
-  rpc: ["https://arb1.arbitrum.io/rpc"],
-  supported: true,
-  // Specify trace support for factory contract verification
+  rpc: [
+    'https://eth.llamarpc.com',
+    new FetchRequest({
+      url: 'https://authenticated-rpc.com',
+      headers: {
+        Authorization: 'Bearer ...',
+      },
+    }),
+    'https://eth-mainnet.g.alchemy.com/v2/MY_API_KEY',
+  ],
   traceSupportedRPCs: [
     {
-      type: "geth",
-      urls: ["https://arb1.arbitrum.io/rpc"]
-    }
+      type: 'trace_transaction', // or 'debug_traceTransaction'
+      index: 2, // index of the RPC in the rpc array
+    },
   ],
+  supported: true,
 });
 ```
 
@@ -307,7 +233,7 @@ Note: Vyper contracts do not support validation through metadata files since the
 v2 introduces the `SolidityMetadataContract` class which manages the validation workflow:
 
 ```typescript
-import { SolidityMetadataContract } from "@ethereum-sourcify/lib-sourcify";
+import { SolidityMetadataContract } from '@ethereum-sourcify/lib-sourcify';
 
 // Create a SolidityMetadataContract with metadata and sources
 const metadataContract = new SolidityMetadataContract(metadata, sources);
@@ -319,7 +245,7 @@ const compilation = await metadataContract.createCompilation(solidityCompiler);
 For file-based validation:
 
 ```typescript
-import { createMetadataContractsFromFiles } from "@ethereum-sourcify/lib-sourcify";
+import { createMetadataContractsFromFiles } from '@ethereum-sourcify/lib-sourcify';
 
 const pathBuffers: PathBuffer[] = [];
 pathBuffers.push({
@@ -359,14 +285,14 @@ const isCompilable = metadataContract.isCompilable(); // true or false
 In v2, the verification process is handled by the `Verification` class:
 
 ```typescript
-import { Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+import { Verification, SourcifyChain } from '@ethereum-sourcify/lib-sourcify';
 
 // Set up the SourcifyChain
 const chain = new SourcifyChain({
-  name: "Ethereum Mainnet",
+  name: 'Ethereum Mainnet',
   chainId: 1,
-  rpc: ["https://eth.llamarpc.com"],
-  supported: true
+  rpc: ['https://eth.llamarpc.com'],
+  supported: true,
 });
 
 // Create a verification instance
@@ -374,7 +300,7 @@ const verification = new Verification(
   compilation,
   chain,
   contractAddress,
-  creatorTxHash // optional, for creation bytecode verification
+  creatorTxHash, // optional, for creation bytecode verification
 );
 
 // Perform verification
@@ -384,225 +310,13 @@ await verification.verify();
 console.log(verification.status.runtimeMatch); // 'perfect', 'partial', or null
 ```
 
-### Verification Class Properties
+### Transformations
 
-The `Verification` class provides access to the following properties:
+Sourcify adopts the [Verifier Alliance](https://verifieralliance.org) format called "transformations" to describe the changes from the compiled bytecode to onchain bytecode for a verification.
 
-- `compilation`: The AbstractCompilation instance used for verification
-  - `compilerVersion`: The version of the compiler used
-  - `compilationTarget`: The target contract's path and name
-  - `jsonInput`: The JSON input used for compilation
-  - `compilerOutput`: The output from the compiler
-  - `language`: The compilation language (Solidity or Vyper)
-  - `creationBytecode`: The compiled creation bytecode
-  - `runtimeBytecode`: The compiled runtime bytecode
-  - `metadata`: The contract's metadata
-  - `sources`: The contract's source files
-  - `immutableReferences`: References to immutable variables
-  - `runtimeLinkReferences`: Link references in runtime bytecode
-  - `creationLinkReferences`: Link references in creation bytecode
-  - `creationBytecodeCborAuxdata`: CBOR auxdata for creation bytecode
-  - `runtimeBytecodeCborAuxdata`: CBOR auxdata for runtime bytecode
+E.g. while immutable variables are set to `0x00..00` after compilation, they are set to the actual value in the onchain bytecode.
 
-- `address`: The address of the contract being verified
-- `status`: The verification status ('perfect', 'partial', or null)
-- `onchainRuntimeBytecode`: The runtime bytecode retrieved from the blockchain
-- `onchainCreationBytecode`: The creation bytecode retrieved from the blockchain
-- `transformations`: Bytecode transformations applied during verification
-- `deploymentInfo`: Information about the contract deployment (blockNumber, txIndex, deployer)
-- `libraryMap`: The resolved library addresses used during verification
-- `chainId`: The ID of the chain the contract is deployed on
-
-### Detailed Property Structures
-
-#### Verification Status
-
-The `status` property of the `Verification` class returns an object with the following structure:
-
-```typescript
-{
-  runtimeMatch: 'perfect' | 'partial' | null,  // Status of runtime bytecode verification
-  creationMatch: 'perfect' | 'partial' | null  // Status of creation bytecode verification
-}
-```
-
-Each match status can be one of:
-- `'perfect'`: Complete bytecode match
-- `'partial'`: Partial bytecode match
-- `null`: No match
-
-#### Transformations
-
-The `transformations` property returns an object with transformation details for both runtime and creation bytecode:
-
-```typescript
-{
-  runtime: {
-    list: Transformation[],
-    values: TransformationValues
-  },
-  creation: {
-    list: Transformation[],
-    values: TransformationValues
-  }
-}
-```
-
-Each `Transformation` object in the `list` arrays has the following structure:
-
-```typescript
-{
-  type: 'insert' | 'replace',  // Whether bytes are inserted or replaced
-  reason: 'constructorArguments' | 'library' | 'immutable' | 'cborAuxdata' | 'callProtection',  // Why the transformation is needed
-  offset: number,  // Position in the bytecode where the transformation occurs, in bytes
-  id?: string      // Optional identifier used for libraries, immutables, and CBOR auxdata
-}
-```
-
-Different types of transformations include:
-
-1. **Constructor Arguments Transformation**: Applied to handle constructor arguments in creation bytecode
-   ```typescript
-   {
-     type: 'insert',
-     reason: 'constructorArguments',
-     offset: 12345  // Position where constructor arguments are appended
-   }
-   ```
-
-2. **Library Transformation**: Applied to replace library placeholders with actual addresses
-   ```typescript
-   {
-     type: 'replace',
-     reason: 'library',
-     offset: 12345,
-     id: 'Library.sol:Math'  // Library identifier ("Fully Qualified Name" OR "Placeholder")
-   }
-   ```
-
-3. **Immutables Transformation**: Applied to handle immutable variables
-   ```typescript
-   {
-     type: 'replace', // "replace" for Solidity, "insert" for Vyper
-     reason: 'immutable',
-     offset: 12345,
-     id: '3'  // Immutable variable index
-   }
-   ```
-
-4. **CBOR Auxdata Transformation**: Applied to handle metadata hashes
-   ```typescript
-   {
-     type: 'replace',
-     reason: 'cborAuxdata',
-     offset: 12345,
-     id: '1'  // Index for the auxdata source
-   }
-   ```
-
-5. **Call Protection Transformation**: Applied to handle differences in call protection mechanisms
-   ```typescript
-   {
-     type: 'insert',
-     reason: 'callProtection',
-     offset: 1
-   }
-   ```
-
-The actual values used in transformations are stored in corresponding value objects that follow this pattern:
-
-```typescript
-{
-  constructorArguments?: string,
-  callProtection?: string,
-  libraries?: {
-    [id: string]: string  // Maps library identifiers to addresses
-  },
-  immutables?: {
-    [id: string]: string  // Maps immutable identifiers to values
-  },
-  cborAuxdata?: {
-    [id: string]: string  // Maps auxdata identifiers to values
-  }
-}
-```
-
-#### DeploymentInfo
-
-The `deploymentInfo` property returns information about the contract's deployment:
-
-```typescript
-{
-  blockNumber?: number,  // Block number where the contract was deployed
-  txIndex?: number,      // Transaction index within the block
-  deployer?: string,     // Address that deployed the contract
-  txHash?: string,       // Transaction hash
-}
-```
-
-#### LibraryMap
-
-The `libraryMap` property returns an object mapping library identifiers to their addresses:
-
-```typescript
-{
-  [libraryName: string]: string  // E.g., '__$da57....$__': '0x1234...'
-}
-```
-
-#### ImmutableReferences
-
-The `immutableReferences` property (accessible via `compilation.immutableReferences`) is structured as:
-
-```typescript
-{
-  [position: string]: {
-    length: number,
-    start: number
-  }[]
-}
-```
-
-Where:
-- `position`: A string identifier for the immutable variable
-- `length`: The length of the variable in bytes
-- `start`: The starting position of the variable in the bytecode
-
-#### LinkReferences
-
-The `runtimeLinkReferences` and `creationLinkReferences` properties (accessible via `compilation`) are structured as:
-
-```typescript
-{
-  [sourceFile: string]: {
-    [libraryName: string]: {
-      length: number,
-      start: number
-    }[]
-  }
-}
-```
-
-Where:
-- `sourceFile`: The path to the source file containing the library
-- `libraryName`: The name of the referenced library
-- `length`: The length of the reference in bytes
-- `start`: The starting position of the reference in the bytecode
-
-#### BytecodeCborAuxdata
-
-The `creationBytecodeCborAuxdata` and `runtimeBytecodeCborAuxdata` properties (accessible via `compilation`) provide information about CBOR metadata positions:
-
-```typescript
-{
-  [id: string]: {
-    offset: number,   // Position in the bytecode where the CBOR auxdata starts
-    value: string     // The hexadecimal string of the CBOR auxdata
-  }
-}
-```
-
-This information is used to handle metadata hashes during verification.
+Refer to [VerA Docs](https://github.com/verifier-alliance/database-specs/tree/master/json-schemas) for more information.
 
 ## Error Handling
 
@@ -610,75 +324,7 @@ During verification, various errors can occur. In lib-sourcify v2, errors relate
 
 ### Error Codes
 
-The `VerificationErrorCode` type defines the following error codes:
-
-https://github.com/ethereum/sourcify/blob/06363e3c27c3c2a6bff01670dd3cf7ce635ba60c/packages/lib-sourcify/src/Verification/VerificationTypes.ts#L14-L23
-
-## Usage Examples
-
-### Using SolidityMetadataContract
-
-```typescript
-import { SolidityMetadataContract, Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
-
-// Create a SolidityMetadataContract with metadata and sources
-const metadataContract = new SolidityMetadataContract(metadata, sources);
-
-// Create a compilation for verification
-const compilation = await metadataContract.createCompilation(new TestSolidityCompiler());
-
-// Create a SourcifyChain instance
-const hardhatChain = new SourcifyChain({
-  name: "Hardhat Network Localhost",
-  chainId: 31337,
-  rpc: ["http://localhost:8545"],
-  supported: true
-});
-
-// Verify against an on-chain contract
-const verification = new Verification(
-  compilation,
-  hardhatChain,
-  contractAddress
-);
-await verification.verify();
-
-// Check verification status
-console.log(verification.status);
-```
-
-### Using SolidityCompilation Directly
-
-```typescript
-import { SolidityCompilation, Verification, SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
-
-// Create a compilation directly
-const compilation = new SolidityCompilation(
-  solc,
-  metadata.compiler.version,
-  jsonInput,
-  { path, name } // compilationTarget
-);
-
-// Create a SourcifyChain instance
-const hardhatChain = new SourcifyChain({
-  name: "Hardhat Network Localhost",
-  chainId: 31337,
-  rpc: ["http://localhost:8545"],
-  supported: true
-});
-
-// Verify against an on-chain contract
-const verification = new Verification(
-  compilation,
-  hardhatChain,
-  contractAddress
-);
-await verification.verify();
-
-// Check verification status
-console.log(verification.status);
-```
+See `VerificationErrorCode` type in [VerificationTypes.ts](./src/Verification/VerificationTypes.ts#L14-L23) for the full list of error codes.
 
 ## Logging
 
@@ -686,39 +332,39 @@ console.log(verification.status);
 
 You can specify the log level using the `setLibSourcifyLoggerLevel(level)` where:
 
-- `0` is nothing
-- `1` is errors
-- `2` is warnings _[default]_
-- `3` is infos
-- `4` is debug
+- `0` is errors
+- `1` is warnings
+- `2` is infos
+- `5` is debug
+- `6` is silly
 
 You can override the logger by calling `setLogger(logger: ILibSourcifyLogger)`. This is an example:
 
 ```javascript
 const winston = require('winston');
-const logger = winston.createLogger({
+const myCustomLogger = winston.createLogger({
   // ...
 });
 
 setLibSourcifyLogger({
-  logLevel: 4,
+  logLevel: 2, // What levels to log. E.g. Log anything lower than info: error and warning
   setLevel(level: number) {
     this.logLevel = level;
   },
   log(level, msg) {
     if (level <= this.logLevel) {
       switch (level) {
+        case 0:
+          myCustomLogger.error(msg);
+          break;
         case 1:
-          logger.error(msg);
+          myCustomLogger.warn(msg);
           break;
         case 2:
-          logger.warn(msg);
+          myCustomLogger.info(msg);
           break;
-        case 3:
-          logger.info(msg);
-          break;
-        case 4:
-          logger.debug(msg);
+        case 5:
+          myCustomLogger.debug(msg);
           break;
       }
     }
@@ -733,6 +379,7 @@ Version 2 of lib-sourcify brings a significant redesign of the library's archite
 ### Key Changes
 
 1. **Class Structure Changes**:
+
    - `AbstractCheckedContract` is replaced by language-specific compilation classes
    - `SolidityCheckedContract` functionality is now split between `SolidityMetadataContract` and `SolidityCompilation`
    - `VyperCheckedContract` is now represented by `VyperCompilation`
@@ -754,7 +401,7 @@ await solidityCheckedContract.fetchMissing();
 const match = await verifyDeployed(
   solidityCheckedContract,
   sourcifyChain,
-  contractAddress
+  contractAddress,
 );
 ```
 
@@ -762,7 +409,10 @@ const match = await verifyDeployed(
 
 ```typescript
 // V2 code
-import { createMetadataContractsFromFiles, Verification } from "@ethereum-sourcify/lib-sourcify";
+import {
+  createMetadataContractsFromFiles,
+  Verification,
+} from '@ethereum-sourcify/lib-sourcify';
 
 // Create metadata contracts from files
 const metadataContracts = await createMetadataContractsFromFiles(pathBuffers);
@@ -778,7 +428,7 @@ const compilation = await metadataContract.createCompilation(solc);
 const verification = new Verification(
   compilation,
   sourcifyChain,
-  contractAddress
+  contractAddress,
 );
 
 // Perform verification
@@ -788,13 +438,13 @@ await verification.verify();
 const status = verification.status;
 ```
 
-### Function Mapping
+## Functions of v1 vs v2
 
-| v1 Function/Class | v2 Equivalent |
-|-------------------|---------------|
+| v1 Function/Class         | v2 Equivalent                                      |
+| ------------------------- | -------------------------------------------------- |
 | `SolidityCheckedContract` | `SolidityMetadataContract` + `SolidityCompilation` |
-| `VyperCheckedContract` | `VyperCompilation` |
-| `checkFilesWithMetadata` | `createMetadataContractsFromFiles` |
-| `verifyDeployed` | `Verification.verify()` |
-| `fetchMissing` | `metadataContract.fetchMissing()` |
-| `isValid` | `metadataContract.isCompilable()` |
+| `VyperCheckedContract`    | `VyperCompilation`                                 |
+| `checkFilesWithMetadata`  | `createMetadataContractsFromFiles`                 |
+| `verifyDeployed`          | `Verification.verify()`                            |
+| `fetchMissing`            | `metadataContract.fetchMissing()`                  |
+| `isValid`                 | `metadataContract.isCompilable()`                  |
