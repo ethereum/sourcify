@@ -1,4 +1,4 @@
-import SourcifyChain from './SourcifyChain';
+import { SourcifyChain } from './SourcifyChain';
 
 export type SourcifyChainMap = {
   [chainId: string]: SourcifyChain;
@@ -18,6 +18,15 @@ export type SourcifyChainExtension = {
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   rpc?: Array<string | BaseRPC | APIKeyRPC | FetchRequestRPC>;
 };
+
+// Need to define the rpc property explicitly as when a sourcifyChain is created with {...chain, sourcifyChainExtension}, Typescript throws with "Type '(string | FetchRequest)[]' is not assignable to type 'string[]'." For some reason the Chain.rpc is not getting overwritten by SourcifyChainExtension.rpc
+// Also omit the 'sourcifyName' as it is only needed to have the name in sourcify-chains.json but not when instantiating a SourcifyChain
+export type SourcifyChainInstance = Omit<Chain, 'rpc'> &
+  Omit<SourcifyChainExtension, 'rpc' | 'sourcifyName'> & {
+    rpc: Array<string | FetchRequestRPC>;
+    rpcWithoutApiKeys?: Array<string>;
+    traceSupportedRPCs?: TraceSupportedRPC[];
+  };
 
 // types of the keys of FetchContractCreationTxMethods
 export type FetchContractCreationTxMethod =

@@ -10,6 +10,7 @@ import {
   SourcifyChainMap,
   CompilationLanguage,
   VerificationExport,
+  SourcifyChainInstance,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -60,11 +61,21 @@ export class VerificationService {
     this.solJsonRepoPath = options.solJsonRepoPath;
     this.storageService = storageService;
 
+    const sourcifyChainInstanceMap = Object.entries(
+      options.sourcifyChainMap,
+    ).reduce(
+      (acc, [chainId, chain]) => {
+        acc[chainId] = chain.getSourcifyChainObj();
+        return acc;
+      },
+      {} as Record<string, SourcifyChainInstance>,
+    );
+
     this.workerPool = new Piscina({
       filename: path.resolve(__dirname, "./workers/workerWrapper.js"),
       workerData: {
         fullpath: verificationWorkerFilename,
-        sourcifyChainMap: options.sourcifyChainMap,
+        sourcifyChainInstanceMap,
         solcRepoPath: options.solcRepoPath,
         solJsonRepoPath: options.solJsonRepoPath,
         vyperRepoPath: options.vyperRepoPath,

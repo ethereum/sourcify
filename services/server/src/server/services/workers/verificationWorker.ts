@@ -9,6 +9,9 @@ import {
   VyperCompilation,
   Verification,
   SourcifyLibError,
+  SourcifyChain,
+  SourcifyChainInstance,
+  SourcifyChainMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { resolve } from "path";
 import { ChainRepository } from "../../../sourcify-chain-repository";
@@ -28,7 +31,19 @@ const initWorker = () => {
   if (chainRepository && solc && vyper) {
     return;
   }
-  chainRepository = new ChainRepository(Piscina.workerData.sourcifyChainMap);
+
+  const sourcifyChainInstanceMap = Piscina.workerData
+    .sourcifyChainInstanceMap as { [chainId: string]: SourcifyChainInstance };
+
+  const sourcifyChainMap = Object.entries(sourcifyChainInstanceMap).reduce(
+    (acc, [chainId, chain]) => {
+      acc[chainId] = new SourcifyChain(chain);
+      return acc;
+    },
+    {} as SourcifyChainMap,
+  );
+
+  chainRepository = new ChainRepository(sourcifyChainMap);
   solc = new SolcLocal(
     Piscina.workerData.solcRepoPath,
     Piscina.workerData.solJsonRepoPath,

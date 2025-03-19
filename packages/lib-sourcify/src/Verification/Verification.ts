@@ -1,6 +1,6 @@
 import { AbstractCompilation } from '../Compilation/AbstractCompilation';
 import { logDebug, logInfo, logWarn } from '../logger';
-import SourcifyChain from '../SourcifyChain/SourcifyChain';
+import { SourcifyChain } from '../SourcifyChain/SourcifyChain';
 import { lt } from 'semver';
 import {
   splitAuxdata,
