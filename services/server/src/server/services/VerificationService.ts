@@ -7,7 +7,9 @@ import {
   Verification,
   SolidityCompilation,
   VyperCompilation,
-  CompilationTarget,
+  SourcifyChainMap,
+  CompilationLanguage,
+  VerificationExport,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -17,25 +19,58 @@ import {
   getSolcExecutable,
   getSolcJs,
 } from "@ethereum-sourcify/compilers";
+import { VerificationJobId } from "../types";
+import { StorageService } from "./StorageService";
+import {
+  DuplicateVerificationRequestError,
+  MatchingErrorResponse,
+} from "../apiv2/errors";
+import Piscina from "piscina";
+import path from "path";
+import { filename as verificationWorkerFilename } from "./workers/verificationWorker";
+import { v4 as uuidv4 } from "uuid";
+import { ConflictError } from "../../common/errors/ConflictError";
 
 export interface VerificationServiceOptions {
   initCompilers?: boolean;
+  sourcifyChainMap: SourcifyChainMap;
   solcRepoPath: string;
   solJsonRepoPath: string;
+  vyperRepoPath: string;
 }
 
 export class VerificationService {
   initCompilers: boolean;
   solcRepoPath: string;
   solJsonRepoPath: string;
+  storageService: StorageService;
+
   activeVerificationsByChainIdAddress: {
     [chainIdAndAddress: string]: boolean;
   } = {};
 
-  constructor(options: VerificationServiceOptions) {
+  private workerPool: Piscina;
+
+  constructor(
+    options: VerificationServiceOptions,
+    storageService: StorageService,
+  ) {
     this.initCompilers = options.initCompilers || false;
     this.solcRepoPath = options.solcRepoPath;
     this.solJsonRepoPath = options.solJsonRepoPath;
+    this.storageService = storageService;
+
+    this.workerPool = new Piscina({
+      filename: path.resolve(__dirname, "./workers/workerWrapper.js"),
+      workerData: {
+        fullpath: verificationWorkerFilename,
+        sourcifyChainMap: options.sourcifyChainMap,
+        solcRepoPath: options.solcRepoPath,
+        solJsonRepoPath: options.solJsonRepoPath,
+        vyperRepoPath: options.vyperRepoPath,
+      },
+      idleTimeout: 10000, // 10 seconds idle timeout
+    });
   }
 
   // All of the solidity compilation actually run outside the VerificationService but this is an OK place to init everything.
@@ -93,7 +128,7 @@ export class VerificationService {
     return true;
   }
 
-  private throwIfContractIsAlreadyBeingVerified(
+  private throwV1ErrorIfContractIsAlreadyBeingVerified(
     chainId: string,
     address: string,
   ) {
@@ -103,6 +138,21 @@ export class VerificationService {
     ) {
       logger.warn("Contract already being verified", { chainId, address });
       throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
+    }
+  }
+
+  private throwIfContractIsAlreadyBeingVerified(
+    chainId: string,
+    address: string,
+  ) {
+    if (
+      this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] !==
+      undefined
+    ) {
+      logger.warn("Contract already being verified", { chainId, address });
+      throw new DuplicateVerificationRequestError(
+        `Contract ${address} on chain ${chainId} is already being verified`,
+      );
     }
   }
 
@@ -162,7 +212,7 @@ export class VerificationService {
       chainId,
       address,
     });
-    this.throwIfContractIsAlreadyBeingVerified(chainId, address);
+    this.throwV1ErrorIfContractIsAlreadyBeingVerified(chainId, address);
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
     const foundCreatorTxHash =
@@ -185,27 +235,88 @@ export class VerificationService {
     }
   }
 
-  public async verifyFromJsonInput(
-    solc: ISolidityCompiler,
-    compilerVersion: string,
-    jsonInput: VyperJsonInput | SolidityJsonInput,
-    compilationTarget: CompilationTarget,
-    sourcifyChain: SourcifyChain,
+  public async verifyFromJsonInputViaWorker(
+    verificationEndpoint: string,
+    chainId: string,
     address: string,
-    creatorTxHash?: string,
-  ): Promise<Verification> {
-    const compilation = new SolidityCompilation(
-      solc,
-      compilerVersion,
-      jsonInput,
-      compilationTarget,
-    );
+    language: CompilationLanguage,
+    jsonInput: SolidityJsonInput | VyperJsonInput,
+    compilerVersion: string,
+    contractIdentifier: string,
+    creationTransactionHash?: string,
+  ): Promise<VerificationJobId> {
+    this.throwIfContractIsAlreadyBeingVerified(chainId, address);
+    this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
-    return await this.verifyFromCompilation(
-      compilation,
-      sourcifyChain,
-      address,
-      creatorTxHash,
-    );
+    try {
+      const verificationId = await this.storageService.performServiceOperation(
+        "storeVerificationJob",
+        [new Date(), chainId, address, verificationEndpoint],
+      );
+
+      this.workerPool
+        .run(
+          {
+            chainId,
+            address,
+            language,
+            jsonInput,
+            compilerVersion,
+            contractIdentifier,
+            creationTransactionHash,
+          },
+          { name: "verifyFromJsonInput" },
+        )
+        .then((verification: VerificationExport) => {
+          return this.storageService.storeVerification(verification, {
+            verificationId,
+            finishTime: new Date(),
+          });
+        })
+        .catch((error) => {
+          if (error.response) {
+            // error comes from the verification worker
+            const errorResponse = error.response as MatchingErrorResponse;
+            logger.debug("Received verification error from worker", {
+              verificationId,
+              errorResponse,
+            });
+            return this.storageService.performServiceOperation("setJobError", [
+              verificationId,
+              new Date(),
+              errorResponse,
+            ]);
+          }
+
+          if (error instanceof ConflictError) {
+            // returned by StorageService if match already exists and new one is not better
+            return this.storageService.performServiceOperation("setJobError", [
+              verificationId,
+              new Date(),
+              {
+                customCode: "already_verified",
+                errorId: uuidv4(),
+              },
+            ]);
+          }
+
+          logger.error("Unexpected verification error", {
+            verificationId,
+            error,
+          });
+          return this.storageService.performServiceOperation("setJobError", [
+            verificationId,
+            new Date(),
+            {
+              customCode: "unknown_error",
+              errorId: uuidv4(),
+            },
+          ]);
+        });
+
+      return verificationId;
+    } finally {
+      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
+    }
   }
 }

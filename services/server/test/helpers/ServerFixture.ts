@@ -120,8 +120,10 @@ export class ServerFixture {
       this._server = new Server(
         serverOptions,
         {
+          sourcifyChainMap: sourcifyChainsMap,
           solcRepoPath: config.get("solcRepo"),
           solJsonRepoPath: config.get("solJsonRepo"),
+          vyperRepoPath: config.get("vyperRepo"),
         },
         {
           serverUrl: config.get("serverUrl"),

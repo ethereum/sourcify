@@ -26,6 +26,7 @@ import {
   VerifiedContract,
   VerificationJob,
   Match,
+  VerificationJobId,
 } from "../../types";
 import Path from "path";
 import {
@@ -41,6 +42,7 @@ import semver from "semver";
 import { DatabaseOptions } from "../utils/Database";
 import {
   getVerificationErrorMessage,
+  MatchingErrorResponse,
   VerificationErrorCode,
 } from "../../apiv2/errors";
 
@@ -741,8 +743,6 @@ export class SourcifyDatabaseService
   getVerificationJob = async (
     verificationId: string,
   ): Promise<VerificationJob | null> => {
-    await this.init();
-
     const result = await this.database.getVerificationJobById(verificationId);
 
     if (result.rowCount === 0) {
@@ -796,15 +796,72 @@ export class SourcifyDatabaseService
         recompiledRuntimeCode: row.recompiled_runtime_code || undefined,
         onchainCreationCode: row.onchain_creation_code || undefined,
         onchainRuntimeCode: row.onchain_runtime_code || undefined,
-        creationTransactionHash: row.creator_transaction_hash || undefined,
+        creationTransactionHash: row.creation_transaction_hash || undefined,
       };
     }
 
     return job;
   };
 
+  async storeVerificationJob(
+    startTime: Date,
+    chainId: string,
+    address: string,
+    verificationEndpoint: string,
+  ): Promise<VerificationJobId> {
+    const hardwareInfo = process.env.K_REVISION
+      ? `cloud_run:${process.env.K_REVISION}`
+      : "unknown";
+
+    const result = await this.database.insertVerificationJob({
+      started_at: startTime,
+      chain_id: chainId,
+      contract_address: bytesFromString(address)!,
+      verification_endpoint: verificationEndpoint,
+      hardware: hardwareInfo,
+    });
+
+    if (result.rowCount === 0) {
+      throw new Error("Failed to insert verification job");
+    }
+    return result.rows[0].id;
+  }
+
+  async setJobError(
+    verificationId: VerificationJobId,
+    finishTime: Date,
+    error: Omit<MatchingErrorResponse, "message">,
+  ) {
+    await this.database.updateVerificationJob({
+      id: verificationId,
+      completed_at: finishTime,
+      verified_contract_id: null,
+      compilation_time: null,
+      error_code: error.customCode,
+      error_id: error.errorId,
+    });
+
+    await this.database.insertVerificationJobEphemeral({
+      id: verificationId,
+      recompiled_creation_code:
+        bytesFromString(error.recompiledCreationCode) || null,
+      recompiled_runtime_code:
+        bytesFromString(error.recompiledRuntimeCode) || null,
+      onchain_creation_code: bytesFromString(error.onchainCreationCode) || null,
+      onchain_runtime_code: bytesFromString(error.onchainRuntimeCode) || null,
+      creation_transaction_hash:
+        bytesFromString(error.creationTransactionHash) || null,
+    });
+  }
+
   // Override this method to include the SourcifyMatch
-  async storeVerification(verification: VerificationExport) {
+  async storeVerification(
+    verification: VerificationExport,
+    jobData?: {
+      verificationId: VerificationJobId;
+      finishTime: Date;
+    },
+  ): Promise<void> {
     const { type, verifiedContractId, oldVerifiedContractId } =
       await super.insertOrUpdateVerification(verification);
 
@@ -827,17 +884,6 @@ export class SourcifyDatabaseService
         creationMatch: verification.status.creationMatch,
       });
     } else if (type === "update") {
-      // If insertOrUpdateVerifiedContract returned an update with verifiedContractId=false
-      // it means that the new match wasn't better (perfect > partial) than the existing one
-      if (verifiedContractId === false) {
-        logger.info("Not Updated in SourcifyDatabase", {
-          address: verification.address,
-          chainId: verification.chainId,
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
-        });
-        return;
-      }
       if (!oldVerifiedContractId) {
         throw new Error(
           "oldVerifiedContractId undefined before updating sourcify match",
@@ -862,6 +908,19 @@ export class SourcifyDatabaseService
       throw new Error(
         "insertOrUpdateVerifiedContract returned a type that doesn't exist",
       );
+    }
+
+    // Update the verification job to be successful
+    if (jobData) {
+      await this.database.updateVerificationJob({
+        id: jobData.verificationId,
+        completed_at: jobData.finishTime,
+        verified_contract_id: verifiedContractId,
+        compilation_time:
+          verification.compilation.compilationTime?.toString() || null,
+        error_code: null,
+        error_id: null,
+      });
     }
   }
 }
