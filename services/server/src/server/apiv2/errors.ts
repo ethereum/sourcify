@@ -16,7 +16,7 @@ import { TooManyRequests } from "../../common/errors/TooManyRequests";
 
 export type ErrorCode =
   | VerificationErrorCode
-  | "unknown_error"
+  | "internal_error"
   | "route_not_found"
   | "unsupported_chain"
   | "invalid_parameter"
@@ -45,13 +45,13 @@ export class MatchingError extends Error {
   }
 }
 
-export class UnknownError extends InternalServerError {
+export class InternalError extends InternalServerError {
   payload: GenericErrorResponse;
 
   constructor(message: string) {
     super(message);
     this.payload = {
-      customCode: "unknown_error",
+      customCode: "internal_error",
       message,
       errorId: uuidv4(),
     };
@@ -145,15 +145,15 @@ export function errorHandler(
     return;
   }
 
-  logger.error("Unknown server error: ", err);
-  next(new UnknownError("The server encountered an unexpected error."));
+  logger.error("Internal server error: ", err);
+  next(new InternalError("The server encountered an unexpected error."));
 }
 
 export type VerificationErrorCode =
   | SourcifyLibErrorCode
   | "unsupported_language"
   | "already_verified"
-  | "unknown_error";
+  | "internal_error";
 
 export function getVerificationErrorMessage(
   code: VerificationErrorCode,
@@ -164,7 +164,7 @@ export function getVerificationErrorMessage(
       return "The provided language is not supported.";
     case "already_verified":
       return "The contract is already verified and the job didn't yield a better match.";
-    case "unknown_error":
+    case "internal_error":
       return "The server encountered an unexpected error.";
     default:
       return getErrorMessageFromCode(code, payload);
