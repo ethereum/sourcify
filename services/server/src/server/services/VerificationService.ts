@@ -308,7 +308,7 @@ export class VerificationService {
             verificationId,
             new Date(),
             {
-              customCode: "unknown_error",
+              customCode: "internal_error",
               errorId: uuidv4(),
             },
           ]);
