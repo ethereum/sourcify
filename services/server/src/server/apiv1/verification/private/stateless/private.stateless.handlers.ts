@@ -7,7 +7,7 @@ import {
   Verification,
   SolidityCompilation,
   SolidityJsonInput,
-  SourcifyChain,
+  Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
@@ -161,16 +161,37 @@ export async function upgradeContract(
     const verifiedContractResult = await poolClient.query(
       `SELECT 
         verified_contracts.*,
+        sourcify_matches.metadata,
         compiled_contracts.compiler,
         compiled_contracts.version,
         compiled_contracts.language,
         compiled_contracts.name,
         compiled_contracts.fully_qualified_name,
-        compiled_contracts.compiler_settings
-      FROM public.verified_contracts
-      JOIN public.compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
-      WHERE verified_contracts.id = $1`,
-      [req.body.verifiedContractId],
+        compiled_contracts.compiler_settings,
+        compiled_contracts.compilation_artifacts,
+        compiled_contracts.creation_code_artifacts,
+        compiled_contracts.runtime_code_artifacts,
+        compiled_creation_code.code as compiled_creation_code,
+        compiled_runtime_code.code as compiled_runtime_code,
+        contract_deployments.address,
+        contract_deployments.chain_id,
+        contract_deployments.transaction_hash,
+        contract_deployments.block_number,
+        contract_deployments.transaction_index,
+        encode(contract_deployments.deployer, 'hex') as deployer,
+        onchain_creation_code.code as onchain_creation_code,
+        onchain_runtime_code.code as onchain_runtime_code
+      FROM verified_contracts
+      JOIN compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
+      JOIN sourcify_matches ON sourcify_matches.verified_contract_id = verified_contracts.id
+      JOIN code compiled_creation_code ON compiled_contracts.creation_code_hash = compiled_creation_code.code_hash 
+      JOIN code compiled_runtime_code ON compiled_contracts.runtime_code_hash = compiled_runtime_code.code_hash
+      JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+      JOIN contracts ON contracts.id = contract_deployments.contract_id
+      JOIN code onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
+      JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
+      WHERE sourcify_matches.id = $1`,
+      [req.body.sourcifyMatchId],
     );
 
     if (verifiedContractResult.rows.length === 0) {
@@ -186,14 +207,14 @@ export async function upgradeContract(
       `SELECT 
         sources.content,
         compiled_contracts_sources.path
-      FROM public.compiled_contracts_sources
-      JOIN public.sources ON sources.source_hash = compiled_contracts_sources.source_hash
+      FROM compiled_contracts_sources
+      JOIN sources ON sources.source_hash = compiled_contracts_sources.source_hash
       WHERE compiled_contracts_sources.compilation_id = $1`,
       [verifiedContract.compilation_id],
     );
 
     // Initialize jsonInput with data from database
-    const compilerVersion = verifiedContract.version || "0.8.25";
+    const compilerVersion = verifiedContract.version;
 
     // Create sources object from the query result
     const sources: Record<string, { content: string }> = {};
@@ -202,20 +223,7 @@ export async function upgradeContract(
     }
 
     // Create settings from compiler_settings JSON field
-    const settings = verifiedContract.compiler_settings || {
-      optimizer: { enabled: false, runs: 200 },
-      outputSelection: {
-        "*": {
-          "*": [
-            "abi",
-            "evm.bytecode",
-            "evm.deployedBytecode",
-            "evm.methodIdentifiers",
-            "metadata",
-          ],
-        },
-      },
-    };
+    const settings = JSON.parse(verifiedContract.compiler_settings);
 
     // Initialize jsonInput with the required fields
     const jsonInput: SolidityJsonInput = {
@@ -225,14 +233,25 @@ export async function upgradeContract(
     };
 
     // Get the file path and contract name from fully_qualified_name
-    const pathParts = verifiedContract.fully_qualified_name.split(":");
+    const metadataCompilationTarget = (
+      JSON.parse(verifiedContract.metadata) as Metadata
+    ).settings.compilationTarget;
     const compilationTarget = {
-      name: pathParts.length > 1 ? pathParts[1] : verifiedContract.name,
-      path:
-        pathParts.length > 1
-          ? pathParts[0]
-          : `contracts/${verifiedContract.name}.sol`,
+      name: Object.values(metadataCompilationTarget)[0],
+      path: Object.keys(metadataCompilationTarget)[0],
     };
+
+    const compilationArtifacts = JSON.parse(
+      verifiedContract.compilation_artifacts,
+    );
+
+    const creationCodeArtifacts = JSON.parse(
+      verifiedContract.creation_code_artifacts,
+    );
+
+    const runtimeCodeArtifacts = JSON.parse(
+      verifiedContract.runtime_code_artifacts,
+    );
 
     const compilation = new SolidityCompilation(
       solc,
@@ -245,14 +264,22 @@ export async function upgradeContract(
       contracts: {
         [compilationTarget.path]: {
           [compilationTarget.name]: {
-            abi: [],
-            metadata: "{}",
+            abi: compilationArtifacts.abi,
+            userdoc: compilationArtifacts.userdoc,
+            devdoc: compilationArtifacts.devdoc,
+            metadata: verifiedContract.metadata,
+            storageLayout: compilationArtifacts.storageLayout,
             evm: {
               bytecode: {
-                object: "0x",
+                object: verifiedContract.creation_code,
+                sourceMap: creationCodeArtifacts.sourceMap,
+                linkReferences: creationCodeArtifacts.linkReferences,
               },
               deployedBytecode: {
-                object: "0x",
+                object: verifiedContract.runtime_code,
+                sourceMap: runtimeCodeArtifacts.sourceMap,
+                linkReferences: runtimeCodeArtifacts.linkReferences,
+                immutableReferences: runtimeCodeArtifacts.immutableReferences,
               },
             },
           },
@@ -260,32 +287,48 @@ export async function upgradeContract(
       },
     };
 
+    compilation["compile"] = async () => {
+      // Override so that it doesn't compile
+    };
+
+    compilation["generateCborAuxdataPositions"] = async () => {
+      // Override so that it doesn't generate auxdata positions
+    };
+
+    Object.defineProperty(compilation, "creationBytecodeCborAuxdata", {
+      value: creationCodeArtifacts.cborAuxdata,
+    });
+
+    Object.defineProperty(compilation, "runtimeBytecodeCborAuxdata", {
+      value: runtimeCodeArtifacts.cborAuxdata,
+    });
+
     const sourcifyChainMock = {
       getBytecode: async (address: string) => {
-        return "0x";
+        return verifiedContract.onchain_runtime_code;
       },
       getTx: async (txHash: string) => {
         return {
-          blockNumber: 1,
-          from: "0x",
+          blockNumber: verifiedContract.block_number,
+          from: verifiedContract.deployer,
         };
       },
       getContractCreationBytecodeAndReceipt: async (address: string) => {
         return {
-          creationBytecode: "0x",
+          creationBytecode: verifiedContract.onchain_creation_code,
           txReceipt: {
-            index: 0,
+            index: verifiedContract.transaction_index,
           },
         };
       },
-      chainId: 1,
+      chainId: verifiedContract.chain_id,
     };
 
     const verification = new Verification(
       compilation,
       sourcifyChainMock as any,
-      req.body.address,
-      req.body.creatorTxHash,
+      verifiedContract.address,
+      verifiedContract.transaction_hash,
     );
 
     verification.verify();
@@ -298,7 +341,7 @@ export async function upgradeContract(
 
     // 1. Update verified_contracts table using direct query
     await poolClient.query(
-      `UPDATE public.verified_contracts SET 
+      `UPDATE verified_contracts SET 
         creation_match = $1,
         creation_transformations = $2,
         creation_values = $3
@@ -308,18 +351,18 @@ export async function upgradeContract(
           verificationStatus.creationMatch === "partial", // Store as boolean for database
         JSON.stringify(verification.transformations.creation.list || []), // Store transformations as JSON string
         verification.transformations.creation.values || null, // Store transformation values
-        req.body.verifiedContractId, // ID of the contract to update
+        req.body.sourcifyMatchId, // ID of the contract to update
       ],
     );
 
     // 2. Update sourcify_matches table using direct query instead of updateSourcifyMatch
     await poolClient.query(
-      `UPDATE public.sourcify_matches SET 
+      `UPDATE sourcify_matches SET 
         creation_match = $1
       WHERE verified_contract_id = $2`,
       [
         verificationStatus.creationMatch, // Direct string value ('perfect', 'partial', etc.)
-        req.body.verifiedContractId, // Original verified contract ID
+        req.body.sourcifyMatchId, // Original verified contract ID
       ],
     );
 
@@ -329,7 +372,7 @@ export async function upgradeContract(
     res.send({
       result: {
         message: "Contract upgrade successful",
-        verifiedContractId: req.body.verifiedContractId,
+        verifiedContractId: req.body.sourcifyMatchId,
       },
     });
   } catch (error: any) {
