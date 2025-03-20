@@ -23,9 +23,12 @@ import {
   SolidityCompilation,
   Verification,
   SourcifyChain,
-} from '@ethereum-sourcify/lib-sourcify';
-import { useSolidityCompiler } from '@ethereum-sourcify/compilers';
-import * as fs from 'fs';
+  ISolidityCompiler,
+  SolidityJsonInput,
+  SolidityOutput,
+} from "@ethereum-sourcify/lib-sourcify";
+import { useSolidityCompiler } from "@ethereum-sourcify/compilers";
+import * as fs from "fs";
 
 // Step 1: Setup your compiler
 class Solc implements ISolidityCompiler {
@@ -39,27 +42,27 @@ class Solc implements ISolidityCompiler {
 
   async compile(
     version: string,
-    solcJsonInput: JsonInput,
-    forceEmscripten: boolean = false,
+    solcJsonInput: SolidityJsonInput,
+    forceEmscripten: boolean = false
   ): Promise<SolidityOutput> {
     return await useSolidityCompiler(
       this.solcRepoPath, // useSolidityCompiler will automatically download and store solc here
       this.solJsonRepoPath, // useSolidityCompiler will automatically download and store solcjs here
       version,
       solcJsonInput,
-      forceEmscripten,
+      forceEmscripten
     );
   }
 }
 
-const solc = new Solc('/path/to/solc', '/path/to/solcjs');
+const solc = new Solc("/path/to/solc", "/path/to/solcjs");
 
 // Step 2: Prepare your standard JSON input
 const jsonInput = {
-  language: 'Solidity',
+  language: "Solidity",
   sources: {
-    'Contract.sol': {
-      content: 'contract MyContract { function foo() public {} }',
+    "Contract.sol": {
+      content: "contract MyContract { function foo() public {} }",
     },
   },
   settings: {
@@ -67,25 +70,28 @@ const jsonInput = {
       enabled: true,
       runs: 200,
     },
+    outputSelection: {
+      "*": [],
+    },
   },
-};
+} as SolidityJsonInput;
 
 // Step 3: Create a compilation
 const compilation = new SolidityCompilation(
   solc,
-  '0.8.20', // compiler version
+  "0.8.20", // compiler version
   jsonInput,
   {
-    path: 'Contract.sol',
-    name: 'MyContract', // The name of your contract
-  },
+    path: "Contract.sol",
+    name: "MyContract", // The name of your contract
+  }
 );
 
 // Step 4: Set up a SourcifyChain instance
 const myChain = new SourcifyChain({
-  name: 'My EVM Chain',
+  name: "My EVM Chain",
   chainId: 1337,
-  rpc: ['http://localhost:8545'],
+  rpc: ["http://localhost:8545"],
   supported: true,
 });
 
@@ -93,7 +99,7 @@ const myChain = new SourcifyChain({
 const verification = new Verification(
   compilation,
   myChain,
-  '0xc0ffee254729296a45a3885639AC7E10F9d54979',
+  "0xc0ffee254729296a45a3885639AC7E10F9d54979"
 );
 
 await verification.verify();
@@ -134,32 +140,29 @@ The `lib-sourcify` library does not come with compilers as dependencies. Instead
 import {
   SolidityOutput,
   ISolidityCompiler,
-  JsonInput,
-} from '@ethereum-sourcify/lib-sourcify';
-import { useSolidityCompiler } from '@ethereum-sourcify/compilers';
+  SolidityJsonInput,
+} from "@ethereum-sourcify/lib-sourcify";
+import { useSolidityCompiler } from "@ethereum-sourcify/compilers";
 
 class Solc implements ISolidityCompiler {
-  constructor(
-    private solcRepoPath: string,
-    private solJsonRepoPath: string,
-  ) {}
+  constructor(private solcRepoPath: string, private solJsonRepoPath: string) {}
 
   async compile(
     version: string,
-    solcJsonInput: JsonInput,
-    forceEmscripten: boolean = false,
+    solcJsonInput: SolidityJsonInput,
+    forceEmscripten: boolean = false
   ): Promise<SolidityOutput> {
     return await useSolidityCompiler(
       this.solcRepoPath,
       this.solJsonRepoPath,
       version,
       solcJsonInput,
-      forceEmscripten,
+      forceEmscripten
     );
   }
 }
 
-const solc = new Solc('/path/to/solc/repo', '/path/to/solcjs/repo');
+const solc = new Solc("/path/to/solc/repo", "/path/to/solcjs/repo");
 ```
 
 ### Vyper Compiler Example
@@ -245,7 +248,7 @@ const compilation = await metadataContract.createCompilation(solidityCompiler);
 For file-based validation:
 
 ```typescript
-import { createMetadataContractsFromFiles } from '@ethereum-sourcify/lib-sourcify';
+import { createMetadataContractsFromFiles, PathBuffer } from '@ethereum-sourcify/lib-sourcify';
 
 const pathBuffers: PathBuffer[] = [];
 pathBuffers.push({
