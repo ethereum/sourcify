@@ -1,5 +1,6 @@
 import * as HttpStatus from "http-status-codes";
 import { Request, Response } from "express";
+import logger from "../logger";
 
 export default function genericErrorHandler(
   err: any,
@@ -9,7 +10,10 @@ export default function genericErrorHandler(
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   _next: any,
 ): void {
-  const errorCode = +err.code || err.status || 500;
+  const errorCode = +err.statusCode || err.status || 500;
+  if (errorCode === 500) {
+    logger.error("Unexpected server error", { error: err });
+  }
 
   if (err.payload) {
     // APIv2 errors include the response payload
@@ -25,7 +29,7 @@ export default function genericErrorHandler(
     return;
   }
   res.status(errorCode).json({
-    error: err.message || HttpStatus.getStatusText(errorCode), // Need to keep this for backward compatibility, but ideally we should respond with `message` only
-    message: err.message || HttpStatus.getStatusText(errorCode),
+    error: err.message || HttpStatus.getReasonPhrase(errorCode), // Need to keep this for backward compatibility, but ideally we should respond with `message` only
+    message: err.message || HttpStatus.getReasonPhrase(errorCode),
   });
 }
