@@ -51,6 +51,7 @@ export class VerificationService {
   } = {};
 
   private workerPool: Piscina;
+  private runningTasks: Set<Promise<void>> = new Set();
 
   constructor(
     options: VerificationServiceOptions,
@@ -137,6 +138,13 @@ export class VerificationService {
       logger.info("Initialized compilers");
     }
     return true;
+  }
+
+  public async close() {
+    // Immediately abort all workers. Tasks that still run will have their Promises rejected.
+    await this.workerPool.destroy();
+    // Here, we wait for the rejected tasks which also waits for writing the failed status to the database.
+    await Promise.all(this.runningTasks);
   }
 
   private throwV1ErrorIfContractIsAlreadyBeingVerified(
@@ -265,7 +273,7 @@ export class VerificationService {
         [new Date(), chainId, address, verificationEndpoint],
       );
 
-      this.workerPool
+      const task = this.workerPool
         .run(
           {
             chainId,
@@ -323,7 +331,11 @@ export class VerificationService {
               errorId: uuidv4(),
             },
           ]);
+        })
+        .finally(() => {
+          this.runningTasks.delete(task);
         });
+      this.runningTasks.add(task);
 
       return verificationId;
     } finally {

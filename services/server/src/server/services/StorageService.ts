@@ -363,7 +363,7 @@ export class StorageService {
       );
     });
 
-    return await Promise.all(promises);
+    await Promise.all(promises);
   }
 
   performServiceOperation<

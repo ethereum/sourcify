@@ -2,7 +2,6 @@ import rimraf from "rimraf";
 import { resetDatabase } from "../helpers/helpers";
 import { Server, ServerOptions } from "../../src/server/server";
 import config from "config";
-import http from "http";
 import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import {
   RWStorageIdentifiers,
@@ -59,7 +58,6 @@ export class ServerFixture {
    * in a different "describe" block.
    */
   constructor(fixtureOptions_?: Partial<ServerFixtureOptions>) {
-    let httpServer: http.Server;
     this.maxFileSize = config.get<number>("server.maxFileSize");
     this.repositoryV1Path = config.get<string>("repositoryV1.path");
 
@@ -159,19 +157,7 @@ export class ServerFixture {
       );
 
       await this._server.services.init();
-
-      await new Promise<void>((resolve, reject) => {
-        httpServer = this.server.app.listen(
-          this.server.port,
-          (error?: Error) => {
-            if (error) {
-              reject(error);
-            } else {
-              resolve();
-            }
-          },
-        );
-      });
+      await this.server.listen();
       console.log(`Server listening on port ${this.server.port}!`);
     });
 
@@ -185,8 +171,8 @@ export class ServerFixture {
       }
     });
 
-    after(() => {
-      httpServer.close();
+    after(async () => {
+      await this.server.shutdown();
       rimraf.sync(config.get("repositoryV1.path"));
       rimraf.sync(config.get("repositoryV2.path"));
       rimraf.sync(path.join(testS3Path, testS3Bucket));
