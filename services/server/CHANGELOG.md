@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@2.7.1 - 2025-03-20
+
+- hot fix for unique constraint conflicts 
+
 ## sourcify-server@2.7.0 - 2025-03-19
 
 - Add endpoints for getting verification jobs
