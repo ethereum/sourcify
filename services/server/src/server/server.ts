@@ -1,7 +1,6 @@
 import path from "path";
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
-import util from "util";
 import * as OpenApiValidator from "express-openapi-validator";
 import yamljs from "yamljs";
 import { resolveRefs } from "json-refs";
@@ -34,6 +33,7 @@ import { ChainRepository } from "../sourcify-chain-repository";
 import { SessionOptions } from "express-session";
 import { makeV1ValidatorFormats } from "./apiv1/validation";
 import { errorHandler as v2ErrorHandler } from "./apiv2/errors";
+import http from "http";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -65,6 +65,7 @@ export class Server {
   port: string | number;
   services: Services;
   chainRepository: ChainRepository;
+  httpServer?: http.Server;
 
   constructor(
     options: ServerOptions,
@@ -89,6 +90,13 @@ export class Server {
       verificationServiceOptions,
       storageServiceOptions,
     );
+
+    const handleShutdownSignal = async () => {
+      await this.shutdown();
+      process.exit(0);
+    };
+    process.on("SIGTERM", handleShutdownSignal);
+    process.on("SIGINT", handleShutdownSignal);
 
     this.app.set("chainRepository", this.chainRepository);
     this.app.set("solc", options.solc);
@@ -271,10 +279,37 @@ export class Server {
     this.app.use(genericErrorHandler);
   }
 
-  async listen(callback?: () => void) {
-    const promisified: any = util.promisify(this.app.listen);
-    await promisified(this.port);
-    if (callback) callback();
+  async listen(callback?: () => void): Promise<void> {
+    await new Promise<void>((resolve, reject) => {
+      this.httpServer = this.app.listen(this.port, (error?: Error) => {
+        if (error) {
+          reject(error);
+        } else {
+          if (callback) callback();
+          resolve();
+        }
+      });
+    });
+  }
+
+  async shutdown() {
+    logger.info("Shutting down server");
+    if (this.httpServer) {
+      await new Promise<void>((resolve, reject) => {
+        this.httpServer!.close((error?: Error) => {
+          if (error) {
+            // only thrown if it was not listening
+            logger.error("Error closing server", error);
+            resolve();
+          } else {
+            logger.info("Server closed");
+            resolve();
+          }
+        });
+      });
+    }
+    await this.services.close();
+    logger.info("Services closed");
   }
 
   // We need to resolve the $refs in the openapi file ourselves because the SwaggerUI-expresses does not do it
