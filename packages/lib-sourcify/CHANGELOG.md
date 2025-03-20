@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@1.13.0 - 2025-03-19
+
+- Use @ethereum-sourcify/compilers package instead of built-in compiler
+- Update dependencies
+
 ## @ethereum-sourcify/lib-sourcify@1.12.1 - 2025-02-18
 
 - update dependencies

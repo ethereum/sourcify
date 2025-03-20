@@ -125,6 +125,10 @@
       }
     }
   },
+  "560048": {
+    "sourcifyName": "Ethereum Hoodi Testnet",
+    "supported": true
+  },
   "7078815900": {
     "sourcifyName": "Ethereum Mekong Testnet",
     "supported": true,
@@ -264,7 +268,7 @@
     "supported": true,
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
-        "url": "https://https://happy-testnet-sepolia.explorer.caldera.xyz"
+        "url": "https://explorer.testnet.happy.tech"
       }
     }
   },
