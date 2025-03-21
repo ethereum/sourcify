@@ -118,7 +118,6 @@ export function errorHandler(
     return;
   }
 
-  logger.error("Unknown server error: ", err);
   next(new UnknownError("The server encountered an unexpected error."));
 }
 
