@@ -31,6 +31,7 @@ import path from "path";
 import { filename as verificationWorkerFilename } from "./workers/verificationWorker";
 import { v4 as uuidv4 } from "uuid";
 import { ConflictError } from "../../common/errors/ConflictError";
+import os from "os";
 
 export interface VerificationServiceOptions {
   initCompilers?: boolean;
@@ -72,6 +73,17 @@ export class VerificationService {
       {} as Record<string, SourcifyChainInstance>,
     );
 
+    let availableParallelism = os.availableParallelism();
+    if (process.env.CI === "true") {
+      // when calling os.availableParallelism(), CircleCI returns the number of CPUs
+      // the hardware has actually, not the number of available vCPUs.
+      // Therefore, we set it to the number of vCPUs which our resource class uses.
+      availableParallelism = 4;
+    }
+    // Default values of Piscina
+    const minThreads = availableParallelism * 0.5;
+    const maxThreads = availableParallelism * 1.5;
+
     this.workerPool = new Piscina({
       filename: path.resolve(__dirname, "./workers/workerWrapper.js"),
       workerData: {
@@ -81,6 +93,8 @@ export class VerificationService {
         solJsonRepoPath: options.solJsonRepoPath,
         vyperRepoPath: options.vyperRepoPath,
       },
+      minThreads,
+      maxThreads,
       idleTimeout: 10000, // 10 seconds idle timeout
     });
   }
