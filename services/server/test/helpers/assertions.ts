@@ -4,7 +4,6 @@ import config from "config";
 import path from "path";
 import fs from "fs";
 import { getAddress, id } from "ethers";
-import { getMatchStatus } from "../../src/server/common";
 import type { Response } from "superagent";
 import type { Done } from "mocha";
 import { Pool } from "pg";
@@ -13,6 +12,7 @@ import {
   TransformationValues,
 } from "@ethereum-sourcify/lib-sourcify";
 import { ServerFixture } from "./ServerFixture";
+import { getMatchStatus } from "../../src/server/apiv1/controllers.common";
 
 export const assertValidationError = (
   err: Error | null,
@@ -275,8 +275,6 @@ async function assertContractSaved(
           getMatchStatus({
             runtimeMatch: contract.runtime_match,
             creationMatch: contract.creation_match,
-            address: "0x" + contract.address.toString("hex"),
-            chainId: contract.chain_id,
           }),
         )
         .to.equal(expectedStatus);

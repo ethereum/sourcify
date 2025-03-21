@@ -1,8 +1,7 @@
 import {
-  Match,
-  AbstractCheckedContract,
-  Status,
+  VerificationStatus,
   StringMap,
+  VerificationExport,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
@@ -26,6 +25,7 @@ import {
   VerifiedContractMinimal,
   VerifiedContract,
   VerificationJob,
+  Match,
 } from "../../types";
 import Path from "path";
 import {
@@ -100,9 +100,9 @@ export class SourcifyDatabaseService
         address,
         chainId,
         runtimeMatch: existingVerifiedContractResult.rows[0]
-          .runtime_match as Status,
+          .runtime_match as VerificationStatus,
         creationMatch: existingVerifiedContractResult.rows[0]
-          .creation_match as Status,
+          .creation_match as VerificationStatus,
         storageTimestamp: existingVerifiedContractResult.rows[0].created_at,
         onchainRuntimeBytecode:
           existingVerifiedContractResult.rows[0].onchain_runtime_code,
@@ -535,82 +535,24 @@ export class SourcifyDatabaseService
     return response;
   };
 
-  validateBeforeStoring(
-    recompiledContract: AbstractCheckedContract,
-    match: Match,
-  ): boolean {
-    // Prevent storing matches only if they don't have both onchainRuntimeBytecode and onchainCreationBytecode
+  validateVerificationBeforeStoring(verification: VerificationExport): boolean {
     if (
-      match.onchainRuntimeBytecode === undefined &&
-      match.onchainCreationBytecode === undefined
+      verification.status.runtimeMatch === null &&
+      verification.status.creationMatch === null
     ) {
       throw new Error(
-        `can only store contracts with at least runtimeBytecode or creationBytecode address=${match.address} chainId=${match.chainId}`,
+        `can only store contracts with at least runtimeMatch or creationMatch. address=${verification.address} chainId=${verification.chainId}`,
+      );
+    }
+    if (
+      verification.compilation.runtimeBytecode === undefined &&
+      verification.compilation.creationBytecode === undefined
+    ) {
+      throw new Error(
+        `can only store contracts with at least runtimeBytecode or creationBytecode. address=${verification.address} chainId=${verification.chainId}`,
       );
     }
     return true;
-  }
-
-  // Override this method to include the SourcifyMatch
-  async storeMatch(recompiledContract: AbstractCheckedContract, match: Match) {
-    const { type, verifiedContractId, oldVerifiedContractId } =
-      await super.insertOrUpdateVerifiedContract(recompiledContract, match);
-
-    if (type === "insert") {
-      if (!verifiedContractId) {
-        throw new Error(
-          "VerifiedContractId undefined before inserting sourcify match",
-        );
-      }
-      await this.database.insertSourcifyMatch({
-        verified_contract_id: verifiedContractId,
-        creation_match: match.creationMatch,
-        runtime_match: match.runtimeMatch,
-        metadata: recompiledContract.metadata,
-      });
-      logger.info("Stored to SourcifyDatabase", {
-        address: match.address,
-        chainId: match.chainId,
-        runtimeMatch: match.runtimeMatch,
-        creationMatch: match.creationMatch,
-      });
-    } else if (type === "update") {
-      // If insertOrUpdateVerifiedContract returned an update with verifiedContractId=false
-      // it means that the new match wasn't better (perfect > partial) than the existing one
-      if (verifiedContractId === false) {
-        logger.info("Not Updated in SourcifyDatabase", {
-          address: match.address,
-          chainId: match.chainId,
-          runtimeMatch: match.runtimeMatch,
-          creationMatch: match.creationMatch,
-        });
-        return;
-      }
-      if (!oldVerifiedContractId) {
-        throw new Error(
-          "oldVerifiedContractId undefined before updating sourcify match",
-        );
-      }
-      await this.database.updateSourcifyMatch(
-        {
-          verified_contract_id: verifiedContractId,
-          creation_match: match.creationMatch,
-          runtime_match: match.runtimeMatch,
-          metadata: recompiledContract.metadata,
-        },
-        oldVerifiedContractId,
-      );
-      logger.info("Updated in SourcifyDatabase", {
-        address: match.address,
-        chainId: match.chainId,
-        runtimeMatch: match.runtimeMatch,
-        creationMatch: match.creationMatch,
-      });
-    } else {
-      throw new Error(
-        "insertOrUpdateVerifiedContract returned a type that doesn't exist",
-      );
-    }
   }
 
   ////////////////////////
@@ -858,4 +800,66 @@ export class SourcifyDatabaseService
 
     return job;
   };
+
+  // Override this method to include the SourcifyMatch
+  async storeVerification(verification: VerificationExport) {
+    const { type, verifiedContractId, oldVerifiedContractId } =
+      await super.insertOrUpdateVerification(verification);
+
+    if (type === "insert") {
+      if (!verifiedContractId) {
+        throw new Error(
+          "VerifiedContractId undefined before inserting sourcify match",
+        );
+      }
+      await this.database.insertSourcifyMatch({
+        verified_contract_id: verifiedContractId,
+        creation_match: verification.status.creationMatch,
+        runtime_match: verification.status.runtimeMatch,
+        metadata: verification.compilation.metadata as any,
+      });
+      logger.info("Stored to SourcifyDatabase", {
+        address: verification.address,
+        chainId: verification.chainId,
+        runtimeMatch: verification.status.runtimeMatch,
+        creationMatch: verification.status.creationMatch,
+      });
+    } else if (type === "update") {
+      // If insertOrUpdateVerifiedContract returned an update with verifiedContractId=false
+      // it means that the new match wasn't better (perfect > partial) than the existing one
+      if (verifiedContractId === false) {
+        logger.info("Not Updated in SourcifyDatabase", {
+          address: verification.address,
+          chainId: verification.chainId,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
+        });
+        return;
+      }
+      if (!oldVerifiedContractId) {
+        throw new Error(
+          "oldVerifiedContractId undefined before updating sourcify match",
+        );
+      }
+      await this.database.updateSourcifyMatch(
+        {
+          verified_contract_id: verifiedContractId,
+          creation_match: verification.status.creationMatch,
+          runtime_match: verification.status.runtimeMatch,
+          metadata: verification.compilation.metadata as any,
+        },
+        oldVerifiedContractId,
+      );
+      logger.info("Updated in SourcifyDatabase", {
+        address: verification.address,
+        chainId: verification.chainId,
+        runtimeMatch: verification.status.runtimeMatch,
+        creationMatch: verification.status.creationMatch,
+      });
+    } else {
+      throw new Error(
+        "insertOrUpdateVerifiedContract returned a type that doesn't exist",
+      );
+    }
+  }
 }
