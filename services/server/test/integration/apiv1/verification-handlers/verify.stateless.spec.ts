@@ -735,6 +735,66 @@ describe("/", function () {
       .to.equal(JSON.stringify(correctMetadata));
   });
 
+  it.only("should verify a contract compiled with solc <= 0.4.10", async function () {
+    const artifact = (
+      await import("../../../testcontracts/0_4_10/artifact.json")
+    ).default;
+    const address = await deployFromAbiAndBytecode(
+      chainFixture.localSigner,
+      artifact.abi,
+      artifact.bytecode,
+    );
+
+    const metadata = (
+      await import("../../../testcontracts/0_4_10/metadata.json")
+    ).default;
+
+    const file = fs.readFileSync(
+      path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "testcontracts",
+        "0_4_10",
+        "landContract_NEW.sol",
+      ),
+    );
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .post("/")
+      .field("address", address)
+      .field("chain", chainFixture.chainId)
+      .attach("files", Buffer.from(JSON.stringify(metadata)), "metadata.json")
+      .attach("files", file, "landContract_NEW.sol");
+
+    await assertVerification(
+      serverFixture,
+      null,
+      res,
+      null,
+      address,
+      chainFixture.chainId,
+      "partial",
+    );
+
+    const sourcesResult = await serverFixture.sourcifyDatabase.query(
+      `SELECT compilation_artifacts->'sources' as sources 
+       FROM compiled_contracts cc
+       JOIN contract_deployments cd ON cd.contract_id = cc.id
+       WHERE cd.address = $1`,
+      [Buffer.from(address.substring(2), "hex")],
+    );
+
+    chai.expect(sourcesResult.rows).to.have.length(1);
+    chai
+      .expect(
+        sourcesResult.rows[0].sources["contracts/landContract_NEW.sol"].id,
+      )
+      .to.equal(0);
+  });
+
   describe("solc standard input json", () => {
     it("should return validation error for adding standard input JSON without a compiler version", async () => {
       const address = await deployFromAbiAndBytecode(
