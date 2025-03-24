@@ -53,7 +53,7 @@ export async function addInputFilesEndpoint(req: Request, res: Response) {
   const session = req.session;
   const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
-    await checkContractsInSession(solc, vyper, session);
+    await checkContractsInSession(session);
     await verifyContractsInSession(
       solc,
       vyper,
@@ -142,7 +142,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
 
   const newFilesCount = saveFilesToSession(pathContents, session);
   if (newFilesCount) {
-    await checkContractsInSession(solc, vyper, session);
+    await checkContractsInSession(session);
     // verifyValidated fetches missing files from the contract
     await verifyContractsInSession(
       solc,
