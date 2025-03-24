@@ -291,10 +291,6 @@ components:
               creationTransactionHash:
                 $ref: '#/components/schemas/Keccak256'
                 description: The hash of the transaction that created this contract. Optional.
-              dryRun:
-                type: boolean
-                description: 'If true, the result is not stored on the Sourcify server.'
-                default: false
             required:
               - stdJsonInput
               - compilerVersion
@@ -315,10 +311,6 @@ components:
               creationTransactionHash:
                 $ref: '#/components/schemas/Keccak256'
                 description: The hash of the transaction that created this contract. Optional.
-              dryRun:
-                type: boolean
-                description: 'If true, the result is not stored on the Sourcify server.'
-                default: false
             required:
               - sources
           examples:
@@ -362,10 +354,6 @@ components:
               apiKey:
                 type: string
                 description: API key to use when importing from the Etherscan instance or Etherscan-alike API.
-              dryRun:
-                type: boolean
-                description: 'If true, the result is not stored on the Sourcify server.'
-                default: false
   responses:
     VerificationJobResponse:
       description: |-
@@ -997,7 +985,7 @@ components:
     SolidityCompilerVersion:
       type: string
       title: SolidityCompilerVersion
-      pattern: 'v\d+\.\d+\.\d+(-nightly\.\d{4}\.\d+\.\d+)?\+commit\.[a-f0-9]{8}'
+      pattern: '\d+\.\d+\.\d+(-nightly\.\d{4}\.\d+\.\d+)?\+commit\.[a-f0-9]{8}'
       examples:
         - 0.8.7+commit.e28d00a7
     Keccak256:
