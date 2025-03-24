@@ -821,7 +821,7 @@ ${
     | "contract_address"
     | "verification_endpoint"
     | "hardware"
-  >): Promise<QueryResult<Tables.VerificationJob>> {
+  >): Promise<QueryResult<Pick<Tables.VerificationJob, "id">>> {
     return await this.pool.query(
       `INSERT INTO ${this.schema}.verification_jobs (
         started_at,
@@ -829,7 +829,7 @@ ${
         contract_address,
         verification_endpoint,
         hardware
-      ) VALUES ($1, $2, $3, $4, $5)`,
+      ) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
       [started_at, chain_id, contract_address, verification_endpoint, hardware],
     );
   }
