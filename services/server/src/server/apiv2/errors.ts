@@ -145,6 +145,7 @@ export function errorHandler(
     return;
   }
 
+  logger.error("API v2 internal error: ", { error: err });
   next(new InternalError("The server encountered an unexpected error."));
 }
 
