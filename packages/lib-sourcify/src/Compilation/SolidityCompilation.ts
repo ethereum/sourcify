@@ -139,10 +139,6 @@ export class SolidityCompilation extends AbstractCompilation {
           this.auxdataStyle,
         );
 
-        if (!creationAuxdataCbor) {
-          throw new Error('creationAuxdataCbor is undefined');
-        }
-
         // If we can find the auxdata at the end of the bytecode return; otherwise continue with `generateEditedContract`
         if (creationAuxdataCbor) {
           const auxdataFromRawCreationBytecode = `${creationAuxdataCbor}${creationCborLengthHex}`;
