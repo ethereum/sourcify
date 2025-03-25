@@ -24,6 +24,7 @@ import { VerificationJobId } from "../types";
 import { StorageService } from "./StorageService";
 import {
   DuplicateVerificationRequestError,
+  MatchingError,
   MatchingErrorResponse,
 } from "../apiv2/errors";
 import Piscina from "piscina";
@@ -32,6 +33,10 @@ import { filename as verificationWorkerFilename } from "./workers/verificationWo
 import { v4 as uuidv4 } from "uuid";
 import { ConflictError } from "../../common/errors/ConflictError";
 import os from "os";
+import type {
+  VerifyFromJsonInputs,
+  VerifyFromJsonOutput,
+} from "./workers/workerTypes";
 
 export interface VerificationServiceOptions {
   initCompilers?: boolean;
@@ -287,19 +292,28 @@ export class VerificationService {
         [new Date(), chainId, address, verificationEndpoint],
       );
 
+      const input: VerifyFromJsonInputs = {
+        chainId,
+        address,
+        language,
+        jsonInput,
+        compilerVersion,
+        contractIdentifier,
+        creationTransactionHash,
+      };
+
       const task = this.workerPool
-        .run(
-          {
-            chainId,
-            address,
-            language,
-            jsonInput,
-            compilerVersion,
-            contractIdentifier,
-            creationTransactionHash,
-          },
-          { name: "verifyFromJsonInput" },
-        )
+        .run(input, { name: "verifyFromJsonInput" })
+        .then((output: VerifyFromJsonOutput) => {
+          if (output.verificationExport) {
+            return output.verificationExport;
+          } else if (output.errorResponse) {
+            throw new MatchingError(output.errorResponse);
+          }
+          const errorMessage = `The worker did not return a verification export nor an error response. This should never happen.`;
+          logger.error(errorMessage, { output });
+          throw new Error(errorMessage);
+        })
         .then((verification: VerificationExport) => {
           return this.storageService.storeVerification(verification, {
             verificationId,
@@ -307,43 +321,35 @@ export class VerificationService {
           });
         })
         .catch((error) => {
+          let errorResponse: Omit<MatchingErrorResponse, "message">;
           if (error.response) {
             // error comes from the verification worker
-            const errorResponse = error.response as MatchingErrorResponse;
             logger.debug("Received verification error from worker", {
               verificationId,
-              errorResponse,
+              errorResponse: error.response,
             });
-            return this.storageService.performServiceOperation("setJobError", [
-              verificationId,
-              new Date(),
-              errorResponse,
-            ]);
-          }
-
-          if (error instanceof ConflictError) {
+            errorResponse = error.response as MatchingErrorResponse;
+          } else if (error instanceof ConflictError) {
             // returned by StorageService if match already exists and new one is not better
-            return this.storageService.performServiceOperation("setJobError", [
+            errorResponse = {
+              customCode: "already_verified",
+              errorId: uuidv4(),
+            };
+          } else {
+            logger.error("Unexpected verification error", {
               verificationId,
-              new Date(),
-              {
-                customCode: "already_verified",
-                errorId: uuidv4(),
-              },
-            ]);
+              error,
+            });
+            errorResponse = {
+              customCode: "internal_error",
+              errorId: uuidv4(),
+            };
           }
 
-          logger.error("Unexpected verification error", {
-            verificationId,
-            error,
-          });
           return this.storageService.performServiceOperation("setJobError", [
             verificationId,
             new Date(),
-            {
-              customCode: "internal_error",
-              errorId: uuidv4(),
-            },
+            errorResponse,
           ]);
         })
         .finally(() => {

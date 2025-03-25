@@ -164,13 +164,13 @@ export async function assertTransformations(
     .to.deep.equal(expectedCreationTransformationValues);
 }
 
-async function assertContractSaved(
+export async function assertContractSaved(
   sourcifyDatabase: Pool | null,
   expectedAddress: string | undefined,
   expectedChain: string | undefined,
   expectedStatus: string,
-  testS3Path: string | null,
-  testS3Bucket: string | null,
+  testS3Path?: string | null,
+  testS3Bucket?: string | null,
 ) {
   if (expectedStatus === "perfect" || expectedStatus === "partial") {
     // Check if saved to fs repository

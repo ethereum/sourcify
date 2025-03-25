@@ -2,8 +2,6 @@ import Piscina from "piscina";
 import {
   SolidityJsonInput,
   VyperJsonInput,
-  CompilationLanguage,
-  VerificationExport,
   CompilationTarget,
   SolidityCompilation,
   VyperCompilation,
@@ -17,9 +15,13 @@ import { resolve } from "path";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { SolcLocal } from "../compiler/local/SolcLocal";
 import { VyperLocal } from "../compiler/local/VyperLocal";
-import { getVerificationErrorMessage, MatchingError } from "../../apiv2/errors";
+import {
+  getVerificationErrorMessage,
+  MatchingErrorResponse,
+} from "../../apiv2/errors";
 import { v4 as uuidv4 } from "uuid";
 import { getCreatorTx } from "../utils/contract-creation-util";
+import { VerifyFromJsonInputs, VerifyFromJsonOutput } from "./workerTypes";
 
 export const filename = resolve(__filename);
 
@@ -51,16 +53,6 @@ const initWorker = () => {
   vyper = new VyperLocal(Piscina.workerData.vyperRepoPath);
 };
 
-interface VerifyFromJsonInputs {
-  chainId: string;
-  address: string;
-  language: CompilationLanguage;
-  jsonInput: SolidityJsonInput | VyperJsonInput;
-  compilerVersion: string;
-  contractIdentifier: string;
-  creationTransactionHash?: string;
-}
-
 export async function verifyFromJsonInput({
   chainId,
   address,
@@ -69,14 +61,14 @@ export async function verifyFromJsonInput({
   compilerVersion,
   contractIdentifier,
   creationTransactionHash,
-}: VerifyFromJsonInputs): Promise<VerificationExport> {
+}: VerifyFromJsonInputs): Promise<VerifyFromJsonOutput> {
   initWorker();
 
   // The contract path can include a colon itself,
   // therefore we need to take the last element as the contract name
   const splitIdentifier = contractIdentifier.split(":");
   const contractName = splitIdentifier[splitIdentifier.length - 1];
-  const contractPath = splitIdentifier.slice(0, -1).join();
+  const contractPath = splitIdentifier.slice(0, -1).join(":");
   const compilationTarget: CompilationTarget = {
     name: contractName,
     path: contractPath,
@@ -107,15 +99,19 @@ export async function verifyFromJsonInput({
       );
     }
   } catch (error: any) {
-    throw createMatchingError(error);
+    return {
+      errorResponse: createMatchingError(error),
+    };
   }
 
   if (!compilation) {
-    throw new MatchingError({
-      customCode: "unsupported_language",
-      message: getVerificationErrorMessage("unsupported_language"),
-      errorId: uuidv4(),
-    });
+    return {
+      errorResponse: {
+        customCode: "unsupported_language",
+        message: getVerificationErrorMessage("unsupported_language"),
+        errorId: uuidv4(),
+      },
+    };
   }
 
   const verification = new Verification(
@@ -128,28 +124,36 @@ export async function verifyFromJsonInput({
   try {
     await verification.verify();
   } catch (error: any) {
-    throw createMatchingError(error, verification);
+    return {
+      errorResponse: createMatchingError(error, verification),
+    };
   }
 
-  return verification.export();
+  return {
+    verificationExport: verification.export(),
+  };
 }
 
-function createMatchingError(error: Error, verification?: Verification): Error {
-  if (error instanceof SourcifyLibError) {
-    // Use VerificationExport to get bytecodes as it does not throw when accessing properties
-    const verificationExport = verification?.export();
-
-    return new MatchingError({
-      customCode: error.code,
-      message: error.message,
-      errorId: uuidv4(),
-      onchainRuntimeCode: verificationExport?.onchainRuntimeBytecode,
-      onchainCreationCode: verificationExport?.onchainCreationBytecode,
-      recompiledRuntimeCode: verificationExport?.compilation.runtimeBytecode,
-      recompiledCreationCode: verificationExport?.compilation.creationBytecode,
-      creationTransactionHash: verificationExport?.deploymentInfo.txHash,
-    });
+function createMatchingError(
+  error: Error,
+  verification?: Verification,
+): MatchingErrorResponse {
+  if (!(error instanceof SourcifyLibError)) {
+    // If the error is not a SourcifyLibError, the server reached an unexpected state.
+    // Let the VerificationService log and handle it.
+    throw error;
   }
 
-  return error;
+  // Use VerificationExport to get bytecodes as it does not throw when accessing properties
+  const verificationExport = verification?.export();
+  return {
+    customCode: error.code,
+    message: error.message,
+    errorId: uuidv4(),
+    onchainRuntimeCode: verificationExport?.onchainRuntimeBytecode,
+    onchainCreationCode: verificationExport?.onchainCreationBytecode,
+    recompiledRuntimeCode: verificationExport?.compilation.runtimeBytecode,
+    recompiledCreationCode: verificationExport?.compilation.creationBytecode,
+    creationTransactionHash: verificationExport?.deploymentInfo.txHash,
+  };
 }

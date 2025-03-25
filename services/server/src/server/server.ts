@@ -295,7 +295,7 @@ export class Server {
   async shutdown() {
     logger.info("Shutting down server");
     if (this.httpServer) {
-      await new Promise<void>((resolve, reject) => {
+      await new Promise<void>((resolve) => {
         this.httpServer!.close((error?: Error) => {
           if (error) {
             // only thrown if it was not listening
