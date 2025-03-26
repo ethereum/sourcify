@@ -1,7 +1,6 @@
 import chai from "chai";
 import chaiHttp from "chai-http";
 import {
-  deployFromAbiAndBytecode,
   deployFromAbiAndBytecodeForCreatorTxHash,
   hookIntoVerificationWorkerRun,
 } from "../../../helpers/helpers";
@@ -14,7 +13,7 @@ import sinon from "sinon";
 
 chai.use(chaiHttp);
 
-describe.only("POST /v2/verify/:chainId/:address", function () {
+describe("POST /v2/verify/:chainId/:address", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
   const sandbox = sinon.createSandbox();
@@ -27,16 +26,11 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
   it("should verify a contract with Solidity standard input JSON", async () => {
     const { resolveWorkers } = makeWorkersWait();
 
-    const { contractAddress, txHash } =
-      await deployFromAbiAndBytecodeForCreatorTxHash(
-        chainFixture.localSigner,
-        chainFixture.defaultContractArtifact.abi,
-        chainFixture.defaultContractArtifact.bytecode,
-      );
-
     const verifyRes = await chai
       .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
       .send({
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
@@ -44,7 +38,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
         contractIdentifier: Object.entries(
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
-        creationTransactionHash: txHash,
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
     chai.expect(verifyRes.status).to.equal(202);
@@ -68,7 +62,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
         creationMatch: null,
         runtimeMatch: null,
         chainId: chainFixture.chainId,
-        address: contractAddress,
+        address: chainFixture.defaultContractAddress,
       },
     });
     chai.expect(jobRes.body.error).to.be.undefined;
@@ -84,7 +78,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
       creationMatch: "exact_match",
       runtimeMatch: "exact_match",
       chainId: chainFixture.chainId,
-      address: contractAddress,
+      address: chainFixture.defaultContractAddress,
     };
 
     chai.expect(jobRes2.status).to.equal(200);
@@ -97,14 +91,16 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
 
     const contractRes = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contract/${chainFixture.chainId}/${contractAddress}`);
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      );
 
     chai.expect(contractRes.status).to.equal(200);
     chai.expect(contractRes.body).to.include(verifiedContract);
 
     await assertContractSaved(
       serverFixture.sourcifyDatabase,
-      contractAddress,
+      chainFixture.defaultContractAddress,
       chainFixture.chainId,
       "perfect",
     );
@@ -217,15 +213,11 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
   it("should fetch the creation transaction hash if not provided", async () => {
     const { resolveWorkers } = makeWorkersWait();
 
-    const contractAddress = await deployFromAbiAndBytecode(
-      chainFixture.localSigner,
-      chainFixture.defaultContractArtifact.abi,
-      chainFixture.defaultContractArtifact.bytecode,
-    );
-
     const verifyRes = await chai
       .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
       .send({
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
@@ -253,7 +245,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
       creationMatch: "exact_match",
       runtimeMatch: "exact_match",
       chainId: chainFixture.chainId,
-      address: contractAddress,
+      address: chainFixture.defaultContractAddress,
     });
   });
 
@@ -312,17 +304,12 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
   it("should return a 429 if the contract is being verified at the moment already", async () => {
     makeWorkersWait();
 
-    const { contractAddress, txHash } =
-      await deployFromAbiAndBytecodeForCreatorTxHash(
-        chainFixture.localSigner,
-        chainFixture.defaultContractArtifact.abi,
-        chainFixture.defaultContractArtifact.bytecode,
-      );
-
     // First verification request
     const verifyRes1 = await chai
       .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
       .send({
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
@@ -330,7 +317,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
         contractIdentifier: Object.entries(
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
-        creationTransactionHash: txHash,
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
     chai.expect(verifyRes1.status).to.equal(202);
@@ -338,7 +325,9 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
     // Second verification request before the first one completes
     const verifyRes2 = await chai
       .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
       .send({
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
@@ -346,7 +335,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
         contractIdentifier: Object.entries(
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
-        creationTransactionHash: txHash,
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
     chai.expect(verifyRes2.status).to.equal(429);
@@ -360,17 +349,12 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
   it("should return a 409 if the contract is already verified", async () => {
     const { resolveWorkers, runTaskStub } = makeWorkersWait();
 
-    const { contractAddress, txHash } =
-      await deployFromAbiAndBytecodeForCreatorTxHash(
-        chainFixture.localSigner,
-        chainFixture.defaultContractArtifact.abi,
-        chainFixture.defaultContractArtifact.bytecode,
-      );
-
     // First verification request
     const verifyRes1 = await chai
       .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
       .send({
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
@@ -378,7 +362,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
         contractIdentifier: Object.entries(
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
-        creationTransactionHash: txHash,
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
     chai.expect(verifyRes1.status).to.equal(202);
@@ -386,7 +370,9 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
     await resolveWorkers();
     const contractRes = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contract/${chainFixture.chainId}/${contractAddress}`);
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      );
 
     chai.expect(contractRes.status).to.equal(200);
     chai.expect(contractRes.body).to.include({
@@ -394,7 +380,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
       creationMatch: "exact_match",
       runtimeMatch: "exact_match",
       chainId: chainFixture.chainId,
-      address: contractAddress,
+      address: chainFixture.defaultContractAddress,
     });
 
     runTaskStub.restore();
@@ -403,7 +389,9 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
     // Second verification
     const verifyRes2 = await chai
       .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
       .send({
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
@@ -411,7 +399,7 @@ describe.only("POST /v2/verify/:chainId/:address", function () {
         contractIdentifier: Object.entries(
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
-        creationTransactionHash: txHash,
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
     chai.expect(verifyRes2.status).to.equal(409);
