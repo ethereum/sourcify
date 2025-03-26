@@ -14,7 +14,7 @@ import sinon from "sinon";
 
 chai.use(chaiHttp);
 
-describe("POST /v2/verify/:chainId/:address", function () {
+describe.only("POST /v2/verify/:chainId/:address", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
   const sandbox = sinon.createSandbox();
@@ -38,7 +38,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -215,54 +214,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
     );
   });
 
-  it("should default to Solidity if no language is specified", async () => {
-    const { resolveWorkers, runTaskStub } = makeWorkersWait();
-
-    const { contractAddress, txHash } =
-      await deployFromAbiAndBytecodeForCreatorTxHash(
-        chainFixture.localSigner,
-        chainFixture.defaultContractArtifact.abi,
-        chainFixture.defaultContractArtifact.bytecode,
-      );
-
-    const verifyRes = await chai
-      .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
-      .send({
-        stdJsonInput: chainFixture.defaultContractJsonInput,
-        compilerVersion:
-          chainFixture.defaultContractMetadataObject.compiler.version,
-        contractIdentifier: Object.entries(
-          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
-        )[0].join(":"),
-        creationTransactionHash: txHash,
-      });
-
-    chai.expect(verifyRes.status).to.equal(202);
-
-    chai.expect(runTaskStub.calledOnce).to.be.true;
-    chai.expect(runTaskStub.args[0][0].language).to.equal("Solidity");
-
-    await resolveWorkers();
-
-    const jobRes = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/verify/${verifyRes.body.verificationId}`);
-
-    chai.expect(jobRes.status).to.equal(200);
-    chai.expect(jobRes.body).to.include({
-      isJobCompleted: true,
-    });
-    chai.expect(jobRes.body.error).to.be.undefined;
-    chai.expect(jobRes.body.contract).to.include({
-      match: "exact_match",
-      creationMatch: "exact_match",
-      runtimeMatch: "exact_match",
-      chainId: chainFixture.chainId,
-      address: contractAddress,
-    });
-  });
-
   it("should fetch the creation transaction hash if not provided", async () => {
     const { resolveWorkers } = makeWorkersWait();
 
@@ -276,7 +227,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -310,13 +260,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
   it("should store a job error if the compiler returns an error", async () => {
     const { resolveWorkers } = makeWorkersWait();
 
-    const { contractAddress, txHash } =
-      await deployFromAbiAndBytecodeForCreatorTxHash(
-        chainFixture.localSigner,
-        chainFixture.defaultContractArtifact.abi,
-        chainFixture.defaultContractArtifact.bytecode,
-      );
-
     const sourcePath = Object.keys(
       chainFixture.defaultContractMetadataObject.settings.compilationTarget,
     )[0];
@@ -330,16 +273,17 @@ describe("POST /v2/verify/:chainId/:address", function () {
 
     const verifyRes = await chai
       .request(serverFixture.server.app)
-      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
       .send({
-        language: "Solidity",
         stdJsonInput: jsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
         contractIdentifier: Object.entries(
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
-        creationTransactionHash: txHash,
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
     chai.expect(verifyRes.status).to.equal(202);
@@ -361,7 +305,7 @@ describe("POST /v2/verify/:chainId/:address", function () {
       creationMatch: null,
       runtimeMatch: null,
       chainId: chainFixture.chainId,
-      address: contractAddress,
+      address: chainFixture.defaultContractAddress,
     });
   });
 
@@ -380,7 +324,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -397,7 +340,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -430,7 +372,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -464,7 +405,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -482,6 +422,90 @@ describe("POST /v2/verify/:chainId/:address", function () {
     await resolveWorkers2();
   });
 
+  it("should return a 400 if the standard json input misses the language", async () => {
+    const jsonInput = JSON.parse(
+      JSON.stringify(chainFixture.defaultContractJsonInput),
+    );
+    delete jsonInput.language;
+
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
+      .send({
+        stdJsonInput: jsonInput,
+        compilerVersion:
+          chainFixture.defaultContractMetadataObject.compiler.version,
+        contractIdentifier: Object.entries(
+          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
+        )[0].join(":"),
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
+      });
+
+    chai.expect(verifyRes.status).to.equal(400);
+    chai.expect(verifyRes.body.customCode).to.equal("invalid_parameter");
+    chai.expect(verifyRes.body).to.have.property("errorId");
+    chai.expect(verifyRes.body).to.have.property("message");
+  });
+
+  it("should return a 400 if the standard json input misses the sources field", async () => {
+    const jsonInput = JSON.parse(
+      JSON.stringify(chainFixture.defaultContractJsonInput),
+    );
+    delete jsonInput.sources;
+
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
+      .send({
+        stdJsonInput: jsonInput,
+        compilerVersion:
+          chainFixture.defaultContractMetadataObject.compiler.version,
+        contractIdentifier: Object.entries(
+          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
+        )[0].join(":"),
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
+      });
+
+    chai.expect(verifyRes.status).to.equal(400);
+    chai.expect(verifyRes.body.customCode).to.equal("invalid_parameter");
+    chai.expect(verifyRes.body).to.have.property("errorId");
+    chai.expect(verifyRes.body).to.have.property("message");
+  });
+
+  it("should return a 400 if the standard json input misses the content field for any source", async () => {
+    const sourcePath = Object.keys(
+      chainFixture.defaultContractMetadataObject.settings.compilationTarget,
+    )[0];
+    const jsonInput = JSON.parse(
+      JSON.stringify(chainFixture.defaultContractJsonInput),
+    );
+    delete jsonInput.sources[sourcePath].content;
+
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
+      .send({
+        stdJsonInput: jsonInput,
+        compilerVersion:
+          chainFixture.defaultContractMetadataObject.compiler.version,
+        contractIdentifier: Object.entries(
+          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
+        )[0].join(":"),
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
+      });
+
+    chai.expect(verifyRes.status).to.equal(400);
+    chai.expect(verifyRes.body.customCode).to.equal("invalid_parameter");
+    chai.expect(verifyRes.body).to.have.property("errorId");
+    chai.expect(verifyRes.body).to.have.property("message");
+  });
+
   it("should return 400 when contract identifier is missing", async () => {
     const verifyRes = await chai
       .request(serverFixture.server.app)
@@ -489,7 +513,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
         `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
       )
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -509,7 +532,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
         `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
       )
       .send({
-        language: "Solidity",
         stdJsonInput: chainFixture.defaultContractJsonInput,
         contractIdentifier: Object.entries(
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
@@ -530,7 +552,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
         `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
       )
       .send({
-        language: "Solidity",
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
         contractIdentifier: Object.entries(

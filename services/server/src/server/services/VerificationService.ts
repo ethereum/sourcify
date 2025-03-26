@@ -258,7 +258,6 @@ export class VerificationService {
     verificationEndpoint: string,
     chainId: string,
     address: string,
-    language: CompilationLanguage,
     jsonInput: SolidityJsonInput | VyperJsonInput,
     compilerVersion: string,
     contractIdentifier: string,
@@ -272,7 +271,6 @@ export class VerificationService {
     const input: VerifyFromJsonInputs = {
       chainId,
       address,
-      language,
       jsonInput,
       compilerVersion,
       contractIdentifier,

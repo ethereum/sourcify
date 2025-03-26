@@ -4,6 +4,7 @@ import {
   validateContractIdentifier,
   checkIfAlreadyVerified,
   checkIfJobIsAlreadyRunning,
+  validateStandardJsonInput,
 } from "../middlewares";
 import { verifyFromJsonInputEndpoint } from "./verification.handlers";
 import { Router } from "express";
@@ -15,6 +16,7 @@ router
   .post(
     validateChainId,
     validateAddress,
+    validateStandardJsonInput,
     validateContractIdentifier,
     checkIfAlreadyVerified,
     checkIfJobIsAlreadyRunning,

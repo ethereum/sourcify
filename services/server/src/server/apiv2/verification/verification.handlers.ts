@@ -15,7 +15,6 @@ interface VerifyFromJsonInputRequest extends Request {
     address: string;
   };
   body: {
-    language?: CompilationLanguage;
     stdJsonInput: SolidityJsonInput | VyperJsonInput;
     compilerVersion: string;
     contractIdentifier: string;
@@ -34,7 +33,6 @@ export async function verifyFromJsonInputEndpoint(
   logger.debug("verifyFromJsonInputEndpoint", {
     chainId: req.params.chainId,
     address: req.params.address,
-    language: req.body.language,
     stdJsonInput: req.body.stdJsonInput,
     compilerVersion: req.body.compilerVersion,
     contractIdentifier: req.body.contractIdentifier,
@@ -47,7 +45,6 @@ export async function verifyFromJsonInputEndpoint(
       req.baseUrl + req.path,
       req.params.chainId,
       req.params.address,
-      req.body.language || "Solidity",
       req.body.stdJsonInput,
       req.body.compilerVersion,
       req.body.contractIdentifier,

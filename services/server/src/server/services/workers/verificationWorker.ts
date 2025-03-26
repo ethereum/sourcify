@@ -56,7 +56,6 @@ const initWorker = () => {
 export async function verifyFromJsonInput({
   chainId,
   address,
-  language,
   jsonInput,
   compilerVersion,
   contractIdentifier,
@@ -83,14 +82,14 @@ export async function verifyFromJsonInput({
 
   let compilation: SolidityCompilation | VyperCompilation | undefined;
   try {
-    if (language === "Solidity") {
+    if (jsonInput.language === "Solidity") {
       compilation = new SolidityCompilation(
         solc,
         compilerVersion,
         jsonInput as SolidityJsonInput,
         compilationTarget,
       );
-    } else if (language === "Vyper") {
+    } else if (jsonInput.language === "Vyper") {
       compilation = new VyperCompilation(
         vyper,
         compilerVersion,

@@ -12,6 +12,8 @@ import { getAddress } from "ethers";
 import { FIELDS_TO_STORED_PROPERTIES } from "../services/utils/database-util";
 import { reduceAccessorStringToProperty } from "../services/utils/util";
 import { Services } from "../services/services";
+import type { SolidityJsonInput } from "@ethereum-sourcify/lib-sourcify";
+import type { VyperJsonInput } from "@ethereum-sourcify/lib-sourcify";
 
 export function validateChainId(
   req: Request,
@@ -100,6 +102,37 @@ export function validateFieldsAndOmit(
   }
 
   omits?.forEach(validateField);
+
+  next();
+}
+
+export function validateStandardJsonInput(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.body.stdJsonInput) {
+    throw new InvalidParametersError("Standard JSON input is required.");
+  }
+
+  const stdJsonInput = req.body.stdJsonInput as
+    | SolidityJsonInput
+    | VyperJsonInput;
+  if (!stdJsonInput.language) {
+    throw new InvalidParametersError(
+      "Standard JSON input must contain a language field.",
+    );
+  }
+  if (!stdJsonInput.sources) {
+    throw new InvalidParametersError(
+      "Standard JSON input must contain a sources field.",
+    );
+  }
+  if (Object.values(stdJsonInput.sources).some((source) => !source.content)) {
+    throw new InvalidParametersError(
+      "Standard JSON input must contain a content field for each source.",
+    );
+  }
 
   next();
 }
