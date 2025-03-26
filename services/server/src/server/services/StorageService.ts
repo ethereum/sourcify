@@ -105,6 +105,10 @@ export interface RWStorageService extends WStorageService {
     omit?: Field[],
   ): Promise<VerifiedContract>;
   getVerificationJob?(verificationId: string): Promise<VerificationJob | null>;
+  getVerificationJobsByChainAndAddress?(
+    chainId: string,
+    address: string,
+  ): Promise<Pick<VerificationJob, "isJobCompleted">[]>;
 }
 
 export interface EnabledServices {

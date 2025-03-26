@@ -94,7 +94,8 @@ exports.up = function (db, callback) {
             compilation_time BIGINT,
             CONSTRAINT verification_jobs_pkey PRIMARY KEY (id),
             CONSTRAINT verification_jobs_verified_contract_id_fk FOREIGN KEY (verified_contract_id) REFERENCES verified_contracts(id) ON DELETE RESTRICT ON UPDATE RESTRICT
-        );`,
+        );
+        CREATE INDEX verification_jobs_chain_id_address_idx ON verification_jobs USING btree (chain_id, contract_address);`,
       ),
       db.runSql.bind(
         db,

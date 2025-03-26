@@ -22,11 +22,7 @@ import {
 } from "@ethereum-sourcify/compilers";
 import { VerificationJobId } from "../types";
 import { StorageService } from "./StorageService";
-import {
-  DuplicateVerificationRequestError,
-  MatchingError,
-  MatchingErrorResponse,
-} from "../apiv2/errors";
+import { MatchingError, MatchingErrorResponse } from "../apiv2/errors";
 import Piscina from "piscina";
 import path from "path";
 import { filename as verificationWorkerFilename } from "./workers/verificationWorker";
@@ -166,7 +162,7 @@ export class VerificationService {
     await Promise.all(this.runningTasks);
   }
 
-  private throwV1ErrorIfContractIsAlreadyBeingVerified(
+  private throwErrorIfContractIsAlreadyBeingVerified(
     chainId: string,
     address: string,
   ) {
@@ -176,21 +172,6 @@ export class VerificationService {
     ) {
       logger.warn("Contract already being verified", { chainId, address });
       throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
-    }
-  }
-
-  private throwIfContractIsAlreadyBeingVerified(
-    chainId: string,
-    address: string,
-  ) {
-    if (
-      this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] !==
-      undefined
-    ) {
-      logger.warn("Contract already being verified", { chainId, address });
-      throw new DuplicateVerificationRequestError(
-        `Contract ${address} on chain ${chainId} is already being verified`,
-      );
     }
   }
 
@@ -250,7 +231,7 @@ export class VerificationService {
       chainId,
       address,
     });
-    this.throwV1ErrorIfContractIsAlreadyBeingVerified(chainId, address);
+    this.throwErrorIfContractIsAlreadyBeingVerified(chainId, address);
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
     const foundCreatorTxHash =
@@ -283,83 +264,76 @@ export class VerificationService {
     contractIdentifier: string,
     creationTransactionHash?: string,
   ): Promise<VerificationJobId> {
-    this.throwIfContractIsAlreadyBeingVerified(chainId, address);
-    this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
+    const verificationId = await this.storageService.performServiceOperation(
+      "storeVerificationJob",
+      [new Date(), chainId, address, verificationEndpoint],
+    );
 
-    try {
-      const verificationId = await this.storageService.performServiceOperation(
-        "storeVerificationJob",
-        [new Date(), chainId, address, verificationEndpoint],
-      );
+    const input: VerifyFromJsonInputs = {
+      chainId,
+      address,
+      language,
+      jsonInput,
+      compilerVersion,
+      contractIdentifier,
+      creationTransactionHash,
+    };
 
-      const input: VerifyFromJsonInputs = {
-        chainId,
-        address,
-        language,
-        jsonInput,
-        compilerVersion,
-        contractIdentifier,
-        creationTransactionHash,
-      };
-
-      const task = this.workerPool
-        .run(input, { name: "verifyFromJsonInput" })
-        .then((output: VerifyFromJsonOutput) => {
-          if (output.verificationExport) {
-            return output.verificationExport;
-          } else if (output.errorResponse) {
-            throw new MatchingError(output.errorResponse);
-          }
-          const errorMessage = `The worker did not return a verification export nor an error response. This should never happen.`;
-          logger.error(errorMessage, { output });
-          throw new Error(errorMessage);
-        })
-        .then((verification: VerificationExport) => {
-          return this.storageService.storeVerification(verification, {
-            verificationId,
-            finishTime: new Date(),
-          });
-        })
-        .catch((error) => {
-          let errorResponse: Omit<MatchingErrorResponse, "message">;
-          if (error.response) {
-            // error comes from the verification worker
-            logger.debug("Received verification error from worker", {
-              verificationId,
-              errorResponse: error.response,
-            });
-            errorResponse = error.response as MatchingErrorResponse;
-          } else if (error instanceof ConflictError) {
-            // returned by StorageService if match already exists and new one is not better
-            errorResponse = {
-              customCode: "already_verified",
-              errorId: uuidv4(),
-            };
-          } else {
-            logger.error("Unexpected verification error", {
-              verificationId,
-              error,
-            });
-            errorResponse = {
-              customCode: "internal_error",
-              errorId: uuidv4(),
-            };
-          }
-
-          return this.storageService.performServiceOperation("setJobError", [
-            verificationId,
-            new Date(),
-            errorResponse,
-          ]);
-        })
-        .finally(() => {
-          this.runningTasks.delete(task);
+    const task = this.workerPool
+      .run(input, { name: "verifyFromJsonInput" })
+      .then((output: VerifyFromJsonOutput) => {
+        if (output.verificationExport) {
+          return output.verificationExport;
+        } else if (output.errorResponse) {
+          throw new MatchingError(output.errorResponse);
+        }
+        const errorMessage = `The worker did not return a verification export nor an error response. This should never happen.`;
+        logger.error(errorMessage, { output });
+        throw new Error(errorMessage);
+      })
+      .then((verification: VerificationExport) => {
+        return this.storageService.storeVerification(verification, {
+          verificationId,
+          finishTime: new Date(),
         });
-      this.runningTasks.add(task);
+      })
+      .catch((error) => {
+        let errorResponse: Omit<MatchingErrorResponse, "message">;
+        if (error.response) {
+          // error comes from the verification worker
+          logger.debug("Received verification error from worker", {
+            verificationId,
+            errorResponse: error.response,
+          });
+          errorResponse = error.response as MatchingErrorResponse;
+        } else if (error instanceof ConflictError) {
+          // returned by StorageService if match already exists and new one is not better
+          errorResponse = {
+            customCode: "already_verified",
+            errorId: uuidv4(),
+          };
+        } else {
+          logger.error("Unexpected verification error", {
+            verificationId,
+            error,
+          });
+          errorResponse = {
+            customCode: "internal_error",
+            errorId: uuidv4(),
+          };
+        }
 
-      return verificationId;
-    } finally {
-      delete this.activeVerificationsByChainIdAddress[`${chainId}:${address}`];
-    }
+        return this.storageService.performServiceOperation("setJobError", [
+          verificationId,
+          new Date(),
+          errorResponse,
+        ]);
+      })
+      .finally(() => {
+        this.runningTasks.delete(task);
+      });
+    this.runningTasks.add(task);
+
+    return verificationId;
   }
 }

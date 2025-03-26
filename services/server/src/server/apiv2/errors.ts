@@ -2,6 +2,7 @@ import {
   BadRequestError,
   NotFoundError,
   InternalServerError,
+  ConflictError,
 } from "../../common/errors";
 import { v4 as uuidv4 } from "uuid";
 import type { Request, Response, NextFunction } from "express";
@@ -117,6 +118,19 @@ export class DuplicateVerificationRequestError extends TooManyRequests {
     super(message);
     this.payload = {
       customCode: "duplicate_verification_request",
+      message,
+      errorId: uuidv4(),
+    };
+  }
+}
+
+export class AlreadyVerifiedError extends ConflictError {
+  payload: GenericErrorResponse;
+
+  constructor(message: string) {
+    super(message);
+    this.payload = {
+      customCode: "already_verified",
       message,
       errorId: uuidv4(),
     };

@@ -7,6 +7,7 @@ import {
   GetSourcifyMatchesByChainResult,
   GetVerificationJobByIdResult,
   GetVerifiedContractByChainAndAddressResult,
+  GetVerificationJobsByChainAndAddressResult,
   SourceInformation,
   STORED_PROPERTIES_TO_SELECTORS,
   StoredProperties,
@@ -805,6 +806,22 @@ ${
     WHERE verification_jobs.id = $1
     `,
       [verificationId],
+    );
+  }
+
+  async getVerificationJobsByChainAndAddress(
+    chainId: string,
+    address: Bytes,
+  ): Promise<QueryResult<GetVerificationJobsByChainAndAddressResult>> {
+    return await this.pool.query(
+      `
+    SELECT
+      to_char(verification_jobs.completed_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as completed_at
+    FROM ${this.schema}.verification_jobs
+    WHERE verification_jobs.chain_id = $1
+      AND verification_jobs.contract_address = $2
+    `,
+      [chainId, address],
     );
   }
 

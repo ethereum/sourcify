@@ -2,6 +2,8 @@ import {
   validateAddress,
   validateChainId,
   validateContractIdentifier,
+  checkIfAlreadyVerified,
+  checkIfJobIsAlreadyRunning,
 } from "../middlewares";
 import { verifyFromJsonInputEndpoint } from "./verification.handlers";
 import { Router } from "express";
@@ -14,6 +16,8 @@ router
     validateChainId,
     validateAddress,
     validateContractIdentifier,
+    checkIfAlreadyVerified,
+    checkIfJobIsAlreadyRunning,
     verifyFromJsonInputEndpoint,
   );
 

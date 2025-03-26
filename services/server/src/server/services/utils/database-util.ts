@@ -276,6 +276,10 @@ export type GetVerificationJobByIdResult = Pick<
   verified_at: Nullable<string>;
 };
 
+export type GetVerificationJobsByChainAndAddressResult = {
+  completed_at: Nullable<string>;
+};
+
 const sourcesAggregation =
   "json_object_agg(compiled_contracts_sources.path, json_build_object('content', sources.content))";
 

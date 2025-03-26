@@ -2,13 +2,16 @@ import { Request, Response, NextFunction } from "express";
 import { ChainRepository } from "../../sourcify-chain-repository";
 import logger from "../../common/logger";
 import {
+  AlreadyVerifiedError,
   ChainNotFoundError,
+  DuplicateVerificationRequestError,
   InvalidParametersError as InvalidParameterError,
   InvalidParametersError,
 } from "./errors";
 import { getAddress } from "ethers";
 import { FIELDS_TO_STORED_PROPERTIES } from "../services/utils/database-util";
 import { reduceAccessorStringToProperty } from "../services/utils/util";
+import { Services } from "../services/services";
 
 export function validateChainId(
   req: Request,
@@ -114,6 +117,52 @@ export function validateContractIdentifier(
   if (splitIdentifier.length < 2) {
     throw new InvalidParametersError(
       "The contractIdentifier must consist of the file path and the contract name separated by a ':'.",
+    );
+  }
+
+  next();
+}
+
+export async function checkIfAlreadyVerified(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { address, chainId } = req.params;
+  const services = req.app.get("services") as Services;
+  const contract = await services.storage.performServiceOperation(
+    "getContract",
+    [chainId, address],
+  );
+
+  if (
+    contract.runtimeMatch === "exact_match" &&
+    contract.creationMatch === "exact_match"
+  ) {
+    throw new AlreadyVerifiedError(
+      `Contract ${address} on chain ${chainId} is already verified with runtimeMatch and creationMatch both being exact matches.`,
+    );
+  }
+
+  next();
+}
+
+export async function checkIfJobIsAlreadyRunning(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  const { address, chainId } = req.params;
+  const services = req.app.get("services") as Services;
+  const jobs = await services.storage.performServiceOperation(
+    "getVerificationJobsByChainAndAddress",
+    [chainId, address],
+  );
+
+  if (jobs.length > 0 && jobs.every((job) => !job.isJobCompleted)) {
+    logger.warn("Contract already being verified", { chainId, address });
+    throw new DuplicateVerificationRequestError(
+      `Contract ${address} on chain ${chainId} is already being verified`,
     );
   }
 

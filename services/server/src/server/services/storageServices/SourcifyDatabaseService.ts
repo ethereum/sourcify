@@ -803,6 +803,19 @@ export class SourcifyDatabaseService
     return job;
   };
 
+  getVerificationJobsByChainAndAddress = async (
+    chainId: string,
+    address: string,
+  ): Promise<Pick<VerificationJob, "isJobCompleted">[]> => {
+    const result = await this.database.getVerificationJobsByChainAndAddress(
+      chainId,
+      bytesFromString(address),
+    );
+    return result.rows.map((row) => ({
+      isJobCompleted: !!row.completed_at,
+    }));
+  };
+
   async storeVerificationJob(
     startTime: Date,
     chainId: string,

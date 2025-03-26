@@ -365,7 +365,7 @@ describe("POST /v2/verify/:chainId/:address", function () {
     });
   });
 
-  it("should return a 409 if the contract is being verified at the moment already", async () => {
+  it("should return a 429 if the contract is being verified at the moment already", async () => {
     makeWorkersWait();
 
     const { contractAddress, txHash } =
@@ -407,7 +407,7 @@ describe("POST /v2/verify/:chainId/:address", function () {
         creationTransactionHash: txHash,
       });
 
-    chai.expect(verifyRes2.status).to.equal(409);
+    chai.expect(verifyRes2.status).to.equal(429);
     chai
       .expect(verifyRes2.body.customCode)
       .to.equal("duplicate_verification_request");
