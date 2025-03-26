@@ -33,7 +33,7 @@ paths:
         - Verify Contracts
       summary: Verify Contract (Standard JSON)
       description: |-
-        Submit a contract for verification via the Solidity [standard JSON input](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description).
+        Submit a contract for verification via the [Solidity standard JSON input](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description) or [Vyper JSON input](https://docs.vyperlang.org/en/stable/compiling-a-contract.html#input-json-description).
 
         There are no "single file" or "multi-part" verification endpoints because those are essentially wrappers around the Solidity compiler's JSON interface. The verification frontend can provide files and settings options to resemble these. 
       operationId: verify
@@ -47,6 +47,18 @@ paths:
           $ref: '#/components/responses/ReturnVerificationJob'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
+        '409':
+          description: The contract is already verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericErrorResponse'
+              examples:
+                Example 1:
+                  value:
+                    customCode: already_verified
+                    message: Contract 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 on chain 31337 is already verified with runtimeMatch and creationMatch both being exact matches.
+                    errorId: 23aaf52e-168a-4cfa-8463-65ddfb792efc
         '429':
           $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
@@ -68,6 +80,18 @@ paths:
           $ref: '#/components/responses/ReturnVerificationJob'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
+        '409':
+          description: The contract is already verified
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericErrorResponse'
+              examples:
+                Example 1:
+                  value:
+                    customCode: already_verified
+                    message: Contract 0xe7f1725E7734CE288F8367e1Bb143E90bb3F0512 on chain 31337 is already verified with runtimeMatch and creationMatch both being exact matches.
+                    errorId: 23aaf52e-168a-4cfa-8463-65ddfb792efc
         '429':
           $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
@@ -276,11 +300,12 @@ components:
           schema:
             type: object
             properties:
-              language:
-                $ref: '#/components/schemas/Language'
               stdJsonInput:
                 type: object
-                description: 'Full [standard JSON object](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description) to pass to the compiler.'
+                description: |
+                  Full [standard JSON object](https://docs.soliditylang.org/en/latest/using-the-compiler.html#input-description) to pass to the compiler. 
+
+                  Must include the language of the sources. Currently supports Solidity and Vyper. 
               compilerVersion:
                 $ref: '#/components/schemas/SolidityCompilerVersion'
               contractIdentifier:
@@ -975,13 +1000,31 @@ components:
                 message: The verification job with id 461157eb-e4ea-4c5f-9aec-04c56924fd96 was not found
                 errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
   schemas:
-    Language:
-      type: string
-      enum:
-        - Solidity
-        - Vyper
-      title: Language
-      default: Solidity
+    GenericErrorResponse:
+      type: object
+      title: GenericErrorResponse
+      properties:
+        customCode:
+          type: string
+          description: A string token to indicate the reason of the error
+          examples:
+            - unsupported_chain
+        message:
+          type: string
+          description: The reasoning of the error
+          examples:
+            - The chain with chainId 3153212 is not supported for verification
+        errorId:
+          type: string
+          format: uuid
+      required:
+        - customCode
+        - message
+        - errorId
+      examples:
+        - customCode: unsupported_chain
+          message: The chain with chainId 9429413 is not supported
+          errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
     SolidityCompilerVersion:
       type: string
       title: SolidityCompilerVersion
@@ -1018,31 +1061,6 @@ components:
               $ref: '#/components/schemas/BytecodeString'
             creationTransactionHash:
               $ref: '#/components/schemas/Keccak256'
-    GenericErrorResponse:
-      type: object
-      title: GenericErrorResponse
-      properties:
-        customCode:
-          type: string
-          description: A string token to indicate the reason of the error
-          examples:
-            - unsupported_chain
-        message:
-          type: string
-          description: The reasoning of the error
-          examples:
-            - The chain with chainId 3153212 is not supported for verification
-        errorId:
-          type: string
-          format: uuid
-      required:
-        - customCode
-        - message
-        - errorId
-      examples:
-        - customCode: unsupported_chain
-          message: The chain with chainId 9429413 is not supported
-          errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
     BytecodeString:
       type: string
       title: BytecodeString
@@ -1362,6 +1380,13 @@ components:
           cborAuxdata:
             '1': '0xa26469706673582212201c37bb166aa1bc4777a7471cda1bbba7ef75600cd859180fa30d503673b99f0264736f6c63430008190033'
           callProtection: '0x9deba23b95205127e906108f191a26f5d520896a'
+    Language:
+      type: string
+      enum:
+        - Solidity
+        - Vyper
+      title: Language
+      default: Solidity
     HexStringWithout0x:
       type: string
       title: HexStringWithout0x
