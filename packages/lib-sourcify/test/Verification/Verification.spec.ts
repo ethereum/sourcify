@@ -879,6 +879,39 @@ describe('Verification Class Tests', () => {
         },
       });
     });
+
+    it('should verify a contract by finding perfect metadata and recompile the contract with the new sources', async function () {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'ContractWithVariatedSources',
+      );
+
+      // The artifact has the bytecode from the Emscripten compiler.
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      // Get compilation using the helper
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+
+      // Create and verify using the Verification class directly
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'perfect',
+          creationMatch: null,
+        },
+      });
+    });
   });
 
   describe('Creation Transaction Verification', () => {
