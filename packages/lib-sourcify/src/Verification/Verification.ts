@@ -38,6 +38,7 @@ import {
   SoliditySettings,
 } from '../Compilation/SolidityTypes';
 import { VyperOutputContract } from '../Compilation/VyperTypes';
+import { SolidityMetadataContract } from '../Validation/SolidityMetadataContract';
 
 export class Verification {
   // Bytecodes
@@ -94,6 +95,10 @@ export class Verification {
 
     // Compile the contract
     await this.compilation.compile(forceEmscripten);
+
+    // Before proceeding with the verification, check if the onchain auxdata doesn't match the recompiled auxdata
+    // If it doesn't, we try to find perfect metadata and recompile the contract with the new sources
+    await this.checkForPerfectMetadata(forceEmscripten);
 
     const compiledRuntimeBytecode = this.compilation.runtimeBytecode;
     const compiledCreationBytecode = this.compilation.creationBytecode;
@@ -227,6 +232,43 @@ export class Verification {
       "The deployed and recompiled bytecode don't match.",
       'no_match',
     );
+  }
+
+  private async checkForPerfectMetadata(forceEmscripten: boolean) {
+    try {
+      const [, onchainAuxdata] = splitAuxdata(
+        this.onchainRuntimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
+      const [, recompiledAuxdata] = splitAuxdata(
+        this.compilation.runtimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
+      if (
+        this.compilation instanceof SolidityCompilation &&
+        onchainAuxdata !== recompiledAuxdata
+      ) {
+        const solidityMetadataContract = new SolidityMetadataContract(
+          this.compilation.metadata,
+          Object.keys(this.compilation.jsonInput.sources).map((source) => ({
+            path: source,
+            content: this.compilation.jsonInput.sources[source].content,
+          })),
+        );
+        if (
+          await solidityMetadataContract.tryToFindPerfectMetadata(
+            this.onchainRuntimeBytecode,
+          )
+        ) {
+          this.compilation = await solidityMetadataContract.createCompilation(
+            this.compilation.compiler,
+          );
+          await this.compilation.compile(forceEmscripten);
+        }
+      }
+    } catch (e: any) {
+      // If we fail to find perfect metadata, we proceed with the verification
+    }
   }
 
   handleSolidityExtraFileInputBug(): SolidityBugType {
