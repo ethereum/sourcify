@@ -1,7 +1,11 @@
 import { CompilationErrorCode } from './Compilation/CompilationTypes';
+import { ValidationErrorCode } from './Validation/ValidationTypes';
 import { VerificationErrorCode } from './Verification/VerificationTypes';
 
-export type SourcifyLibErrorCode = CompilationErrorCode | VerificationErrorCode;
+export type SourcifyLibErrorCode =
+  | ValidationErrorCode
+  | CompilationErrorCode
+  | VerificationErrorCode;
 
 export interface ErrorMessagePayload {
   address?: string;
@@ -21,6 +25,13 @@ export function getErrorMessageFromCode(
   payload: ErrorMessagePayload = {},
 ) {
   switch (code) {
+    // Validation errors
+    case 'missing_source':
+      return 'One or more sources are mentioned in the metadata but are not provided or could not be fetched.';
+    case 'missing_or_invalid_source':
+      return 'One or more sources are mentioned in the metadata but are missing or are invalid.';
+    case 'invalid_compilation_target':
+      return 'The compilationTarget in the metadata is invalid.';
     // Compilation errors
     case 'compiler_error':
       return 'Compiler error.';
