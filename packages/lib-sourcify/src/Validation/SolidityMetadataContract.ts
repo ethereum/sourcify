@@ -10,22 +10,22 @@ import {
 import {
   Metadata,
   MetadataCompilerSettings,
+  MetadataSourceMap,
   StringMap,
 } from '../Compilation/CompilationTypes';
 import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
-
-const CONTENT_VARIATORS = [
-  (content: string) => content.replace(/\r?\n/g, '\r\n'),
-  (content: string) => content.replace(/\r\n/g, '\n'),
-];
-
-const ENDING_VARIATORS = [
-  (content: string) => content.trimEnd(),
-  (content: string) => content.trimEnd() + '\n',
-  (content: string) => content.trimEnd() + '\r\n',
-  (content: string) => content + '\n',
-  (content: string) => content + '\r\n',
-];
+import {
+  AuxdataStyle,
+  decode as decodeBytecode,
+} from '@ethereum-sourcify/bytecode-utils';
+import { ipfsHash } from './hashFunctions/ipfsHash';
+import { swarmBzzr1Hash, swarmBzzr0Hash } from './hashFunctions/swarmHash';
+import {
+  generateVariations,
+  groupBy,
+  reorderAlphabetically,
+  getVariationsByContentHash,
+} from './variationsUtils';
 
 export class SolidityMetadataContract {
   metadata: Metadata;
@@ -102,7 +102,7 @@ export class SolidityMetadataContract {
 
   generateSourceVariations() {
     for (const pathContent of this.providedSources) {
-      const variations = this.generateVariations(pathContent);
+      const variations = generateVariations(pathContent);
       for (const variation of variations) {
         const calculatedHash = keccak256str(variation.content);
         this.providedSourcesByHash.set(calculatedHash, variation);
@@ -231,40 +231,6 @@ export class SolidityMetadataContract {
     this.createJsonInputFromMetadata();
   }
 
-  private generateVariations(pathContent: PathContent): PathContent[] {
-    const variations: {
-      content: string;
-      contentVariator: number;
-      endingVariator: number;
-    }[] = [];
-    const original = pathContent.content;
-    for (const [
-      CONTENT_VARIATORS_INDEX,
-      contentVariator,
-    ] of CONTENT_VARIATORS.entries()) {
-      const variatedContent = contentVariator(original);
-      for (const [
-        ENDING_VARIATORS_INDEX,
-        endingVariator,
-      ] of ENDING_VARIATORS.entries()) {
-        const variation = endingVariator(variatedContent);
-        variations.push({
-          content: variation,
-          contentVariator: CONTENT_VARIATORS_INDEX,
-          endingVariator: ENDING_VARIATORS_INDEX,
-        });
-      }
-    }
-
-    return variations.map(({ content, contentVariator, endingVariator }) => {
-      return {
-        content,
-        path: pathContent.path,
-        variation: contentVariator + '.' + endingVariator,
-      };
-    });
-  }
-
   createJsonInputFromMetadata() {
     if (
       Object.keys(this.missingSources).length > 0 ||
@@ -364,5 +330,136 @@ export class SolidityMetadataContract {
       Object.keys(this.missingSources).length === 0 &&
       Object.keys(this.invalidSources).length === 0
     );
+  }
+
+  /**
+   * Function to try to generate variations of the metadata of the contract such that it will match to the hash in the onchain bytecode.
+   * Generates variations of the given source files and replaces the hashes in the metadata with the hashes of the variations.
+   * If found, replaces this.metadata and this.sources with the found variations.
+   * Useful for finding perfect matches for known types of variations such as different line endings.
+   *
+   * @param runtimeBytecode
+   * @returns true if perfect metadata is found, false otherwise
+   */
+  async tryToFindPerfectMetadata(runtimeBytecode: string): Promise<boolean> {
+    let decodedAuxdata;
+    try {
+      decodedAuxdata = decodeBytecode(runtimeBytecode, AuxdataStyle.SOLIDITY);
+    } catch (err) {
+      // There is no auxdata at all in this contract
+      return false;
+    }
+
+    const pathContent: PathContent[] = Object.keys(this.foundSources).map(
+      (path) => {
+        return {
+          path,
+          content: this.foundSources[path] || '',
+        };
+      },
+    );
+
+    const byHash = getVariationsByContentHash(pathContent);
+
+    /*
+     * getVariationsByContentHash returns a mapping like this one:
+     * Map({
+     *   keccak256str(variation.content): {
+     *     content,
+     *     path: pathContent.path,
+     *     variation: contentVariator + '.' + endingVariator,
+     *   }
+     * })
+     *
+     * we need to group all the different files by variation:
+     *
+     * {
+     *   "1.1": [
+     *     {
+     *       content,
+     *       path: pathContent.path,
+     *       variation: "1.1",
+     *     },
+     *     ...
+     *   ],
+     *   "1.2": [...]
+     * }
+     */
+    const byVariation = groupBy(Array.from(byHash.values()), 'variation');
+
+    // We should canonicalize the metadata when we are generating "metadata variations" when we have a partial match.
+    // It could be that the user somehow mixed the orderings of the metadata or added whitespaces etc.
+    // For more information read https://github.com/ethereum/sourcify/issues/978
+    const metadata: Metadata = reorderAlphabetically(this.metadata) as Metadata;
+
+    // For each variation
+    // 1. replace: "keccak256" and "url" fields in the metadata with the hashes of the variation
+    // 2. take the hash of the modified metadata
+    // 3. Check if this will match the hash in the bytecode
+    for (const sources of Object.values(byVariation)) {
+      metadata.sources = sources.reduce(
+        (sources: MetadataSourceMap, source) => {
+          if (metadata.sources[source.path]) {
+            sources[source.path] = metadata.sources[source.path];
+            sources[source.path].keccak256 = keccak256str(source.content);
+            if (sources[source.path].content) {
+              sources[source.path].content = source.content;
+            }
+            if (sources[source.path].urls) {
+              sources[source.path].urls = sources[source.path].urls?.map(
+                (url: string) => {
+                  if (url.includes('dweb:/ipfs/')) {
+                    return `dweb:/ipfs/${ipfsHash(source.content)}`;
+                  }
+                  if (url.includes('bzz-raw://')) {
+                    // Here swarmBzzr1Hash is always used
+                    // https://github.com/ethereum/solidity/blob/eb2f874eac0aa871236bf5ff04b7937c49809c33/libsolidity/interface/CompilerStack.cpp#L1549
+                    return `bzz-raw://${swarmBzzr1Hash(source.content)}`;
+                  }
+                  return '';
+                },
+              );
+            }
+          }
+          return sources;
+        },
+        {},
+      );
+
+      if (decodedAuxdata?.ipfs) {
+        const compiledMetadataIpfsCID = ipfsHash(JSON.stringify(metadata));
+        if (decodedAuxdata?.ipfs === compiledMetadataIpfsCID) {
+          this.metadata = metadata;
+          this.foundSources = sources.reduce((acc, source) => {
+            acc[source.path] = source.content;
+            return acc;
+          }, {} as StringMap);
+          return true;
+        }
+      }
+      if (decodedAuxdata?.bzzr1) {
+        const compiledMetadataBzzr1 = swarmBzzr1Hash(JSON.stringify(metadata));
+        if (decodedAuxdata?.bzzr1 === compiledMetadataBzzr1) {
+          this.metadata = metadata;
+          this.foundSources = sources.reduce((acc, source) => {
+            acc[source.path] = source.content;
+            return acc;
+          }, {} as StringMap);
+          return true;
+        }
+      }
+      if (decodedAuxdata?.bzzr0) {
+        const compiledMetadataBzzr0 = swarmBzzr0Hash(JSON.stringify(metadata));
+        if (decodedAuxdata?.bzzr0 === compiledMetadataBzzr0) {
+          this.metadata = metadata;
+          this.foundSources = sources.reduce((acc, source) => {
+            acc[source.path] = source.content;
+            return acc;
+          }, {} as StringMap);
+          return true;
+        }
+      }
+    }
+    return false;
   }
 }
