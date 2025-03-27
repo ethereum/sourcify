@@ -1,3 +1,5 @@
+import { SourcifyLibError } from '../SourcifyLibError';
+
 export interface PathBuffer {
   path: string;
   buffer: Buffer;
@@ -30,4 +32,15 @@ export interface IpfsGateway {
 
 export interface VariedPathContent extends PathContent {
   variation: string;
+}
+
+export type ValidationErrorCode =
+  | 'missing_source'
+  | 'missing_or_invalid_source'
+  | 'invalid_compilation_target';
+
+export class ValidationError extends SourcifyLibError {
+  constructor(code: ValidationErrorCode) {
+    super(code);
+  }
 }
