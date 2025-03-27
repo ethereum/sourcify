@@ -24,7 +24,7 @@ import {
   generateVariations,
   groupBy,
   reorderAlphabetically,
-  storeByVariationsHash,
+  getVariationsByContentHash,
 } from './variationsUtils';
 
 export class SolidityMetadataContract {
@@ -359,10 +359,10 @@ export class SolidityMetadataContract {
       },
     );
 
-    const byHash = storeByVariationsHash(pathContent);
+    const byHash = getVariationsByContentHash(pathContent);
 
     /*
-     * storeByVariationsHash returns a mapping like this one:
+     * getVariationsByContentHash returns a mapping like this one:
      * Map({
      *   keccak256str(variation.content): {
      *     content,
