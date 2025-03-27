@@ -385,10 +385,7 @@ export class SolidityMetadataContract {
      *   "1.2": [...]
      * }
      */
-    const byVariation = groupBy(
-      Array.from(byHash.values())
-      'variation',
-    );
+    const byVariation = groupBy(Array.from(byHash.values()), 'variation');
 
     // We should canonicalize the metadata when we are generating "metadata variations" when we have a partial match.
     // It could be that the user somehow mixed the orderings of the metadata or added whitespaces etc.

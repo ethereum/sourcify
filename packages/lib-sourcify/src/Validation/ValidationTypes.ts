@@ -27,3 +27,7 @@ export interface IpfsGateway {
   url: string;
   headers?: HeadersInit;
 }
+
+export interface VariedPathContent extends PathContent {
+  variation: string;
+}

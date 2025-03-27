@@ -1,4 +1,4 @@
-import { PathContent } from './ValidationTypes';
+import { PathContent, VariedPathContent } from './ValidationTypes';
 import { id as keccak256str } from 'ethers';
 
 export const CONTENT_VARIATORS = [
@@ -47,7 +47,9 @@ export function reorderAlphabetically(obj: any): any {
   return ordered;
 }
 
-export function generateVariations(pathContent: PathContent): PathContent[] {
+export function generateVariations(
+  pathContent: PathContent,
+): VariedPathContent[] {
   const variations: {
     content: string;
     contentVariator: number;
@@ -89,8 +91,8 @@ export function generateVariations(pathContent: PathContent): PathContent[] {
  */
 export function getVariationsByContentHash(
   files: PathContent[],
-): Map<string, PathContent> {
-  const byHash: Map<string, PathContent> = new Map();
+): Map<string, VariedPathContent> {
+  const byHash: Map<string, VariedPathContent> = new Map();
 
   for (const pathContent of files) {
     for (const variation of generateVariations(pathContent)) {
