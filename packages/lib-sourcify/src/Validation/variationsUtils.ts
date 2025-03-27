@@ -87,7 +87,7 @@ export function generateVariations(pathContent: PathContent): PathContent[] {
  * @param  {string[]}  files Array containing sources.
  * @returns Map object that maps hash to PathContent.
  */
-export function storeByVariationsHash(
+export function getVariationsByContentHash(
   files: PathContent[],
 ): Map<string, PathContent> {
   const byHash: Map<string, PathContent> = new Map();
