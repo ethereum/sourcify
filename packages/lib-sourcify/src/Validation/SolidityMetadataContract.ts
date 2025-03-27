@@ -386,9 +386,7 @@ export class SolidityMetadataContract {
      * }
      */
     const byVariation = groupBy(
-      // the second parameter of Array.from is needed to pass to the groupBy function
-      // an array of all the values of the the mapping, othwerise [key,value] is passed
-      Array.from(byHash, ([, value]) => value),
+      Array.from(byHash.values())
       'variation',
     );
 
