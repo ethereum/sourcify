@@ -53,7 +53,8 @@ export class LocalChainFixture {
   defaultContractModifiedMetadata = Buffer.from(
     JSON.stringify(storageContractMetadataModified),
   );
-  defaultContractModifiedSourceIpfs = getModifiedSourceIpfs();
+  defaultContractMetadataWithModifiedIpfsHash =
+    getMetadataWithModifiedIpfsHash();
   defaultContractArtifact = storageContractArtifact;
   defaultContractJsonInput = storageJsonInput;
 
@@ -203,7 +204,7 @@ function stopHardhatNetwork(hardhatNodeProcess: ChildProcess) {
 }
 
 // Changes the IPFS hash inside the metadata file to make the source unfetchable
-function getModifiedSourceIpfs(): Buffer {
+function getMetadataWithModifiedIpfsHash(): Buffer {
   const ipfsAddress =
     storageContractMetadata.sources["project:/contracts/Storage.sol"].urls[1];
   // change the last char in ipfs hash of the source file
@@ -218,5 +219,5 @@ function getModifiedSourceIpfs(): Buffer {
   );
   modifiedIpfsMetadata.sources["project:/contracts/Storage.sol"].urls[1] =
     modifiedIpfsAddress;
-  return Buffer.from(JSON.stringify(modifiedIpfsMetadata));
+  return modifiedIpfsMetadata;
 }
