@@ -11,6 +11,7 @@ import {
   VerificationExport,
   SourcifyChainInstance,
   CompilationTarget,
+  Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -30,8 +31,9 @@ import { v4 as uuidv4 } from "uuid";
 import { ConflictError } from "../../common/errors/ConflictError";
 import os from "os";
 import type {
-  VerifyFromJsonInputs,
-  VerifyFromJsonOutput,
+  VerifyFromJsonInput,
+  VerifyFromMetadataInput,
+  VerifyOutput,
 } from "./workers/workerTypes";
 
 export interface VerificationServiceOptions {
@@ -269,7 +271,7 @@ export class VerificationService {
       [new Date(), chainId, address, verificationEndpoint],
     );
 
-    const input: VerifyFromJsonInputs = {
+    const input: VerifyFromJsonInput = {
       chainId,
       address,
       jsonInput,
@@ -280,7 +282,57 @@ export class VerificationService {
 
     const task = this.workerPool
       .run(input, { name: "verifyFromJsonInput" })
-      .then((output: VerifyFromJsonOutput) => {
+      .then((output: VerifyOutput) => {
+        return this.handleWorkerResponse(verificationId, output);
+      })
+      .finally(() => {
+        this.runningTasks.delete(task);
+      });
+    this.runningTasks.add(task);
+
+    return verificationId;
+  }
+
+  public async verifyFromMetadataViaWorker(
+    verificationEndpoint: string,
+    chainId: string,
+    address: string,
+    metadata: Metadata,
+    sources: Record<string, string>,
+    creationTransactionHash?: string,
+  ): Promise<VerificationJobId> {
+    const verificationId = await this.storageService.performServiceOperation(
+      "storeVerificationJob",
+      [new Date(), chainId, address, verificationEndpoint],
+    );
+
+    const input: VerifyFromMetadataInput = {
+      chainId,
+      address,
+      metadata,
+      sources,
+      creationTransactionHash,
+    };
+
+    const task = this.workerPool
+      .run(input, { name: "verifyFromMetadata" })
+      .then((output: VerifyOutput) => {
+        return this.handleWorkerResponse(verificationId, output);
+      })
+      .finally(() => {
+        this.runningTasks.delete(task);
+      });
+    this.runningTasks.add(task);
+
+    return verificationId;
+  }
+
+  private async handleWorkerResponse(
+    verificationId: VerificationJobId,
+    output: VerifyOutput,
+  ): Promise<void> {
+    return Promise.resolve(output)
+      .then((output: VerifyOutput) => {
         if (output.verificationExport) {
           return output.verificationExport;
         } else if (output.errorResponse) {
@@ -298,13 +350,13 @@ export class VerificationService {
       })
       .catch((error) => {
         let errorResponse: Omit<MatchingErrorResponse, "message">;
-        if (error.response) {
+        if (error instanceof MatchingError) {
           // error comes from the verification worker
           logger.debug("Received verification error from worker", {
             verificationId,
             errorResponse: error.response,
           });
-          errorResponse = error.response as MatchingErrorResponse;
+          errorResponse = error.response;
         } else if (error instanceof ConflictError) {
           // returned by StorageService if match already exists and new one is not better
           errorResponse = {
@@ -327,12 +379,6 @@ export class VerificationService {
           new Date(),
           errorResponse,
         ]);
-      })
-      .finally(() => {
-        this.runningTasks.delete(task);
       });
-    this.runningTasks.add(task);
-
-    return verificationId;
   }
 }
