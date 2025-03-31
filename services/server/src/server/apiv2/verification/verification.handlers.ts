@@ -1,7 +1,7 @@
-import {
+import type {
   VyperJsonInput,
   SolidityJsonInput,
-  CompilationLanguage,
+  CompilationTarget,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TypedResponse } from "../../types";
 import logger from "../../../common/logger";
@@ -39,6 +39,16 @@ export async function verifyFromJsonInputEndpoint(
     creationTransactionHash: req.body.creationTransactionHash,
   });
 
+  // The contract path can include a colon itself. Therefore,
+  // we need to take the last element as the contract name.
+  const splitIdentifier = req.body.contractIdentifier.split(":");
+  const contractName = splitIdentifier[splitIdentifier.length - 1];
+  const contractPath = splitIdentifier.slice(0, -1).join(":");
+  const compilationTarget: CompilationTarget = {
+    name: contractName,
+    path: contractPath,
+  };
+
   const services = req.app.get("services") as Services;
   const verificationId =
     await services.verification.verifyFromJsonInputViaWorker(
@@ -47,7 +57,7 @@ export async function verifyFromJsonInputEndpoint(
       req.params.address,
       req.body.stdJsonInput,
       req.body.compilerVersion,
-      req.body.contractIdentifier,
+      compilationTarget,
       req.body.creationTransactionHash,
     );
 

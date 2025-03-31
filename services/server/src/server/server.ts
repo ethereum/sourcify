@@ -308,6 +308,7 @@ export class Server {
         });
       });
     }
+    // Gracefully closing all in-process verifications
     await this.services.close();
     logger.info("Services closed");
   }

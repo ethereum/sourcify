@@ -8,9 +8,9 @@ import {
   SolidityCompilation,
   VyperCompilation,
   SourcifyChainMap,
-  CompilationLanguage,
   VerificationExport,
   SourcifyChainInstance,
+  CompilationTarget,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -156,6 +156,7 @@ export class VerificationService {
   }
 
   public async close() {
+    logger.info("Gracefully closing all in-process verifications");
     // Immediately abort all workers. Tasks that still run will have their Promises rejected.
     await this.workerPool.destroy();
     // Here, we wait for the rejected tasks which also waits for writing the failed status to the database.
@@ -260,7 +261,7 @@ export class VerificationService {
     address: string,
     jsonInput: SolidityJsonInput | VyperJsonInput,
     compilerVersion: string,
-    contractIdentifier: string,
+    compilationTarget: CompilationTarget,
     creationTransactionHash?: string,
   ): Promise<VerificationJobId> {
     const verificationId = await this.storageService.performServiceOperation(
@@ -273,7 +274,7 @@ export class VerificationService {
       address,
       jsonInput,
       compilerVersion,
-      contractIdentifier,
+      compilationTarget,
       creationTransactionHash,
     };
 

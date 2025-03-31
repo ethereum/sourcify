@@ -2,6 +2,7 @@ import type {
   SolidityJsonInput,
   VyperJsonInput,
   VerificationExport,
+  CompilationTarget,
 } from "@ethereum-sourcify/lib-sourcify";
 import type { MatchingErrorResponse } from "../../apiv2/errors";
 
@@ -10,7 +11,7 @@ export interface VerifyFromJsonInputs {
   address: string;
   jsonInput: SolidityJsonInput | VyperJsonInput;
   compilerVersion: string;
-  contractIdentifier: string;
+  compilationTarget: CompilationTarget;
   creationTransactionHash?: string;
 }
 

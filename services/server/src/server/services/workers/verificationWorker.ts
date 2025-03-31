@@ -2,7 +2,6 @@ import Piscina from "piscina";
 import {
   SolidityJsonInput,
   VyperJsonInput,
-  CompilationTarget,
   SolidityCompilation,
   VyperCompilation,
   Verification,
@@ -58,20 +57,10 @@ export async function verifyFromJsonInput({
   address,
   jsonInput,
   compilerVersion,
-  contractIdentifier,
+  compilationTarget,
   creationTransactionHash,
 }: VerifyFromJsonInputs): Promise<VerifyFromJsonOutput> {
   initWorker();
-
-  // The contract path can include a colon itself,
-  // therefore we need to take the last element as the contract name
-  const splitIdentifier = contractIdentifier.split(":");
-  const contractName = splitIdentifier[splitIdentifier.length - 1];
-  const contractPath = splitIdentifier.slice(0, -1).join(":");
-  const compilationTarget: CompilationTarget = {
-    name: contractName,
-    path: contractPath,
-  };
 
   const sourcifyChain = chainRepository.sourcifyChainMap[chainId];
 
