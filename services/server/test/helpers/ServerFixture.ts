@@ -102,6 +102,7 @@ export class ServerFixture {
         solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
         vyper: new VyperLocal(config.get("vyperRepo")),
         verifyDeprecated: config.get("verifyDeprecated"),
+        upgradeContract: config.get("upgradeContract"),
         sessionOptions: {
           secret: config.get("session.secret"),
           name: "sourcify_vid",
