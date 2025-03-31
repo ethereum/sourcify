@@ -25,7 +25,6 @@ paths:
                   example: "0x00000000219ab540356cBB839Cbe05303d7705Fa"
                 chain:
                   type: string
-                  format: supported-chainId
                   example: "1"
                 files:
                   type: object

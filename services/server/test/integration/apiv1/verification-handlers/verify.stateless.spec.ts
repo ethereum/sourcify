@@ -743,12 +743,16 @@ describe("/", function () {
 
     const res = await chai
       .request(serverFixture.server.app)
-      .post("/verify-deprecated")
-      .field("address", address)
-      .field("chain", goerliChainId)
-      .field("match", matchStatus)
-      .attach("files", chainFixture.defaultContractMetadata, "metadata.json")
-      .attach("files", chainFixture.defaultContractSource, "Storage.sol");
+      .post("/private/verify-deprecated")
+      .send({
+        address: address,
+        chain: goerliChainId,
+        match: matchStatus,
+        files: {
+          "metadata.json": chainFixture.defaultContractMetadata.toString(),
+          "Storage.sol": chainFixture.defaultContractSource.toString(),
+        },
+      });
 
     // Verify API response
     await assertVerification(
