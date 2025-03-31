@@ -15,6 +15,12 @@ export interface VerifyFromJsonInputs {
   creationTransactionHash?: string;
 }
 
+// We need to return an object from the worker for being able to return an
+// error with custom properties. Structured clone only copies the default
+// properties (name and message) of Error objects when they are thrown, but
+// we want to return our custom `MatchingErrorResponse`.
+// Any instance of the `VerifyFromJsonOutput` interface should only contain
+// one of the two properties.
 export interface VerifyFromJsonOutput {
   verificationExport?: VerificationExport;
   errorResponse?: MatchingErrorResponse;
