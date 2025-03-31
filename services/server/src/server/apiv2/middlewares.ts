@@ -12,7 +12,10 @@ import { getAddress } from "ethers";
 import { FIELDS_TO_STORED_PROPERTIES } from "../services/utils/database-util";
 import { reduceAccessorStringToProperty } from "../services/utils/util";
 import { Services } from "../services/services";
-import type { SolidityJsonInput } from "@ethereum-sourcify/lib-sourcify";
+import type {
+  Metadata,
+  SolidityJsonInput,
+} from "@ethereum-sourcify/lib-sourcify";
 import type { VyperJsonInput } from "@ethereum-sourcify/lib-sourcify";
 
 export function validateChainId(
@@ -30,9 +33,7 @@ export function validateChainId(
       errorStack: err.stack,
       params: req.params,
     });
-    return next(
-      new ChainNotFoundError(`Chain ${req.params.chainId} not found`),
-    );
+    throw new ChainNotFoundError(`Chain ${req.params.chainId} not found`);
   }
 
   next();
@@ -52,9 +53,7 @@ export function validateAddress(
       errorStack: err.stack,
       params: req.params,
     });
-    return next(
-      new InvalidParameterError(`Invalid address: ${req.params.address}`),
-    );
+    throw new InvalidParameterError(`Invalid address: ${req.params.address}`);
   }
 
   next();
@@ -151,6 +150,42 @@ export function validateContractIdentifier(
     throw new InvalidParametersError(
       "The contractIdentifier must consist of the file path and the contract name separated by a ':'.",
     );
+  }
+
+  next();
+}
+
+export function validateMetadata(
+  req: Request,
+  res: Response,
+  next: NextFunction,
+) {
+  if (!req.body.metadata) {
+    throw new InvalidParametersError("Metadata is required.");
+  }
+
+  const metadata = req.body.metadata as Metadata;
+  if (!metadata.compiler) {
+    throw new InvalidParametersError("Metadata must contain a compiler field.");
+  }
+  if (!metadata.compiler.version) {
+    throw new InvalidParametersError(
+      "Metadata must contain a compiler.version field.",
+    );
+  }
+  if (!metadata.language) {
+    throw new InvalidParametersError("Metadata must contain a language field.");
+  }
+  if (!metadata.settings) {
+    throw new InvalidParametersError("Metadata must contain a settings field.");
+  }
+  if (!metadata.settings.compilationTarget) {
+    throw new InvalidParametersError(
+      "Metadata must contain a settings.compilationTarget field.",
+    );
+  }
+  if (!metadata.sources) {
+    throw new InvalidParametersError("Metadata must contain a sources field.");
   }
 
   next();
