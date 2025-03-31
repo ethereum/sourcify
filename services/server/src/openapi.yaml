@@ -24,6 +24,8 @@ paths:
     $ref: "server/apiv1/verification/private/stateless/private.stateless.paths.yaml#/paths/~1private~1upgrade-contract"
   /v2/verify/{chainId}/{address}:
     $ref: "apiv2.yaml#/paths/~1v2~1verify~1{chainId}~1{address}"
+  /v2/verify/metadata/{chainId}/{address}:
+    $ref: "apiv2.yaml#/paths/~1v2~1verify~1metadata~1{chainId}~1{address}"
   /v2/verify/{verificationId}:
     $ref: "apiv2.yaml#/paths/~1v2~1verify~1{verificationId}"
   /v2/contract/{chainId}/{address}:
