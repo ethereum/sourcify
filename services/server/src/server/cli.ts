@@ -84,6 +84,7 @@ const server = new Server(
     vyper,
     chains: chainRepository.sourcifyChainMap,
     verifyDeprecated: config.get("verifyDeprecated"),
+    upgradeContract: config.get("upgradeContract"),
     sessionOptions: getSessionOptions(),
     loggingToken: process.env.SETLOGGING_TOKEN,
   },

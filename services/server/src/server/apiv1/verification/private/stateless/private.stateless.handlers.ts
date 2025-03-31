@@ -138,6 +138,13 @@ export async function upgradeContract(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
+  const sourcifyMatchId = req.body.sourcifyMatchId;
+  if (!sourcifyMatchId) {
+    return res
+      .status(StatusCodes.BAD_REQUEST)
+      .send({ error: "sourcifyMatchId is required" });
+  }
+
   const solc = req.app.get("solc") as ISolidityCompiler;
   const services = req.app.get("services") as Services;
 
@@ -191,7 +198,7 @@ export async function upgradeContract(
       JOIN code onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
       JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
       WHERE sourcify_matches.id = $1`,
-      [req.body.sourcifyMatchId],
+      [sourcifyMatchId],
     );
 
     if (verifiedContractResult.rows.length === 0) {
@@ -223,7 +230,7 @@ export async function upgradeContract(
     }
 
     // Create settings from compiler_settings JSON field
-    const settings = JSON.parse(verifiedContract.compiler_settings);
+    const settings = verifiedContract.compiler_settings;
 
     // Initialize jsonInput with the required fields
     const jsonInput: SolidityJsonInput = {
@@ -233,25 +240,18 @@ export async function upgradeContract(
     };
 
     // Get the file path and contract name from fully_qualified_name
-    const metadataCompilationTarget = (
-      JSON.parse(verifiedContract.metadata) as Metadata
-    ).settings.compilationTarget;
+    const metadataCompilationTarget = (verifiedContract.metadata as Metadata)
+      .settings.compilationTarget;
     const compilationTarget = {
       name: Object.values(metadataCompilationTarget)[0],
       path: Object.keys(metadataCompilationTarget)[0],
     };
 
-    const compilationArtifacts = JSON.parse(
-      verifiedContract.compilation_artifacts,
-    );
+    const compilationArtifacts = verifiedContract.compilation_artifacts;
 
-    const creationCodeArtifacts = JSON.parse(
-      verifiedContract.creation_code_artifacts,
-    );
+    const creationCodeArtifacts = verifiedContract.creation_code_artifacts;
 
-    const runtimeCodeArtifacts = JSON.parse(
-      verifiedContract.runtime_code_artifacts,
-    );
+    const runtimeCodeArtifacts = verifiedContract.runtime_code_artifacts;
 
     const compilation = new SolidityCompilation(
       solc,
@@ -271,12 +271,12 @@ export async function upgradeContract(
             storageLayout: compilationArtifacts.storageLayout,
             evm: {
               bytecode: {
-                object: verifiedContract.creation_code,
+                object: verifiedContract.compiled_creation_code.toString("hex"),
                 sourceMap: creationCodeArtifacts.sourceMap,
                 linkReferences: creationCodeArtifacts.linkReferences,
               },
               deployedBytecode: {
-                object: verifiedContract.runtime_code,
+                object: verifiedContract.compiled_runtime_code.toString("hex"),
                 sourceMap: runtimeCodeArtifacts.sourceMap,
                 linkReferences: runtimeCodeArtifacts.linkReferences,
                 immutableReferences: runtimeCodeArtifacts.immutableReferences,
@@ -305,17 +305,17 @@ export async function upgradeContract(
 
     const sourcifyChainMock = {
       getBytecode: async (address: string) => {
-        return verifiedContract.onchain_runtime_code;
+        return `0x${verifiedContract.onchain_runtime_code.toString("hex")}`;
       },
       getTx: async (txHash: string) => {
         return {
           blockNumber: verifiedContract.block_number,
-          from: verifiedContract.deployer,
+          from: `0x${verifiedContract.deployer.toString("hex")}`,
         };
       },
       getContractCreationBytecodeAndReceipt: async (address: string) => {
         return {
-          creationBytecode: verifiedContract.onchain_creation_code,
+          creationBytecode: `0x${verifiedContract.onchain_creation_code.toString("hex")}`,
           txReceipt: {
             index: verifiedContract.transaction_index,
           },
@@ -327,31 +327,48 @@ export async function upgradeContract(
     const verification = new Verification(
       compilation,
       sourcifyChainMock as any,
-      verifiedContract.address,
-      verifiedContract.transaction_hash,
+      `0x${verifiedContract.address.toString("hex")}`,
+      `0x${verifiedContract.transaction_hash.toString("hex")}`,
     );
 
-    verification.verify();
-
-    // Begin transaction for database updates
-    await poolClient.query("BEGIN");
+    await verification.verify();
 
     // Get the verification status
     const verificationStatus = verification.status;
+    const creationMatch =
+      verificationStatus.creationMatch === "perfect" ||
+      verificationStatus.creationMatch === "partial";
+
+    let creationTransformations = null;
+    let creationValues = null;
+    let creationMetadataMatch = null;
+    if (creationMatch) {
+      creationTransformations = verification.transformations.creation.list
+        ? JSON.stringify(verification.transformations.creation.list)
+        : [];
+      creationValues = verification.transformations.creation.values
+        ? JSON.stringify(verification.transformations.creation.values)
+        : {};
+      creationMetadataMatch = verification.status.creationMatch === "perfect";
+    }
+
+    // Begin transaction for database updates
+    await poolClient.query("BEGIN");
 
     // 1. Update verified_contracts table using direct query
     await poolClient.query(
       `UPDATE verified_contracts SET 
         creation_match = $1,
         creation_transformations = $2,
-        creation_values = $3
-      WHERE id = $4`,
+        creation_values = $3,
+        creation_metadata_match = $4
+      WHERE id = $5`,
       [
-        verificationStatus.creationMatch === "perfect" ||
-          verificationStatus.creationMatch === "partial", // Store as boolean for database
-        JSON.stringify(verification.transformations.creation.list || []), // Store transformations as JSON string
-        verification.transformations.creation.values || null, // Store transformation values
-        req.body.sourcifyMatchId, // ID of the contract to update
+        creationMatch,
+        creationTransformations,
+        creationValues,
+        creationMetadataMatch,
+        sourcifyMatchId,
       ],
     );
 
@@ -360,10 +377,7 @@ export async function upgradeContract(
       `UPDATE sourcify_matches SET 
         creation_match = $1
       WHERE verified_contract_id = $2`,
-      [
-        verificationStatus.creationMatch, // Direct string value ('perfect', 'partial', etc.)
-        req.body.sourcifyMatchId, // Original verified contract ID
-      ],
+      [verificationStatus.creationMatch, sourcifyMatchId],
     );
 
     // Commit the transaction
@@ -372,7 +386,7 @@ export async function upgradeContract(
     res.send({
       result: {
         message: "Contract upgrade successful",
-        verifiedContractId: req.body.sourcifyMatchId,
+        verifiedContractId: sourcifyMatchId,
       },
     });
   } catch (error: any) {

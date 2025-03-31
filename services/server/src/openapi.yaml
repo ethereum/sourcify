@@ -18,6 +18,10 @@ tags:
   - name: Session Verification
     description: API v1 - Used by the Sourcify UI to verify contracts. Not intended for external usage. Will require CORS.
 paths:
+  /private/verify-deprecated:
+    $ref: "server/apiv1/verification/private/stateless/private.stateless.paths.yaml#/paths/~1private~1verify-deprecated"
+  /private/upgrade-contract:
+    $ref: "server/apiv1/verification/private/stateless/private.stateless.paths.yaml#/paths/~1private~1upgrade-contract"
   /v2/contract/{chainId}/{address}:
     $ref: "apiv2.yaml#/paths/~1v2~1contract~1{chainId}~1{address}"
   /v2/contracts/{chainId}:

@@ -132,3 +132,86 @@ paths:
                 Deployed and recompiled mismatch:
                   value:
                     error: "The deployed and recompiled bytecode don't match."
+  /private/upgrade-contract:
+    post:
+      deprecated: false
+      description: |
+        Upgrades an existing contract verification by re-verifying it with the provided data.
+      tags:
+        - Stateless Verification
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - sourcifyMatchId
+              properties:
+                sourcifyMatchId:
+                  type: number
+                  description: The ID of the Sourcify match to upgrade.
+                  example: 1
+      responses:
+        "200":
+          description: The contract verification has been successfully upgraded.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  result:
+                    type: object
+                    properties:
+                      message:
+                        type: string
+                      verifiedContractId:
+                        type: string
+              examples:
+                Success:
+                  value:
+                    result:
+                      message: "Contract upgrade successful"
+                      verifiedContractId: 1
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Missing ID:
+                  value:
+                    error: "sourcifyMatchId is required"
+        "404":
+          description: Not Found
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Contract Not Found:
+                  value:
+                    error: "Verified contract not found"
+        "500":
+          description: Internal Server Error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+              examples:
+                Database Error:
+                  value:
+                    error: "Database service not available"
+                Verification Error:
+                  value:
+                    error: "Error during verification process"

@@ -56,6 +56,7 @@ export interface ServerOptions {
   solc: ISolidityCompiler;
   vyper: IVyperCompiler;
   verifyDeprecated: boolean;
+  upgradeContract: boolean;
   sessionOptions: SessionOptions;
   loggingToken?: string;
 }
@@ -86,6 +87,7 @@ export class Server {
     this.app.set("solc", options.solc);
     this.app.set("vyper", options.vyper);
     this.app.set("verifyDeprecated", options.verifyDeprecated);
+    this.app.set("upgradeContract", options.upgradeContract);
     this.app.set("services", this.services);
 
     this.app.use(

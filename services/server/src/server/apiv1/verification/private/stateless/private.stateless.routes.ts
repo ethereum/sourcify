@@ -22,7 +22,7 @@ router.route("/private/verify-deprecated").post(
 );
 
 router.route("/private/upgrade-contract").post(
-  // Middleware to check if verifyDeprecated is enabled
+  // Middleware to check if upgradeContract is enabled
   (req, res, next) => {
     const upgradeContractEnabled = req.app.get("upgradeContract") as boolean;
     if (upgradeContractEnabled) {
@@ -31,7 +31,6 @@ router.route("/private/upgrade-contract").post(
       res.status(400).send("Not found");
     }
   },
-  checkPerfectMatch,
   upgradeContract,
 );
 
