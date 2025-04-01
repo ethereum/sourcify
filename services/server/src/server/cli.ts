@@ -86,7 +86,7 @@ const server = new Server(
     verifyDeprecated: config.get("verifyDeprecated"),
     upgradeContract: config.get("upgradeContract"),
     sessionOptions: getSessionOptions(),
-    loggingToken: process.env.SETLOGGING_TOKEN,
+    sourcifyPrivateToken: process.env.SOURCIFY_PRIVATE_TOKEN,
   },
   {
     initCompilers: config.get("initCompilers") || false,

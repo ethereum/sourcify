@@ -7,7 +7,9 @@ paths:
       description: |
         Sends provided files for verification
       tags:
-        - Stateless Verification
+        - Private
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:
@@ -137,7 +139,9 @@ paths:
       description: |
         Upgrades an existing contract verification by re-verifying it with the provided data.
       tags:
-        - Stateless Verification
+        - Private
+      security:
+        - BearerAuth: []
       requestBody:
         required: true
         content:

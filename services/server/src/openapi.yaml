@@ -68,12 +68,12 @@ paths:
     $ref: "server/apiv1/verification/solc-json/session/solc-json.session.paths.yaml#/paths/~1session~1input-solc-json"
   /session/verify/etherscan:
     $ref: "server/apiv1/verification/etherscan/session/etherscan.session.paths.yaml#/paths/~1session~1verify~1etherscan"
-  /change-log-level:
+  /private/change-log-level:
     post:
       summary: Change the logging level of the application
       description: Allows changing the logging level dynamically at runtime for the application. Requires Basic Authentication.
       tags:
-        - Logging
+        - Private
       security:
         - BearerAuth: []
       requestBody:
