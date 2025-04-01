@@ -53,20 +53,6 @@ const server = new Server(
   {
     port: config.get("server.port"),
     maxFileSize: config.get("server.maxFileSize"),
-    rateLimit: {
-      enabled: config.get("rateLimit.enabled"),
-      windowMs: config.get("rateLimit.enabled")
-        ? config.get("rateLimit.windowMs")
-        : undefined,
-      max: config.get("rateLimit.enabled")
-        ? config.get("rateLimit.max")
-        : undefined,
-      whitelist: config.get("rateLimit.enabled")
-        ? config.get("rateLimit.whitelist")
-        : undefined,
-      // Don't log IPs in production master
-      hideIpInLogs: process.env.NODE_ENV === "production",
-    },
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,
     vyper,

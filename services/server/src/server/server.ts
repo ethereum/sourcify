@@ -7,10 +7,6 @@ import { resolveRefs } from "json-refs";
 import bodyParser from "body-parser";
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const fileUpload = require("express-fileupload");
-import {
-  MemoryStore as ExpressRateLimitMemoryStore,
-  rateLimit,
-} from "express-rate-limit";
 import crypto from "crypto";
 import { v4 as uuidv4 } from "uuid";
 import { asyncLocalStorage } from "../common/async-context";
@@ -44,13 +40,6 @@ declare module "express-serve-static-core" {
 export interface ServerOptions {
   port: string | number;
   maxFileSize: number;
-  rateLimit: {
-    enabled: boolean;
-    windowMs?: number;
-    max?: number;
-    whitelist?: string[];
-    hideIpInLogs?: boolean;
-  };
   corsAllowedOrigins: string[];
   chains: SourcifyChainMap;
   solc: ISolidityCompiler;
@@ -197,49 +186,6 @@ export class Server {
         },
       }),
     );
-
-    if (options.rateLimit.enabled) {
-      const hideIpInLogs = options.rateLimit.hideIpInLogs;
-      const limiter = rateLimit({
-        windowMs: options.rateLimit.windowMs,
-        max: options.rateLimit.max,
-        standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-        legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-        message: {
-          error:
-            "You are sending too many verification requests, please slow down.",
-        },
-        handler: (req, res, next, options) => {
-          const ip = getIp(req);
-          const ipHash = ip ? hash(ip) : "";
-          const ipLog = hideIpInLogs ? ipHash : ip;
-          const store = options.store as ExpressRateLimitMemoryStore;
-          const hits = store.hits[ip || ""];
-          logger.debug("Rate limit hit", {
-            method: req.method,
-            path: req.path,
-            ip: ipLog,
-            hits,
-          });
-          res.status(options.statusCode).send(options.message);
-        },
-        keyGenerator: (req: any) => {
-          return getIp(req) || new Date().toISOString();
-        },
-        skip: (req) => {
-          const ip = getIp(req);
-          const whitelist = options.rateLimit.whitelist as string[];
-          for (const ipPrefix of whitelist) {
-            if (ip?.startsWith(ipPrefix)) return true;
-          }
-          return false;
-        },
-      });
-
-      this.app.all("/session/verify*", limiter);
-      this.app.all("/verify*", limiter);
-      this.app.post("/", limiter);
-    }
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [
