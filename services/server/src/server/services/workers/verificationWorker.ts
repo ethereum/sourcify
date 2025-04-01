@@ -183,7 +183,7 @@ export async function verifyFromMetadata({
 
     const sourcesBuffer = sourcesList.map(({ path, content }) => ({
       path,
-      buffer: Buffer.from(content, "base64"),
+      buffer: Buffer.from(content),
     }));
     const compilationWithAllSources = await useAllSourcesAndReturnCompilation(
       compilation,
