@@ -38,4 +38,5 @@ module.exports = {
     windowMs: 1 * 1000, // 1 sec
     max: 2,
   },
+  upgradeContract: true,
 };

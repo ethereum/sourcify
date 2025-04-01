@@ -368,7 +368,7 @@ export async function upgradeContract(
         creationTransformations,
         creationValues,
         creationMetadataMatch,
-        sourcifyMatchId,
+        verifiedContract.id,
       ],
     );
 
@@ -376,7 +376,7 @@ export async function upgradeContract(
     await poolClient.query(
       `UPDATE sourcify_matches SET 
         creation_match = $1
-      WHERE verified_contract_id = $2`,
+      WHERE id = $2`,
       [verificationStatus.creationMatch, sourcifyMatchId],
     );
 
@@ -386,7 +386,8 @@ export async function upgradeContract(
     res.send({
       result: {
         message: "Contract upgrade successful",
-        verifiedContractId: sourcifyMatchId,
+        verifiedContractId: verifiedContract.id,
+        sourcifyMatchId: sourcifyMatchId,
       },
     });
   } catch (error: any) {
