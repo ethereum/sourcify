@@ -744,6 +744,7 @@ describe("/", function () {
     const res = await chai
       .request(serverFixture.server.app)
       .post("/private/verify-deprecated")
+      .set("authorization", `Bearer sourcify-test-token`)
       .send({
         address: address,
         chain: goerliChainId,
