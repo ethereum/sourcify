@@ -9,9 +9,9 @@ import {
 import { logDebug, logError, logInfo, logWarn } from '../logger';
 import {
   CallFrame,
-  Chain,
   FetchContractCreationTxMethods,
-  SourcifyChainExtension,
+  FetchRequestRPC,
+  SourcifyChainInstance,
   TraceSupportedRPC,
 } from './SourcifyChainTypes';
 
@@ -24,30 +24,34 @@ interface JsonRpcProviderWithUrl extends JsonRpcProvider {
   url?: string;
 }
 
-// Need to define the rpc property explicitly as when a sourcifyChain is created with {...chain, sourcifyChainExtension}, Typescript throws with "Type '(string | FetchRequest)[]' is not assignable to type 'string[]'." For some reason the Chain.rpc is not getting overwritten by SourcifyChainExtension.rpc
-// Also omit the 'sourcifyName' as it is only needed to have the name in sourcify-chains.json but not when instantiating a SourcifyChain
-export type SourcifyChainInstance = Omit<Chain, 'rpc'> &
-  Omit<SourcifyChainExtension, 'rpc' | 'sourcifyName'> & {
-    rpc: Array<string | FetchRequest>;
-    rpcWithoutApiKeys?: Array<string>;
-    traceSupportedRPCs?: TraceSupportedRPC[];
-  };
+export function createFetchRequest(rpc: FetchRequestRPC): FetchRequest {
+  const ethersFetchReq = new FetchRequest(rpc.url);
+  ethersFetchReq.setHeader('Content-Type', 'application/json');
+  const headers = rpc.headers;
+  if (headers) {
+    headers.forEach(({ headerName, headerEnvName }) => {
+      const headerValue = process.env[headerEnvName];
+      ethersFetchReq.setHeader(headerName, headerValue || '');
+    });
+  }
+  return ethersFetchReq;
+}
 
-export default class SourcifyChain {
+export class SourcifyChain {
   name: string;
-  title?: string | undefined;
-  chainId: number;
-  rpc: Array<string | FetchRequest>;
-  rpcWithoutApiKeys?: Array<string>;
+  readonly title?: string | undefined;
+  readonly chainId: number;
+  readonly rpc: Array<string | FetchRequestRPC>;
+  readonly rpcWithoutApiKeys?: Array<string>;
   /** Whether the chain supports tracing, used for fetching the creation bytecode for factory contracts */
-  traceSupport?: boolean;
+  readonly traceSupport?: boolean;
   /** The RPCs that support tracing. Needed in a separate field than `this.rpc` because the `rpc` was an array of strings or FetchRequest. Modifying the `rpc` to be something else would have caused a breaking change. */
   // TODO: in a future breaking change, merge traceSupportedRPCs with rpc and make rpc an array of objects with url and type.
-  traceSupportedRPCs?: TraceSupportedRPC[];
-  supported: boolean;
-  providers: JsonRpcProviderWithUrl[];
-  fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
-  etherscanApi?: {
+  readonly traceSupportedRPCs?: TraceSupportedRPC[];
+  readonly supported: boolean;
+  readonly providers: JsonRpcProviderWithUrl[];
+  readonly fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
+  readonly etherscanApi?: {
     apiURL: string;
     apiKeyEnvName?: string;
   };
@@ -92,7 +96,10 @@ export default class SourcifyChain {
           // Do not use WebSockets because of not being able to catch errors on websocket initialization. Most networks don't support WebSockets anyway. See https://github.com/ethers-io/ethers.js/discussions/2896
         }
       } else {
-        provider = new JsonRpcProvider(rpc, ethersNetwork, {
+        // else: rpc is of type FetchRequestRPC
+        // Build ethers.js FetchRequest object for custom rpcs with auth headers
+        const ethersFetchReq = createFetchRequest(rpc);
+        provider = new JsonRpcProvider(ethersFetchReq, ethersNetwork, {
           staticNetwork: ethersNetwork,
         });
         provider.url = rpc.url;
@@ -102,6 +109,20 @@ export default class SourcifyChain {
       }
     }
   }
+
+  getSourcifyChainObj = (): SourcifyChainInstance => {
+    return {
+      name: this.name,
+      title: this.title,
+      chainId: this.chainId,
+      rpc: this.rpc,
+      rpcWithoutApiKeys: this.rpcWithoutApiKeys,
+      supported: this.supported,
+      fetchContractCreationTxUsing: this.fetchContractCreationTxUsing,
+      etherscanApi: this.etherscanApi,
+      traceSupportedRPCs: this.traceSupportedRPCs,
+    };
+  };
 
   rejectInMs = (ms: number, host?: string) =>
     new Promise<never>((_resolve, reject) => {

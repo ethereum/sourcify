@@ -25,6 +25,7 @@ import {
   VerifiedContract,
   VerificationJob,
   Match,
+  VerificationJobId,
 } from "../types";
 import {
   RWStorageIdentifiers,
@@ -39,11 +40,29 @@ import {
 } from "./storageServices/S3RepositoryService";
 import { DatabaseOptions } from "./utils/Database";
 import { Field } from "./utils/database-util";
+import { MatchingErrorResponse } from "../apiv2/errors";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
   init(): Promise<boolean>;
-  storeVerification?(verification: VerificationExport): Promise<void>;
+  storeVerification(
+    verification: VerificationExport,
+    jobData?: {
+      verificationId: VerificationJobId;
+      finishTime: Date;
+    },
+  ): Promise<void>;
+  storeVerificationJob?(
+    startedAt: Date,
+    chainId: string,
+    address: string,
+    verificationEndpoint: string,
+  ): Promise<VerificationJobId>;
+  setJobError?(
+    verificationId: VerificationJobId,
+    finishTime: Date,
+    error: Omit<MatchingErrorResponse, "message">,
+  ): Promise<void>;
 }
 
 export interface RWStorageService extends WStorageService {
@@ -86,6 +105,10 @@ export interface RWStorageService extends WStorageService {
     omit?: Field[],
   ): Promise<VerifiedContract>;
   getVerificationJob?(verificationId: string): Promise<VerificationJob | null>;
+  getVerificationJobsByChainAndAddress?(
+    chainId: string,
+    address: string,
+  ): Promise<Pick<VerificationJob, "isJobCompleted">[]>;
 }
 
 export interface EnabledServices {
@@ -97,8 +120,8 @@ export interface EnabledServices {
 export interface StorageServiceOptions {
   serverUrl: string;
   enabledServices: EnabledServices;
-  repositoryV1ServiceOptions: RepositoryV1ServiceOptions;
-  repositoryV2ServiceOptions: RepositoryV2ServiceOptions;
+  repositoryV1ServiceOptions?: RepositoryV1ServiceOptions;
+  repositoryV2ServiceOptions?: RepositoryV2ServiceOptions;
   sourcifyDatabaseServiceOptions?: DatabaseOptions;
   allianceDatabaseServiceOptions?: DatabaseOptions;
   s3RepositoryServiceOptions?: S3RepositoryServiceOptions;
@@ -283,7 +306,13 @@ export class StorageService {
     }
   }
 
-  async storeVerification(verification: VerificationExport) {
+  async storeVerification(
+    verification: VerificationExport,
+    jobData?: {
+      verificationId: VerificationJobId;
+      finishTime: Date;
+    },
+  ) {
     logger.info("Storing verification on StorageService", {
       address: verification.address,
       chainId: verification.chainId,
@@ -316,33 +345,29 @@ export class StorageService {
     const promises: Promise<void>[] = [];
 
     this.getWriteOrErrServices().forEach((service) => {
-      if (service.storeVerification) {
-        promises.push(
-          service.storeVerification(verification).catch((e) => {
-            logger.error(`Error storing to ${service.IDENTIFIER}`, {
-              error: e,
-              verification,
-            });
-            throw e;
-          }),
-        );
-      }
+      promises.push(
+        service.storeVerification(verification, jobData).catch((e) => {
+          logger.error(`Error storing to ${service.IDENTIFIER}`, {
+            error: e,
+            verification,
+          });
+          throw e;
+        }),
+      );
     });
 
     this.getWriteOrWarnServices().forEach((service) => {
-      if (service?.storeVerification) {
-        promises.push(
-          service.storeVerification(verification).catch((e) => {
-            logger.warn(`Error storing to ${service.IDENTIFIER}`, {
-              error: e,
-              verification,
-            });
-          }),
-        );
-      }
+      promises.push(
+        service.storeVerification(verification, jobData).catch((e) => {
+          logger.warn(`Error storing to ${service.IDENTIFIER}`, {
+            error: e,
+            verification,
+          });
+        }),
+      );
     });
 
-    return await Promise.all(promises);
+    await Promise.all(promises);
   }
 
   performServiceOperation<

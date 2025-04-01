@@ -75,9 +75,11 @@
     "json-refs": "3.0.15",
     "memorystore": "1.6.7",
     "pg": "8.14.1",
+    "piscina": "^5.0.0-alpha.0",
     "semver": "7.7.1",
     "serve-index": "1.9.1",
     "swagger-ui-express": "5.0.1",
+    "ts-node": "10.9.2",
     "uuid": "10.0.0",
     "winston": "3.17.0",
     "yamljs": "0.3.0"

@@ -25,8 +25,11 @@ export * from './Validation/fetchUtils';
 export { unzipFiles } from './Validation/zipUtils';
 
 // SourcifyChain exports
-export { default as SourcifyChain } from './SourcifyChain/SourcifyChain';
+export * from './SourcifyChain/SourcifyChain';
 export * from './SourcifyChain/SourcifyChainTypes';
+
+// SourcifyLibError exports
+export * from './SourcifyLibError';
 
 // Utils exports
 export * from './utils';

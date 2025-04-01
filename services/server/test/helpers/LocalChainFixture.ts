@@ -11,6 +11,7 @@ import nock from "nock";
 import storageContractArtifact from "../testcontracts/Storage/Storage.json";
 import storageContractMetadata from "../testcontracts/Storage/metadata.json";
 import storageContractMetadataModified from "../testcontracts/Storage/metadataModified.json";
+import storageJsonInput from "../testcontracts/Storage/StorageJsonInput.json";
 import { ChildProcess, spawn } from "child_process";
 import treeKill from "tree-kill";
 
@@ -53,6 +54,7 @@ export class LocalChainFixture {
   );
   defaultContractModifiedSourceIpfs = getModifiedSourceIpfs();
   defaultContractArtifact = storageContractArtifact;
+  defaultContractJsonInput = storageJsonInput;
 
   private _chainId?: string;
   private _localSigner?: JsonRpcSigner;
