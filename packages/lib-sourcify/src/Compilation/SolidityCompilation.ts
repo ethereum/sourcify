@@ -192,10 +192,7 @@ export class SolidityCompilation extends AbstractCompilation {
       logWarn('Cannot generate cbor auxdata positions', {
         error,
       });
-      throw new CompilationError(
-        'Cannot generate cbor auxdata positions',
-        'cannot_generate_cbor_auxdata_positions',
-      );
+      throw new CompilationError('cannot_generate_cbor_auxdata_positions');
     }
   }
 

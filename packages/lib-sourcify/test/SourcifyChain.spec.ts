@@ -80,7 +80,7 @@ describe('SourcifyChain', () => {
     });
 
     it('should try multiple trace-supported RPCs if the first one fails', async () => {
-      sourcifyChain.traceSupportedRPCs = [
+      (sourcifyChain as any).traceSupportedRPCs = [
         { index: 0, type: 'trace_transaction' },
         { index: 1, type: 'trace_transaction' },
       ] as TraceSupportedRPC[];
@@ -110,7 +110,7 @@ describe('SourcifyChain', () => {
     });
 
     it('should extract creation bytecode from geth traces', async () => {
-      sourcifyChain.traceSupportedRPCs = [
+      (sourcifyChain as any).traceSupportedRPCs = [
         { index: 0, type: 'debug_traceTransaction' },
       ] as TraceSupportedRPC[];
       const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
@@ -136,7 +136,7 @@ describe('SourcifyChain', () => {
     });
 
     it('should throw an error if no CREATE or CREATE2 calls are found in geth traces', async () => {
-      sourcifyChain.traceSupportedRPCs = [
+      (sourcifyChain as any).traceSupportedRPCs = [
         { index: 0, type: 'debug_traceTransaction' },
       ] as TraceSupportedRPC[];
       const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;
@@ -158,7 +158,7 @@ describe('SourcifyChain', () => {
     });
 
     it('should throw an error if the contract address is not found in geth traces', async () => {
-      sourcifyChain.traceSupportedRPCs = [
+      (sourcifyChain as any).traceSupportedRPCs = [
         { index: 0, type: 'debug_traceTransaction' },
       ] as TraceSupportedRPC[];
       const mockProvider = sourcifyChain.providers[0] as JsonRpcProvider;

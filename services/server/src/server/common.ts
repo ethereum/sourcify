@@ -6,12 +6,7 @@ import {
   PathContent,
   VerificationStatus,
   StringMap,
-  Verification,
 } from "@ethereum-sourcify/lib-sourcify";
-import logger from "../common/logger";
-import { InternalServerError } from "express-openapi-validator/dist/openapi.validator";
-import { Request, Response, NextFunction } from "express";
-import { Match } from "./types";
 
 export interface PathContentMap {
   [id: string]: PathContent;

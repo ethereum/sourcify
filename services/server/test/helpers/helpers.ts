@@ -18,6 +18,7 @@ import { ServerFixture } from "./ServerFixture";
 import type { Done } from "mocha";
 import { LocalChainFixture } from "./LocalChainFixture";
 import { Pool } from "pg";
+import sinon from "sinon";
 
 chai.use(chaiHttp);
 
@@ -421,4 +422,50 @@ export async function testPartialUpgrade(
         "fb898a1d72892619d00d572bca59a5d98a9664169ff850e2389373e2421af4aa",
     },
   ]);
+}
+
+/**
+ * Should be called inside a describe block.
+ * @returns a function that can be called in it blocks to make the verification workers wait.
+ */
+export function hookIntoVerificationWorkerRun(
+  sandbox: sinon.SinonSandbox,
+  serverFixture: ServerFixture,
+) {
+  let fakeResolvers: (() => Promise<void>)[] = [];
+
+  beforeEach(() => {
+    fakeResolvers = [];
+  });
+
+  afterEach(async () => {
+    await Promise.all(fakeResolvers.map((resolver) => resolver()));
+  });
+
+  const makeWorkersWait = () => {
+    const fakePromise = sinon.promise();
+    const workerPool = serverFixture.server.services.verification["workerPool"];
+    const originalRun = workerPool.run;
+    const runTaskStub = sandbox
+      .stub(workerPool, "run")
+      .callsFake(async (...args) => {
+        await fakePromise;
+        return originalRun.apply(workerPool, args);
+      }) as sinon.SinonStub<[any, any], Promise<any>>;
+
+    const resolveWorkers = async () => {
+      if (fakePromise.status === "pending") {
+        // Start workers
+        fakePromise.resolve(undefined);
+      }
+      // Wait for workers to complete
+      await Promise.all(
+        serverFixture.server.services.verification["runningTasks"],
+      );
+    };
+    fakeResolvers.push(resolveWorkers);
+    return { resolveWorkers, runTaskStub };
+  };
+
+  return makeWorkersWait;
 }

@@ -131,10 +131,14 @@ export type CompilationErrorCode =
   | 'cannot_generate_cbor_auxdata_positions'
   | 'invalid_compiler_version'
   | 'contract_not_found_in_compiler_output'
-  | 'compiler_error';
+  | 'compiler_error'
+  | 'no_compiler_output'
+  | 'metadata_not_set'
+  | 'creation_bytecode_cbor_auxdata_not_set'
+  | 'runtime_bytecode_cbor_auxdata_not_set';
 
 export class CompilationError extends SourcifyLibError {
-  constructor(message: string, code: CompilationErrorCode) {
-    super(message, code);
+  constructor(code: CompilationErrorCode) {
+    super(code);
   }
 }

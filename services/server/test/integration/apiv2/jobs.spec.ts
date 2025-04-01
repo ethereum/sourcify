@@ -60,7 +60,7 @@ describe("GET /v2/verify/:verificationId", function () {
       ? new Date(startTime.getTime() + 1000)
       : null;
     const compilationTime = isCompleted ? "1333" : null;
-    const creatorTransactionHash = chainFixture.defaultContractCreatorTx;
+    const creationTransactionHash = chainFixture.defaultContractCreatorTx;
     const recompiledCreationCode =
       chainFixture.defaultContractArtifact.bytecode;
     const recompiledRuntimeCode =
@@ -71,14 +71,13 @@ describe("GET /v2/verify/:verificationId", function () {
     let error: MatchingErrorResponse | null = null;
     if (hasError) {
       error = {
-        customCode: "non_matching_bytecodes",
+        customCode: "no_match",
         errorId: uuidv4(),
-        message: getVerificationErrorMessage(
-          "non_matching_bytecodes",
-          chainFixture.chainId,
-          chainFixture.defaultContractAddress,
-        ),
-        creatorTransactionHash,
+        message: getVerificationErrorMessage("no_match", {
+          chainId: chainFixture.chainId,
+          address: chainFixture.defaultContractAddress,
+        }),
+        creationTransactionHash,
         recompiledCreationCode,
         recompiledRuntimeCode,
         onchainCreationCode,
@@ -121,7 +120,7 @@ describe("GET /v2/verify/:verificationId", function () {
         recompiled_runtime_code,
         onchain_creation_code,
         onchain_runtime_code,
-        creator_transaction_hash
+        creation_transaction_hash
       ) VALUES ($1, $2, $3, $4, $5, $6)`,
       [
         verificationId,
@@ -129,7 +128,7 @@ describe("GET /v2/verify/:verificationId", function () {
         Buffer.from(recompiledRuntimeCode.substring(2), "hex"),
         Buffer.from(onchainCreationCode.substring(2), "hex"),
         Buffer.from(onchainRuntimeCode.substring(2), "hex"),
-        Buffer.from(creatorTransactionHash.substring(2), "hex"),
+        Buffer.from(creationTransactionHash.substring(2), "hex"),
       ],
     );
 

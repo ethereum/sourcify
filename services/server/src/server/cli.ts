@@ -19,22 +19,10 @@ import genFunc from "connect-pg-simple";
 import logger from "../common/logger";
 import { sourcifyChainsMap } from "../sourcify-chains";
 import { Server } from "./server";
-import { ChainRepository } from "../sourcify-chain-repository";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
 
 import session from "express-session";
 import { VyperLocal } from "./services/compiler/local/VyperLocal";
-
-// Supported Chains
-
-const chainRepository = new ChainRepository(sourcifyChainsMap);
-
-logger.info("SourcifyChains.Initialized", {
-  supportedChainsCount: chainRepository.supportedChainsArray.length,
-  allChainsCount: chainRepository.sourcifyChainsArray.length,
-  supportedChains: chainRepository.supportedChainsArray.map((c) => c.chainId),
-  allChains: chainRepository.sourcifyChainsArray.map((c) => c.chainId),
-});
 
 // Solidity Compiler
 
@@ -82,7 +70,7 @@ const server = new Server(
     corsAllowedOrigins: config.get("corsAllowedOrigins"),
     solc,
     vyper,
-    chains: chainRepository.sourcifyChainMap,
+    chains: sourcifyChainsMap,
     verifyDeprecated: config.get("verifyDeprecated"),
     upgradeContract: config.get("upgradeContract"),
     sessionOptions: getSessionOptions(),
@@ -90,8 +78,10 @@ const server = new Server(
   },
   {
     initCompilers: config.get("initCompilers") || false,
+    sourcifyChainMap: sourcifyChainsMap,
     solcRepoPath,
     solJsonRepoPath,
+    vyperRepoPath,
   },
   {
     serverUrl: config.get("serverUrl"),
