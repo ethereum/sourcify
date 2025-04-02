@@ -56,8 +56,9 @@ export interface ServerOptions {
   solc: ISolidityCompiler;
   vyper: IVyperCompiler;
   verifyDeprecated: boolean;
+  upgradeContract: boolean;
   sessionOptions: SessionOptions;
-  loggingToken?: string;
+  sourcifyPrivateToken?: string;
 }
 
 export class Server {
@@ -102,6 +103,7 @@ export class Server {
     this.app.set("solc", options.solc);
     this.app.set("vyper", options.vyper);
     this.app.set("verifyDeprecated", options.verifyDeprecated);
+    this.app.set("upgradeContract", options.upgradeContract);
     this.app.set("services", this.services);
 
     this.app.use(
@@ -176,16 +178,16 @@ export class Server {
         fileUploader: false,
         validateSecurity: {
           handlers: {
-            // Auth Handler for the /change-log-level endpoint
+            // Auth Handler for the /private/** endpoints
             BearerAuth: (req) => {
               const authHeader = req.headers["authorization"];
               // This is a placeholder token. In a real application, use a more secure method for managing and validating tokens.
               const token = authHeader && authHeader.split(" ")[1];
 
-              if (!options.loggingToken) {
+              if (!options.sourcifyPrivateToken) {
                 return false;
               }
-              return token === options.loggingToken;
+              return token === options.sourcifyPrivateToken;
             },
           },
         },
