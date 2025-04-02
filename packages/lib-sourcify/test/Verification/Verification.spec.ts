@@ -409,6 +409,37 @@ describe('Verification Class Tests', () => {
       });
     });
 
+    it('should return partial match when there is no onchain auxdata but recompiled auxdata', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'NoAuxdata',
+      );
+      const { contractAddress } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      // Here we force the recompilation to have auxdata
+      compilation.jsonInput.settings.metadata!.appendCBOR = true;
+
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: null,
+        },
+      });
+    });
+
     it('should throw an error when generateCborAuxdataPositions failed for a contract with cborAuxdata', async () => {
       const contractFolderPath = path.join(
         __dirname,

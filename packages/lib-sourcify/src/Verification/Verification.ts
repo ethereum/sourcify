@@ -108,24 +108,36 @@ export class Verification {
     }
 
     // Early bytecode length check:
-    // - For Solidity: bytecode lengths must match exactly
+    // - For Solidity: bytecode (without auxdata) lengths must match exactly
     // - For Vyper: recompiled bytecode must not be longer than onchain as Vyper appends immutables at deployment
     // We cannot do an early check for creation bytecode length mismatch because
     // creation bytecode length can differ due to constructor arguments being appended at the end
-    if (
-      (this.compilation instanceof SolidityCompilation &&
-        compiledRuntimeBytecode.length !==
-          this.onchainRuntimeBytecode.length) ||
-      (this.compilation instanceof VyperCompilation &&
-        compiledRuntimeBytecode.length > this.onchainRuntimeBytecode.length)
-    ) {
-      // Before throwing the bytecode length mismatch error, check for Solidity extra file input bug
-      if (this.compilation instanceof SolidityCompilation) {
+    if (this.compilation instanceof SolidityCompilation) {
+      const [onchainRuntimeExecutionCode] = splitAuxdata(
+        this.onchainRuntimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
+      const [recompiledRuntimeExecutionCode] = splitAuxdata(
+        compiledRuntimeBytecode,
+        AuxdataStyle.SOLIDITY,
+      );
+
+      if (
+        onchainRuntimeExecutionCode.length !==
+        recompiledRuntimeExecutionCode.length
+      ) {
+        // Before throwing the bytecode length mismatch error, check for Solidity extra file input bug
         const solidityBugType = this.handleSolidityExtraFileInputBug();
         if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
           throw new VerificationError('extra_file_input_bug');
         }
+
+        throw new VerificationError('bytecode_length_mismatch');
       }
+    } else if (
+      this.compilation instanceof VyperCompilation &&
+      compiledRuntimeBytecode.length > this.onchainRuntimeBytecode.length
+    ) {
       throw new VerificationError('bytecode_length_mismatch');
     }
 
