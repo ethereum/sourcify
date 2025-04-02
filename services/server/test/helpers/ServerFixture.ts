@@ -92,7 +92,8 @@ export class ServerFixture {
         chains: sourcifyChainsMap,
         solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
         vyper: new VyperLocal(config.get("vyperRepo")),
-        verifyDeprecated: config.get("verifyDeprecated"),
+        verifyDeprecated: true,
+        upgradeContract: true,
         sessionOptions: {
           secret: config.get("session.secret"),
           name: "sourcify_vid",
@@ -106,6 +107,7 @@ export class ServerFixture {
           },
           store: postgresSessionStore,
         },
+        sourcifyPrivateToken: "sourcify-test-token",
       };
 
       this._server = new Server(

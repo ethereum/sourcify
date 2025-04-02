@@ -47,12 +47,22 @@ exports.up = function (db, callback) {
             creation_match varchar NULL,
             runtime_match varchar NULL,
             created_at timestamptz NOT NULL DEFAULT now(),
+            updated_at timestamptz NOT NULL DEFAULT NOW(),
             metadata json NOT NULL,
             CONSTRAINT sourcify_matches_pkey PRIMARY KEY (id),
             CONSTRAINT sourcify_matches_pseudo_pkey UNIQUE (verified_contract_id)
         );
         CREATE INDEX sourcify_matches_verified_contract_id_idx ON sourcify_matches USING btree (verified_contract_id);
         ALTER TABLE sourcify_matches ADD CONSTRAINT sourcify_matches_verified_contract_id_fk FOREIGN KEY (verified_contract_id) REFERENCES verified_contracts(id) ON DELETE RESTRICT ON UPDATE RESTRICT;`,
+      ),
+      db.runSql.bind(
+        db,
+        `
+        CREATE TRIGGER update_set_updated_at
+            BEFORE UPDATE ON sourcify_matches
+            FOR EACH ROW
+            EXECUTE FUNCTION trigger_set_updated_at();
+        `,
       ),
       db.runSql.bind(
         db,

@@ -12,7 +12,7 @@ router.get("/health", (_req, res) => {
 
 // Authenticated route to change the logging level.
 // Authentication handled by the express-openapi-validator middleware
-router.post("/change-log-level", (req, res) => {
+router.post("/private/change-log-level", (req, res) => {
   const { level } = req.body ?? {};
   try {
     setLogLevel(level);
