@@ -118,14 +118,6 @@ module.exports = {
   corsAllowedOrigins: [/^https?:\/\/(?:.+\.)?sourcify.dev$/],
   // verify-deprecated endpoint used in services/database/scripts.mjs. Used when recreating the DB with deprecated chains that don't have an RPC.
   verifyDeprecated: false,
-  rateLimit: {
-    enabled: false,
-    // Maximum number (max) of requests allowed per IP address within the specified time window (windowMs)
-    max: 100,
-    windowMs: 10 * 60 * 1000,
-    // List of IP addresses that are whitelisted from rate limiting
-    whitelist: ["127.0.0.1"],
-  },
 };
 ```
 </details>

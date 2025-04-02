@@ -88,13 +88,6 @@ export class ServerFixture {
       const serverOptions: ServerOptions = {
         port: fixtureOptions_?.port || config.get<number>("server.port"),
         maxFileSize: config.get<number>("server.maxFileSize"),
-        rateLimit: config.get<{
-          enabled: boolean;
-          windowMs?: number;
-          max?: number;
-          whitelist?: string[];
-          hideIpInLogs?: boolean;
-        }>("rateLimit"),
         corsAllowedOrigins: config.get<string[]>("corsAllowedOrigins"),
         chains: sourcifyChainsMap,
         solc: new SolcLocal(config.get("solcRepo"), config.get("solJsonRepo")),
