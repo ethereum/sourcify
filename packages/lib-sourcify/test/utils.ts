@@ -7,16 +7,16 @@ import {
   useVyperCompiler,
 } from '@ethereum-sourcify/compilers';
 import {
-  IVyperCompiler,
-  VyperJsonInput,
-  VyperOutput,
-} from '../src/Compilation/VyperTypes';
-import {
-  ISolidityCompiler,
   SolidityJsonInput,
   SolidityOutput,
-} from '../src/Compilation/SolidityTypes';
+  VyperJsonInput,
+  VyperOutput,
+} from '@sourcify/compilers-types';
 import { Verification } from '../src/Verification/Verification';
+import {
+  ISolidityCompiler,
+  IVyperCompiler,
+} from '../src/Compilation/CompilationTypes';
 /**
  *  Function to deploy contracts from provider unlocked accounts
  *  contractFolderPath must contain an artifact.json file with "abi" and "bytecode" fields

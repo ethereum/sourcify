@@ -2,8 +2,8 @@ import { expect } from 'chai';
 import { SolidityMetadataContract } from '../../src/Validation/SolidityMetadataContract';
 import { id as keccak256str } from 'ethers';
 import nock from 'nock';
-import { ISolidityCompiler } from '../../src/Compilation/SolidityTypes';
-import { Metadata } from '../../src/Compilation/CompilationTypes';
+import { Metadata } from '@sourcify/compilers-types';
+import { ISolidityCompiler } from '../../src/Compilation/CompilationTypes';
 import { PathContent } from '../../src';
 
 describe('SolidityMetadataContract', () => {

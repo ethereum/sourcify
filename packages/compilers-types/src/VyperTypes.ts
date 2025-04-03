@@ -1,12 +1,12 @@
-import { Abi } from 'abitype';
-import { Devdoc } from './CompilationTypes';
-import { Userdoc } from './CompilationTypes';
+import { Abi } from "abitype";
+import { Devdoc } from "./CompilationTypes";
+import { Userdoc } from "./CompilationTypes";
 
 export interface VyperSettings {
   /** EVM version to compile for */
-  evmVersion?: 'london' | 'paris' | 'shanghai' | 'cancun' | 'istanbul';
+  evmVersion?: "london" | "paris" | "shanghai" | "cancun" | "istanbul";
   /** Optimization mode */
-  optimize?: 'gas' | 'codesize' | 'none' | boolean;
+  optimize?: "gas" | "codesize" | "none" | boolean;
   /** Whether the bytecode should include Vyper's signature */
   bytecodeMetadata?: boolean;
   /** Whether to use the experimental venom pipeline */
@@ -19,7 +19,7 @@ export interface VyperSettings {
 }
 
 export interface VyperJsonInput {
-  language: 'Vyper';
+  language: "Vyper";
   sources: {
     [sourcePath: string]: {
       keccak256?: string;
@@ -48,7 +48,7 @@ export interface VyperError {
   };
   type: string;
   component: string;
-  severity: 'error' | 'warning';
+  severity: "error" | "warning";
   message: string;
   formattedMessage?: string;
 }
@@ -92,11 +92,4 @@ export interface VyperOutput {
     [sourcePath: string]: VyperOutputSource;
   };
   contracts: VyperOutputContracts;
-}
-
-export interface IVyperCompiler {
-  compile(
-    version: string,
-    vyperJsonInput: VyperJsonInput,
-  ): Promise<VyperOutput>;
 }

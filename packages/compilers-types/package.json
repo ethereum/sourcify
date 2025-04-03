@@ -1,0 +1,37 @@
+{
+  "name": "@sourcify/compilers-types",
+  "version": "1.0.0",
+  "description": "TypeScript types for Sourcify compilers",
+  "main": "build/main/index.js",
+  "typings": "build/main/index.d.ts",
+  "module": "build/module/index.js",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "files": [
+    "dist"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ethereum/sourcify.git"
+  },
+  "keywords": [
+    "sourcify",
+    "typescript",
+    "types",
+    "compilers"
+  ],
+  "author": "Sourcify team",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ethereum/sourcify/issues"
+  },
+  "homepage": "https://github.com/ethereum/sourcify/tree/main/packages/compilers-types#readme",
+  "devDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

@@ -3,16 +3,13 @@ import semver from 'semver';
 import { getIpfsGateway, performFetch } from './fetchUtils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import {
-  ISolidityCompiler,
   Libraries,
   SolidityJsonInput,
-} from '../Compilation/SolidityTypes';
-import {
   Metadata,
   MetadataCompilerSettings,
   MetadataSourceMap,
-  StringMap,
-} from '../Compilation/CompilationTypes';
+} from '@sourcify/compilers-types';
+import { ISolidityCompiler, StringMap } from '../Compilation/CompilationTypes';
 import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
 import {
   AuxdataStyle,

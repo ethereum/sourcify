@@ -2,16 +2,16 @@ import { AuxdataStyle, splitAuxdata } from '@ethereum-sourcify/bytecode-utils';
 import { AbstractCompilation } from './AbstractCompilation';
 import {
   ImmutableReferences,
-  ISolidityCompiler,
   SolidityJsonInput,
   SolidityOutput,
   SolidityOutputContract,
-} from './SolidityTypes';
+  LinkReferences,
+} from '@sourcify/compilers-types';
 import {
   CompilationError,
   CompilationLanguage,
   CompilationTarget,
-  LinkReferences,
+  ISolidityCompiler,
 } from './CompilationTypes';
 import {
   findAuxdataPositions,

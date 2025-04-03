@@ -1,9 +1,11 @@
 import { AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
-import { ImmutableReferences } from '../Compilation/SolidityTypes';
 import {
-  CompiledContractCborAuxdata,
+  ImmutableReferences,
   LinkReferences,
   Metadata,
+} from '@sourcify/compilers-types';
+import {
+  CompiledContractCborAuxdata,
   StringMap,
 } from '../Compilation/CompilationTypes';
 import { AbiConstructor } from 'abitype';

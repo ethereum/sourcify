@@ -2,25 +2,23 @@ import { AuxdataStyle } from '@ethereum-sourcify/bytecode-utils';
 import {
   CompilationTarget,
   CompiledContractCborAuxdata,
-  Metadata,
   CompilationLanguage,
   StringMap,
-  LinkReferences,
   CompilationError,
+  ISolidityCompiler,
+  IVyperCompiler,
 } from './CompilationTypes';
 import {
   ImmutableReferences,
-  ISolidityCompiler,
   SolidityJsonInput,
   SolidityOutput,
   SolidityOutputContract,
-} from './SolidityTypes';
-import {
-  IVyperCompiler,
+  LinkReferences,
+  Metadata,
   VyperJsonInput,
   VyperOutput,
   VyperOutputContract,
-} from './VyperTypes';
+} from '@sourcify/compilers-types';
 import { logInfo, logSilly, logWarn } from '../logger';
 
 export abstract class AbstractCompilation {

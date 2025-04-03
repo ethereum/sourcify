@@ -45,6 +45,7 @@
   },
   "homepage": "https://github.com/ethereum/sourcify#readme",
   "dependencies": {
+    "@sourcify/compilers-types": "^1.0.0",
     "semver": "7.7.1",
     "solc": "0.8.29"
   },

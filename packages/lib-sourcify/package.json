@@ -45,6 +45,7 @@
     "@ethersproject/bignumber": "5.8.0",
     "@ethersproject/bytes": "5.8.0",
     "@fairdatasociety/bmt-js": "2.1.0",
+    "@sourcify/compilers-types": "^1.0.0",
     "abitype": "1.0.8",
     "bs58": "5.0.0",
     "ethers": "6.13.5",

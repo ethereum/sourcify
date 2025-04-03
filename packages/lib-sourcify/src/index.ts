@@ -8,8 +8,6 @@ export type ILibSourcifyLogger = ILogger;
 export * from './Compilation/AbstractCompilation';
 export * from './Compilation/SolidityCompilation';
 export * from './Compilation/VyperCompilation';
-export * from './Compilation/VyperTypes';
-export * from './Compilation/SolidityTypes';
 export * from './Compilation/CompilationTypes';
 
 // Verification exports
@@ -33,3 +31,6 @@ export * from './SourcifyLibError';
 
 // Utils exports
 export * from './utils';
+
+// Export all compilers types
+export * from '@sourcify/compilers-types';

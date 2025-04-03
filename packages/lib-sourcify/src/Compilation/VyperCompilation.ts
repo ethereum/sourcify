@@ -8,19 +8,19 @@ import {
 } from '@ethereum-sourcify/bytecode-utils';
 import semver, { gte } from 'semver';
 import {
-  IVyperCompiler,
   VyperJsonInput,
   VyperOutput,
   VyperOutputContract,
-} from './VyperTypes';
+  ImmutableReferences,
+  LinkReferences,
+} from '@sourcify/compilers-types';
 import {
   CompilationError,
   CompilationLanguage,
   CompilationTarget,
   CompiledContractCborAuxdata,
-  LinkReferences,
+  IVyperCompiler,
 } from './CompilationTypes';
-import { ImmutableReferences } from './SolidityTypes';
 
 /**
  * Abstraction of a vyper compilation

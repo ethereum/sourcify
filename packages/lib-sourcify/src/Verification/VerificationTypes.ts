@@ -3,18 +3,18 @@ import {
   CompilationLanguage,
   CompilationTarget,
   CompiledContractCborAuxdata,
-  Devdoc,
-  LinkReferences,
-  Metadata,
   StringMap,
-  Userdoc,
 } from '../Compilation/CompilationTypes';
 import {
   ImmutableReferences,
   SoliditySettings,
   StorageLayout,
-} from '../Compilation/SolidityTypes';
-import { VyperSettings } from '../Compilation/VyperTypes';
+  Devdoc,
+  LinkReferences,
+  Metadata,
+  Userdoc,
+  VyperSettings,
+} from '@sourcify/compilers-types';
 import { ErrorMessagePayload, SourcifyLibError } from '../SourcifyLibError';
 import { Transformation, TransformationValues } from './Transformations';
 
