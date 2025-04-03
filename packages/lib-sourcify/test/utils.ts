@@ -11,7 +11,7 @@ import {
   SolidityOutput,
   VyperJsonInput,
   VyperOutput,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import { Verification } from '../src/Verification/Verification';
 import {
   ISolidityCompiler,

@@ -39,6 +39,7 @@ publish_if_new_version() {
 # packages/bytecode-utils:@ethereum-sourcify/bytecode-utils
 packages=(
   "packages/bytecode-utils:@ethereum-sourcify/bytecode-utils"
+  "packages/compilers:@ethereum-sourcify/compilers-types"
   "packages/compilers:@ethereum-sourcify/compilers"
   "packages/lib-sourcify:@ethereum-sourcify/lib-sourcify"
   "services/server:sourcify-server"

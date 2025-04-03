@@ -18,7 +18,7 @@ import {
   VyperJsonInput,
   VyperOutput,
   VyperOutputContract,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import { logInfo, logSilly, logWarn } from '../logger';
 
 export abstract class AbstractCompilation {

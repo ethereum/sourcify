@@ -33,4 +33,4 @@ export * from './SourcifyLibError';
 export * from './utils';
 
 // Export all compilers types
-export * from '@sourcify/compilers-types';
+export * from '@ethereum-sourcify/compilers-types';

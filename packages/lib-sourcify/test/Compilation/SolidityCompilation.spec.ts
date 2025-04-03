@@ -5,7 +5,10 @@ import fs from 'fs';
 import { SolidityCompilation } from '../../src/Compilation/SolidityCompilation';
 import { solc } from '../utils';
 import { CompilationTarget } from '../../src/Compilation/CompilationTypes';
-import { SolidityJsonInput, Metadata } from '@sourcify/compilers-types';
+import {
+  SolidityJsonInput,
+  Metadata,
+} from '@ethereum-sourcify/compilers-types';
 import chaiAsPromised from 'chai-as-promised';
 
 use(chaiAsPromised);

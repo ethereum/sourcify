@@ -1,5 +1,5 @@
 {
-  "name": "@sourcify/compilers-types",
+  "name": "@ethereum-sourcify/compilers-types",
   "version": "1.0.0",
   "description": "TypeScript types for Sourcify compilers",
   "main": "build/main/index.js",

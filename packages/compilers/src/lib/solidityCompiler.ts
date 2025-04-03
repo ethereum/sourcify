@@ -6,7 +6,10 @@ import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
 import { asyncExec, fetchWithBackoff } from './common';
-import { SolidityJsonInput, SolidityOutput } from '@sourcify/compilers-types';
+import {
+  SolidityJsonInput,
+  SolidityOutput,
+} from '@ethereum-sourcify/compilers-types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');

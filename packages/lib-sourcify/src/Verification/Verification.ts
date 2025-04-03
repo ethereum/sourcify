@@ -37,7 +37,7 @@ import {
   SolidityOutputContract,
   SoliditySettings,
   Metadata,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import { SolidityMetadataContract } from '../Validation/SolidityMetadataContract';
 
 export class Verification {

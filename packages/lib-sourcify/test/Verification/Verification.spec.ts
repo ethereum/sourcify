@@ -14,7 +14,7 @@ import {
   stopHardhatNetwork,
 } from '../hardhat-network-helper';
 import { SolidityMetadataContract } from '../../src/Validation/SolidityMetadataContract';
-import { SolidityOutput } from '@sourcify/compilers-types';
+import { SolidityOutput } from '@ethereum-sourcify/compilers-types';
 import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { PathContent } from '../../src/Validation/ValidationTypes';

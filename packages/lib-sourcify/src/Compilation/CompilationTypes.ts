@@ -3,7 +3,7 @@ import {
   SolidityOutput,
   VyperJsonInput,
   VyperOutput,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import { SourcifyLibError } from '../SourcifyLibError';
 
 export interface CompiledContractCborAuxdata {

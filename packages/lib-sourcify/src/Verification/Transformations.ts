@@ -3,7 +3,7 @@ import {
   ImmutableReferences,
   LinkReferences,
   Metadata,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import {
   CompiledContractCborAuxdata,
   StringMap,

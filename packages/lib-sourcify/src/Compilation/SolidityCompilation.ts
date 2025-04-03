@@ -6,7 +6,7 @@ import {
   SolidityOutput,
   SolidityOutputContract,
   LinkReferences,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import {
   CompilationError,
   CompilationLanguage,

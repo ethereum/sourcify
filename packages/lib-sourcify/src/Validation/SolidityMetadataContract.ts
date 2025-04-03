@@ -8,7 +8,7 @@ import {
   Metadata,
   MetadataCompilerSettings,
   MetadataSourceMap,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import { ISolidityCompiler, StringMap } from '../Compilation/CompilationTypes';
 import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
 import {

@@ -14,7 +14,7 @@ import {
   Metadata,
   Userdoc,
   VyperSettings,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import { ErrorMessagePayload, SourcifyLibError } from '../SourcifyLibError';
 import { Transformation, TransformationValues } from './Transformations';
 

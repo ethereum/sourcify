@@ -6,7 +6,7 @@ import {
   Sources,
   SolidityJsonInput,
   Metadata,
-} from '@sourcify/compilers-types';
+} from '@ethereum-sourcify/compilers-types';
 import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
 import {
