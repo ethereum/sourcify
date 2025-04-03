@@ -1,10 +1,13 @@
-import { expect } from 'chai';
+import { expect, use } from 'chai';
 import { SolidityMetadataContract } from '../../src/Validation/SolidityMetadataContract';
 import { id as keccak256str } from 'ethers';
 import nock from 'nock';
-import { Metadata } from '@ethereum-sourcify/compilers-types';
 import { ISolidityCompiler } from '../../src/Compilation/CompilationTypes';
-import { PathContent } from '../../src';
+import { Metadata } from '@ethereum-sourcify/compilers-types';
+import { getErrorMessageFromCode, PathContent } from '../../src';
+import chaiAsPromised from 'chai-as-promised';
+
+use(chaiAsPromised);
 
 describe('SolidityMetadataContract', () => {
   let validMetadata: Metadata;
@@ -238,9 +241,7 @@ describe('SolidityMetadataContract', () => {
       };
       expect(
         () => new SolidityMetadataContract(metadata, validSources),
-      ).to.throw(
-        "Can't create JsonInput from metadata: Invalid compilationTarget in metadata: contract1.sol,contract2.sol",
-      );
+      ).to.throw(getErrorMessageFromCode('invalid_compilation_target'));
     });
   });
 
@@ -312,11 +313,11 @@ describe('SolidityMetadataContract', () => {
     it('should throw error when there are missing sources', () => {
       const contract = new SolidityMetadataContract(validMetadata, []);
       expect(() => contract.createJsonInputFromMetadata()).to.throw(
-        "Can't create JsonInput from metadata: Missing or invalid sources in metadata",
+        getErrorMessageFromCode('missing_or_invalid_source'),
       );
     });
 
-    it('should throw error when there are missing sources', () => {
+    it('should throw error when there are invalid sources', () => {
       const invalidSources = [
         {
           path: validSourcePath,
@@ -328,7 +329,7 @@ describe('SolidityMetadataContract', () => {
         invalidSources,
       );
       expect(() => contract.createJsonInputFromMetadata()).to.throw(
-        "Can't create JsonInput from metadata: Missing or invalid sources in metadata",
+        getErrorMessageFromCode('missing_or_invalid_source'),
       );
     });
   });
@@ -456,13 +457,9 @@ describe('SolidityMetadataContract', () => {
 
       nock('https://ipfs.io').get(/.*/).reply(404);
 
-      try {
-        await contract.fetchMissing();
-        expect.fail('Should have thrown an error');
-      } catch (error) {
-        expect(error).to.be.an('Error');
-        expect((error as Error).message).to.include('Resource missing');
-      }
+      await expect(contract.fetchMissing()).to.be.eventually.rejectedWith(
+        getErrorMessageFromCode('missing_source'),
+      );
     });
   });
 
