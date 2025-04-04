@@ -13,7 +13,12 @@ import {
   MetadataSourceMap,
   StringMap,
 } from '../Compilation/CompilationTypes';
-import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
+import {
+  InvalidSources,
+  MissingSources,
+  PathContent,
+  ValidationError,
+} from './ValidationTypes';
 import {
   AuxdataStyle,
   decode as decodeBytecode,
@@ -26,6 +31,7 @@ import {
   reorderAlphabetically,
   getVariationsByContentHash,
 } from './variationsUtils';
+import { logDebug } from '../logger';
 
 export class SolidityMetadataContract {
   metadata: Metadata;
@@ -178,8 +184,6 @@ export class SolidityMetadataContract {
 
   /**
    * Asynchronously attempts to fetch the missing sources of this contract. An error is thrown in case of a failure.
-   *
-   * @param log log object
    */
   async fetchMissing(): Promise<void> {
     const IPFS_PREFIX = 'dweb:/ipfs/';
@@ -222,10 +226,12 @@ export class SolidityMetadataContract {
     }
 
     if (Object.keys(this.missingSources).length) {
-      const error = new Error(
-        `Resource missing; unsuccessful fetching: ${Object.keys(this.missingSources).join(', ')}`,
+      logDebug(
+        `Resource missing; unsuccessful fetching: ${Object.keys(
+          this.missingSources,
+        ).join(', ')}`,
       );
-      throw error;
+      throw new ValidationError('missing_source');
     }
 
     this.createJsonInputFromMetadata();
@@ -236,11 +242,12 @@ export class SolidityMetadataContract {
       Object.keys(this.missingSources).length > 0 ||
       Object.keys(this.invalidSources).length > 0
     ) {
-      throw new Error(
-        `Can't create JsonInput from metadata: Missing or invalid sources in metadata: ${JSON.stringify(
+      logDebug(
+        `Can't create JsonInput from metadata: Missing or invalid sources in metadata: missing:${JSON.stringify(
           this.missingSources,
-        )}`,
+        )}; invalid: ${JSON.stringify(this.invalidSources)}`,
       );
+      throw new ValidationError('missing_or_invalid_source');
     }
 
     this.solcJsonInput = {} as SolidityJsonInput;
@@ -261,11 +268,12 @@ export class SolidityMetadataContract {
     };
 
     if (!compilationTarget || Object.keys(compilationTarget).length != 1) {
-      throw new Error(
+      logDebug(
         `Can't create JsonInput from metadata: Invalid compilationTarget in metadata: ${Object.keys(
           this.metadata.settings.compilationTarget,
         ).join(',')}`,
       );
+      throw new ValidationError('invalid_compilation_target');
     }
 
     this.handleInlinerBug();
