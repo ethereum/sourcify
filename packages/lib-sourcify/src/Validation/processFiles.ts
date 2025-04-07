@@ -1,8 +1,12 @@
 // Tools to assemble SolidityMetadataContract(s) from files.
 
-import { Metadata, StringMap } from '../Compilation/CompilationTypes';
+import { StringMap } from '../Compilation/CompilationTypes';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
-import { Sources, SolidityJsonInput } from '../Compilation/SolidityTypes';
+import {
+  Sources,
+  SolidityJsonInput,
+  Metadata,
+} from '@ethereum-sourcify/compilers-types';
 import { logDebug, logInfo } from '../logger';
 import { SolidityMetadataContract } from './SolidityMetadataContract';
 import {

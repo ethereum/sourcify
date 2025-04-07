@@ -4,6 +4,10 @@ import fs from 'fs';
 import { spawnSync } from 'child_process';
 import { asyncExec, fetchWithBackoff } from './common';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
+import {
+  VyperJsonInput,
+  VyperOutput,
+} from '@ethereum-sourcify/compilers-types';
 
 const HOST_VYPER_REPO = 'https://github.com/vyperlang/vyper/releases/download/';
 
@@ -35,8 +39,8 @@ export function findVyperPlatform(): string | false {
 export async function useVyperCompiler(
   vyperRepoPath: string,
   version: string,
-  vyperJsonInput: any,
-): Promise<any> {
+  vyperJsonInput: VyperJsonInput,
+): Promise<VyperOutput> {
   const vyperPlatform = findVyperPlatform();
   if (!vyperPlatform) {
     throw new Error('Vyper is not supported on this machine.');

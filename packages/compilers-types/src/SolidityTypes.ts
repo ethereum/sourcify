@@ -1,5 +1,5 @@
-import { Abi } from 'abitype';
-import { Devdoc, Userdoc, LinkReferences } from './CompilationTypes';
+import { Abi } from "abitype";
+import { Devdoc, Userdoc, LinkReferences } from "./CompilationTypes";
 
 interface File {
   keccak256?: string;
@@ -35,10 +35,10 @@ interface Optimizer {
 }
 
 enum DebugInfo {
-  default = 'default',
-  strip = 'strip',
-  debug = 'debug',
-  verboseDebug = 'verboseDebug',
+  default = "default",
+  strip = "strip",
+  debug = "debug",
+  verboseDebug = "verboseDebug",
 }
 
 interface Debug {
@@ -104,9 +104,9 @@ interface SolidityOutputError {
     start: number;
     end: number;
   };
-  type: 'TypeError' | 'InternalCompilerError' | 'Exception';
-  component: 'general' | 'ewasm';
-  severity: 'error' | 'warning';
+  type: "TypeError" | "InternalCompilerError" | "Exception";
+  component: "general" | "ewasm";
+  severity: "error" | "warning";
   message: string;
   formattedMessage?: string;
 }
@@ -197,12 +197,4 @@ export interface SolidityOutput {
       [contractName: string]: SolidityOutputContract;
     };
   };
-}
-
-export interface ISolidityCompiler {
-  compile(
-    version: string,
-    solcJsonInput: SolidityJsonInput,
-    forceEmscripten?: boolean,
-  ): Promise<SolidityOutput>;
 }

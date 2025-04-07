@@ -6,6 +6,10 @@ import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
 import { asyncExec, fetchWithBackoff } from './common';
+import {
+  SolidityJsonInput,
+  SolidityOutput,
+} from '@ethereum-sourcify/compilers-types';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const solc = require('solc');
@@ -39,9 +43,9 @@ export async function useSolidityCompiler(
   solcRepoPath: string,
   solJsonRepoPath: string,
   version: string,
-  solcJsonInput: any,
+  solcJsonInput: SolidityJsonInput,
   forceEmscripten = false,
-): Promise<any> {
+): Promise<SolidityOutput> {
   // For nightly builds, Solidity version is saved as 0.8.17-ci.2022.8.9+commit.6b60524c instead of 0.8.17-nightly.2022.8.9+commit.6b60524c.
   // Not possible to retrieve compilers with "-ci.".
   if (version.includes('-ci.')) version = version.replace('-ci.', '-nightly.');

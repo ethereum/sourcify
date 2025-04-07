@@ -12,7 +12,6 @@ import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import { VyperCompilation } from '../Compilation/VyperCompilation';
 import {
   CompiledContractCborAuxdata,
-  Metadata,
   StringMap,
 } from '../Compilation/CompilationTypes';
 
@@ -33,11 +32,12 @@ import {
   VerificationStatus,
 } from './VerificationTypes';
 import {
+  VyperOutputContract,
   ImmutableReferences,
   SolidityOutputContract,
   SoliditySettings,
-} from '../Compilation/SolidityTypes';
-import { VyperOutputContract } from '../Compilation/VyperTypes';
+  Metadata,
+} from '@ethereum-sourcify/compilers-types';
 import { SolidityMetadataContract } from '../Validation/SolidityMetadataContract';
 
 export class Verification {

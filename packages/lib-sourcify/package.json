@@ -73,7 +73,8 @@
     "open-cli": "8.0.0",
     "sinon": "19.0.5",
     "sinon-chai": "3.7.0",
-    "tree-kill": "1.2.2"
+    "tree-kill": "1.2.2",
+    "@ethereum-sourcify/compilers-types": "^1.0.0"
   },
   "files": [
     "build/main",

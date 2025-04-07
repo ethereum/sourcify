@@ -14,10 +14,7 @@ import {
   stopHardhatNetwork,
 } from '../hardhat-network-helper';
 import { SolidityMetadataContract } from '../../src/Validation/SolidityMetadataContract';
-import {
-  ISolidityCompiler,
-  SolidityOutput,
-} from '../../src/Compilation/SolidityTypes';
+import { SolidityOutput } from '@ethereum-sourcify/compilers-types';
 import fs from 'fs';
 import { VyperCompilation } from '../../src/Compilation/VyperCompilation';
 import { PathContent } from '../../src/Validation/ValidationTypes';
@@ -26,7 +23,7 @@ import {
   findSolcPlatform,
   useSolidityCompiler,
 } from '@ethereum-sourcify/compilers';
-import { SourcifyChain } from '../../src';
+import { ISolidityCompiler, SourcifyChain } from '../../src';
 import Sinon from 'sinon';
 
 use(chaiAsPromised);

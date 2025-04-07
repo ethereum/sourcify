@@ -4,11 +4,11 @@ import path from 'path';
 import fs from 'fs';
 import { SolidityCompilation } from '../../src/Compilation/SolidityCompilation';
 import { solc } from '../utils';
+import { CompilationTarget } from '../../src/Compilation/CompilationTypes';
 import {
-  CompilationTarget,
+  SolidityJsonInput,
   Metadata,
-} from '../../src/Compilation/CompilationTypes';
-import { SolidityJsonInput } from '../../src/Compilation/SolidityTypes';
+} from '@ethereum-sourcify/compilers-types';
 import chaiAsPromised from 'chai-as-promised';
 
 use(chaiAsPromised);
