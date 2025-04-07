@@ -329,15 +329,18 @@ components:
             properties:
               sources:
                 type: object
+                description: A mapping from file path to its content.
                 additionalProperties:
                   type: string
               metadata:
                 type: object
+                description: 'The [metadata](https://docs.soliditylang.org/en/latest/metadata.html) as an object.'
               creationTransactionHash:
                 $ref: '#/components/schemas/Keccak256'
                 description: The hash of the transaction that created this contract. Optional.
             required:
               - sources
+              - metadata
           examples:
             Example 1:
               value:
@@ -535,6 +538,15 @@ components:
                     type: object
                   devdoc:
                     type: object
+                  sourceIds:
+                    type: object
+                    description: Same as stdJsonOutput.sources
+                    additionalProperties:
+                      type: object
+                      properties:
+                        id:
+                          type: integer
+                          description: The AST IDs of the sources
                   stdJsonInput:
                     type: object
                     description: The input fields conforming the compiler standard-JSON format.
@@ -768,6 +780,11 @@ components:
                 devdoc: {}
                 storageLayout: {}
                 metadata: {}
+                sourceIds:
+                  contracts/UniswapV3Pool.sol:
+                    id: 2
+                  contracts/NoDelegateCall.sol:
+                    id: 0
                 stdJsonInput:
                   language: Solidity
                   sources:
@@ -850,6 +867,11 @@ components:
                 devdoc: {}
                 storageLayout: {}
                 metadata: {}
+                sourceIds:
+                  contracts/UniswapV3Pool.sol:
+                    id: 2
+                  contracts/NoDelegateCall.sol:
+                    id: 0
             Proxy resolution (`fields=proxyResolution`):
               value:
                 match: exact_match
