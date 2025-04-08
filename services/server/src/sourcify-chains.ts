@@ -38,7 +38,6 @@ export interface ExtendedSourcifyChainsExtensionsObject {
     };
     fetchContractCreationTxUsing?: any; // Using any to avoid importing the full type
     rpc?: Array<string | BaseRPC | APIKeyRPC | ExtendedFetchRequestRPC>;
-    rpcHeadersValues?: { [key: string]: string };
   };
 }
 
