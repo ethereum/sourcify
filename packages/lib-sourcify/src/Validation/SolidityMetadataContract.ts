@@ -60,7 +60,7 @@ export class SolidityMetadataContract {
   }
 
   constructor(metadata: Metadata, providedSources: PathContent[]) {
-    this.metadata = metadata;
+    this.metadata = structuredClone(metadata);
     // These are assigned in `assembleContract`
     this.foundSources = {};
     this.missingSources = {};

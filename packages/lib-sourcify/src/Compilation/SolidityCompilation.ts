@@ -25,6 +25,7 @@ import { logWarn } from '../logger';
 export class SolidityCompilation extends AbstractCompilation {
   public language: CompilationLanguage = 'Solidity';
   // Use declare to override AbstractCompilation's types to target Solidity types
+  declare jsonInput: SolidityJsonInput;
   declare compilerOutput?: SolidityOutput;
   declare compileAndReturnCompilationTarget: (
     forceEmscripten: boolean,
@@ -36,10 +37,10 @@ export class SolidityCompilation extends AbstractCompilation {
   public constructor(
     public compiler: ISolidityCompiler,
     public compilerVersion: string,
-    public jsonInput: SolidityJsonInput,
+    jsonInput: SolidityJsonInput,
     public compilationTarget: CompilationTarget,
   ) {
-    super();
+    super(jsonInput);
     this.initSolidityJsonInput();
   }
 
