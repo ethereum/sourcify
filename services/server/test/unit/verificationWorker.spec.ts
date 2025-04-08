@@ -14,6 +14,7 @@ import {
   type SoliditySettings,
   getErrorMessageFromCode,
   SourcifyLibErrorCode,
+  ErrorMessagePayload,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getAddress } from "ethers";
 import { VerifyOutput } from "../../src/server/services/workers/workerTypes";
@@ -170,12 +171,13 @@ describe("verificationWorker", function () {
   const assertErrorResponse = (
     result: VerifyOutput,
     expectedCode: SourcifyLibErrorCode,
+    errorPayload?: ErrorMessagePayload,
   ) => {
     expect(result).to.not.have.property("verificationExport");
     expect(result).to.have.property("errorResponse");
     expect(result.errorResponse).to.deep.include({
       customCode: expectedCode,
-      message: getErrorMessageFromCode(expectedCode),
+      message: getErrorMessageFromCode(expectedCode, errorPayload),
     });
   };
 
@@ -319,7 +321,9 @@ describe("verificationWorker", function () {
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
-      assertErrorResponse(result, "missing_or_invalid_source");
+      assertErrorResponse(result, "missing_or_invalid_source", {
+        invalidSources: [sourcePath],
+      });
     });
 
     it("should return an errorResponse if missing sources cannot be fetched", async () => {
@@ -334,7 +338,11 @@ describe("verificationWorker", function () {
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
-      assertErrorResponse(result, "missing_source");
+      assertErrorResponse(result, "missing_source", {
+        missingSources: Object.keys(
+          chainFixture.defaultContractMetadataObject.sources,
+        ),
+      });
     });
 
     describe("solc v0.6.12 and v0.7.0 extra files in compilation causing metadata match but bytecode mismatch", function () {

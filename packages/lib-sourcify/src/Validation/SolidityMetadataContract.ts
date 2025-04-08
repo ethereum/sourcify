@@ -237,12 +237,12 @@ export class SolidityMetadataContract {
     }
 
     if (Object.keys(this.missingSources).length) {
-      logDebug(
-        `Resource missing; unsuccessful fetching: ${Object.keys(
-          this.missingSources,
-        ).join(', ')}`,
-      );
-      throw new ValidationError('missing_source');
+      logDebug('Resource missing; unsuccessful fetching.', {
+        missing: this.missingSources,
+      });
+      throw new ValidationError('missing_source', {
+        missingSources: Object.keys(this.missingSources),
+      });
     }
 
     this.createJsonInputFromMetadata();
@@ -254,11 +254,16 @@ export class SolidityMetadataContract {
       Object.keys(this.invalidSources).length > 0
     ) {
       logDebug(
-        `Can't create JsonInput from metadata: Missing or invalid sources in metadata: missing:${JSON.stringify(
-          this.missingSources,
-        )}; invalid: ${JSON.stringify(this.invalidSources)}`,
+        "Can't create JsonInput from metadata: Missing or invalid sources in metadata.",
+        {
+          missing: this.missingSources,
+          invalid: this.invalidSources,
+        },
       );
-      throw new ValidationError('missing_or_invalid_source');
+      throw new ValidationError('missing_or_invalid_source', {
+        missingSources: Object.keys(this.missingSources),
+        invalidSources: Object.keys(this.invalidSources),
+      });
     }
 
     this.solcJsonInput = {} as SolidityJsonInput;
@@ -280,11 +285,18 @@ export class SolidityMetadataContract {
 
     if (!compilationTarget || Object.keys(compilationTarget).length != 1) {
       logDebug(
-        `Can't create JsonInput from metadata: Invalid compilationTarget in metadata: ${Object.keys(
-          this.metadata.settings.compilationTarget,
-        ).join(',')}`,
+        `Can't create JsonInput from metadata: Invalid compilationTarget in metadata`,
+        {
+          compilationTargets: Object.keys(
+            this.metadata.settings.compilationTarget,
+          ),
+        },
       );
-      throw new ValidationError('invalid_compilation_target');
+      throw new ValidationError('invalid_compilation_target', {
+        compilationTargets: Object.keys(
+          this.metadata.settings.compilationTarget,
+        ),
+      });
     }
 
     this.handleInlinerBug();
