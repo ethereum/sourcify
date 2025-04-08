@@ -131,12 +131,7 @@
   },
   "7078815900": {
     "sourcifyName": "Ethereum Mekong Testnet",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "blockscoutApi": {
-        "url": "https://explorer.mekong.ethpandaops.io/"
-      }
-    }
+    "supported": false
   },
   "369": {
     "sourcifyName": "PulseChain Mainnet",
@@ -834,10 +829,7 @@
   },
   "11111": {
     "sourcifyName": "WAGMI Testnet",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "avalancheApi": true
-    }
+    "supported": false
   },
   "192837465": {
     "sourcifyName": "Gather Mainnet",
@@ -1360,20 +1352,11 @@
   },
   "222000222": {
     "sourcifyName": "Kanazawa Testnet",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "avalancheApi": true
-    }
+    "supported": false
   },
   "333000333": {
     "sourcifyName": "MELD",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "avalancheApi": true,
-      "routescanApi": {
-        "type": "mainnet"
-      }
-    }
+    "supported": false
   },
   "2222": {
     "sourcifyName": "Kava EVM",
@@ -1742,10 +1725,7 @@
   },
   "1127469": {
     "sourcifyName": "Tiltyard Subnet",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "avalancheApi": true
-    }
+    "supported": false
   },
   "1101": {
     "sourcifyName": "Polygon zkEVM",
@@ -2039,19 +2019,11 @@
   },
   "17069": {
     "sourcifyName": "Garnet Holesky",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "blockscoutApi": {
-        "url": "https://explorer.garnetchain.com/api"
-      }
-    }
+    "supported": false
   },
   "12898": {
     "sourcifyName": "PlayFair Testnet Subnet",
-    "supported": true,
-    "fetchContractCreationTxUsing": {
-      "avalancheApi": true
-    }
+    "supported": false
   },
   "19011": {
     "sourcifyName": "HOME Verse Mainnet",
