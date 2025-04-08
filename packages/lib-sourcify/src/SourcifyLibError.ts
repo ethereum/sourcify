@@ -10,6 +10,9 @@ export type SourcifyLibErrorCode =
 export interface ErrorMessagePayload {
   address?: string;
   chainId?: string;
+  compilationTargets?: string[];
+  missingSources?: string[];
+  invalidSources?: string[];
 }
 
 export class SourcifyLibError extends Error {
@@ -27,11 +30,11 @@ export function getErrorMessageFromCode(
   switch (code) {
     // Validation errors
     case 'missing_source':
-      return 'One or more sources are mentioned in the metadata but are not provided or could not be fetched.';
+      return `One or more sources are mentioned in the metadata but are not provided or could not be fetched.${payload.missingSources?.length ? ' Missing sources: ' + payload.missingSources.join(', ') : ''}`;
     case 'missing_or_invalid_source':
-      return 'One or more sources are mentioned in the metadata but are missing or are invalid.';
+      return `One or more sources are mentioned in the metadata but are missing or are invalid.${payload.missingSources?.length ? ' Missing sources: ' + payload.missingSources.join(', ') : ''}${payload.invalidSources?.length ? ' Invalid sources: ' + payload.invalidSources.join(', ') : ''}`;
     case 'invalid_compilation_target':
-      return 'The compilationTarget in the metadata is invalid.';
+      return `More than one compilationTarget in the metadata, or the compilationTarget is invalid.${payload.compilationTargets ? ' compilationTarget: ' + payload.compilationTargets.join(', ') : ''}`;
     // Compilation errors
     case 'compiler_error':
       return 'Compiler error.';
