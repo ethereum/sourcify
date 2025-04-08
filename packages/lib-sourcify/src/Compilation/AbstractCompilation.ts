@@ -30,7 +30,7 @@ export abstract class AbstractCompilation {
   abstract compiler: ISolidityCompiler | IVyperCompiler;
   abstract compilerVersion: string;
   abstract compilationTarget: CompilationTarget;
-  abstract jsonInput: SolidityJsonInput | VyperJsonInput;
+  jsonInput: SolidityJsonInput | VyperJsonInput;
 
   protected _metadata?: Metadata;
   compilerOutput?: SolidityOutput | VyperOutput;
@@ -51,6 +51,10 @@ export abstract class AbstractCompilation {
   abstract generateCborAuxdataPositions(
     forceEmscripten?: boolean,
   ): Promise<void>;
+
+  constructor(jsonInput: SolidityJsonInput | VyperJsonInput) {
+    this.jsonInput = structuredClone(jsonInput);
+  }
 
   public async compileAndReturnCompilationTarget(
     forceEmscripten = false,

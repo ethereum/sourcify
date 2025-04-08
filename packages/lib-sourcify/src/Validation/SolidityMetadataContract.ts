@@ -48,7 +48,7 @@ export class SolidityMetadataContract {
   solcJsonInput: SolidityJsonInput | null;
 
   constructor(metadata: Metadata, providedSources: PathContent[]) {
-    this.metadata = metadata;
+    this.metadata = structuredClone(metadata);
     // These are assigned in `assembleContract`
     this.foundSources = {};
     this.missingSources = {};

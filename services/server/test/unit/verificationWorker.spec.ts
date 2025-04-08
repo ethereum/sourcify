@@ -194,7 +194,7 @@ describe("verificationWorker", function () {
       const result = await verifyFromJsonInput({
         chainId: chainFixture.chainId,
         address: chainFixture.defaultContractAddress,
-        jsonInput: structuredClone(chainFixture.defaultContractJsonInput),
+        jsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
         compilationTarget,
@@ -216,7 +216,7 @@ describe("verificationWorker", function () {
       const result = await verifyFromJsonInput({
         chainId: chainFixture.chainId,
         address: chainFixture.defaultContractAddress,
-        jsonInput: structuredClone(chainFixture.defaultContractJsonInput),
+        jsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
         compilationTarget,
@@ -264,7 +264,7 @@ describe("verificationWorker", function () {
       const result = await verifyFromMetadata({
         chainId: chainFixture.chainId,
         address: chainFixture.defaultContractAddress,
-        metadata: structuredClone(chainFixture.defaultContractMetadataObject),
+        metadata: chainFixture.defaultContractMetadataObject,
         sources,
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
@@ -280,7 +280,7 @@ describe("verificationWorker", function () {
       const result = await verifyFromMetadata({
         chainId: chainFixture.chainId,
         address: chainFixture.defaultContractAddress,
-        metadata: structuredClone(chainFixture.defaultContractMetadataObject),
+        metadata: chainFixture.defaultContractMetadataObject,
         sources,
       });
 
@@ -291,7 +291,7 @@ describe("verificationWorker", function () {
       const result = await verifyFromMetadata({
         chainId: chainFixture.chainId,
         address: chainFixture.defaultContractAddress,
-        metadata: structuredClone(chainFixture.defaultContractMetadataObject),
+        metadata: chainFixture.defaultContractMetadataObject,
         sources: {},
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
@@ -331,9 +331,7 @@ describe("verificationWorker", function () {
         chainId: chainFixture.chainId,
         address: chainFixture.defaultContractAddress,
         // This metadata includes a modified IPFS hash that cannot be fetched
-        metadata: structuredClone(
-          chainFixture.defaultContractMetadataWithModifiedIpfsHash,
-        ),
+        metadata: chainFixture.defaultContractMetadataWithModifiedIpfsHash,
         sources: {},
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
