@@ -141,11 +141,11 @@ export function authenticateRpcs(
           headers: [
             {
               headerName: "CF-Access-Client-Id",
-              headerEnvName: "CF_ACCESS_CLIENT_ID",
+              headerValue: process.env["CF_ACCESS_CLIENT_ID"] || "",
             },
             {
               headerName: "CF-Access-Client-Secret",
-              headerEnvName: "CF_ACCESS_CLIENT_SECRET",
+              headerValue: process.env["CF_ACCESS_CLIENT_SECRET"] || "",
             },
           ],
         };

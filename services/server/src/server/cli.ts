@@ -23,6 +23,46 @@ import { SolcLocal } from "./services/compiler/local/SolcLocal";
 
 import session from "express-session";
 import { VyperLocal } from "./services/compiler/local/VyperLocal";
+import {
+  setLibSourcifyLoggerLevel,
+  SolidityMetadataContract,
+  SourcifyChain,
+} from "@ethereum-sourcify/lib-sourcify";
+
+// lib-sourcify configuration
+if (process.env.IPFS_GATEWAY || process.env.IPFS_GATEWAY_HEADERS) {
+  try {
+    SolidityMetadataContract.setGlobalIpfsGateway({
+      url: process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/",
+      headers: JSON.parse(process.env.IPFS_GATEWAY_HEADERS || "{}"),
+    });
+    logger.info("lib-sourcifs IPFS gateway set", {
+      ipfsGateway: process.env.IPFS_GATEWAY,
+      ipfsGatewayHeaders: process.env.IPFS_GATEWAY_HEADERS,
+    });
+  } catch (error) {
+    logger.error("Error setting lib-sourcify IPFS gateway", { error });
+    throw new Error("Error setting lib-sourcify IPFS gateway");
+  }
+}
+
+if (process.env.RPC_TIMEOUT) {
+  try {
+    SourcifyChain.setGlobalRpcTimeout(parseInt(process.env.RPC_TIMEOUT));
+    logger.info("lib-sourcify RPC timeout set", {
+      rpcTimeout: process.env.RPC_TIMEOUT,
+    });
+  } catch (error) {
+    logger.error("Error setting lib-sourcify RPC timeout", { error });
+    throw new Error("Error setting lib-sourcify RPC timeout");
+  }
+}
+
+if (process.env.NODE_ENV !== "production") {
+  // Set the log level to 4 (debug) in non-production environments
+  setLibSourcifyLoggerLevel(4);
+  logger.info("lib-sourcify log level set to debug");
+}
 
 // Solidity Compiler
 

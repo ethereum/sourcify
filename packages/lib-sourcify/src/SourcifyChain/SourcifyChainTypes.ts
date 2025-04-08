@@ -17,6 +17,7 @@ export type SourcifyChainExtension = {
   };
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   rpc?: Array<string | BaseRPC | APIKeyRPC | FetchRequestRPC>;
+  rpcHeadersValues?: { [key: string]: string };
 };
 
 // Need to define the rpc property explicitly as when a sourcifyChain is created with {...chain, sourcifyChainExtension}, Typescript throws with "Type '(string | FetchRequest)[]' is not assignable to type 'string[]'." For some reason the Chain.rpc is not getting overwritten by SourcifyChainExtension.rpc
@@ -52,7 +53,7 @@ export type FetchRequestRPC = Omit<BaseRPC, 'type'> & {
   type: 'FetchRequest';
   headers?: Array<{
     headerName: string;
-    headerEnvName: string;
+    headerValue: string;
   }>;
 };
 

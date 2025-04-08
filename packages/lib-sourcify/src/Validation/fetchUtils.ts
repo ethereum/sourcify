@@ -1,6 +1,5 @@
 import { logError, logInfo, logDebug } from '../logger';
 import { id as keccak256str } from 'ethers';
-import { IpfsGateway } from './ValidationTypes';
 
 export async function performFetch(
   url: string,
@@ -105,32 +104,4 @@ export async function fetchWithBackoff(
     }
   }
   throw new Error(`Failed fetching ${resource}`);
-}
-
-/**
- * Because the gateway might change across tests, don't set it to a variable but look for env variable.
- * Otherwise fall back to the default ipfs.io.
- *
- * This will likely moved to server or somewhere else. But keep it here for now.
- */
-export function getIpfsGateway(): IpfsGateway {
-  let ipfsGatewaysHeaders;
-  if (process.env.IPFS_GATEWAY_HEADERS) {
-    try {
-      ipfsGatewaysHeaders = JSON.parse(process.env.IPFS_GATEWAY_HEADERS);
-    } catch (error) {
-      logError('Error while parsing IPFS_GATEWAY_HEADERS option', { error });
-      throw new Error('Error while parsing IPFS_GATEWAY_HEADERS option');
-    }
-  }
-
-  const ipfsGatewayUrl = process.env.IPFS_GATEWAY || 'https://ipfs.io/ipfs/';
-  const urlWithTrailingSlash = ipfsGatewayUrl.endsWith('/')
-    ? ipfsGatewayUrl
-    : `${ipfsGatewayUrl}/`;
-
-  return {
-    url: urlWithTrailingSlash,
-    headers: ipfsGatewaysHeaders,
-  };
 }

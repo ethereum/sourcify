@@ -3,7 +3,6 @@ import { describe, it, beforeEach, afterEach } from 'mocha';
 import {
   performFetch,
   fetchWithBackoff,
-  getIpfsGateway,
 } from '../../src/Validation/fetchUtils';
 import { id as keccak256str } from 'ethers';
 
@@ -87,40 +86,6 @@ describe('fetchUtils', () => {
       } catch (error: any) {
         expect(error.message).to.include('Failed fetching');
       }
-    });
-  });
-
-  describe('getIpfsGateway', () => {
-    it('should return default gateway when no env variables set', () => {
-      delete process.env.IPFS_GATEWAY;
-      delete process.env.IPFS_GATEWAY_HEADERS;
-
-      const gateway = getIpfsGateway();
-      expect(gateway.url).to.equal('https://ipfs.io/ipfs/');
-      expect(gateway.headers).to.be.undefined;
-    });
-
-    it('should use custom gateway from env', () => {
-      process.env.IPFS_GATEWAY = 'https://custom.gateway/ipfs';
-
-      const gateway = getIpfsGateway();
-      expect(gateway.url).to.equal('https://custom.gateway/ipfs/');
-    });
-
-    it('should parse headers from env', () => {
-      const headers = { Authorization: 'Bearer token' };
-      process.env.IPFS_GATEWAY_HEADERS = JSON.stringify(headers);
-
-      const gateway = getIpfsGateway();
-      expect(gateway.headers).to.deep.equal(headers);
-    });
-
-    it('should throw on invalid headers JSON', () => {
-      process.env.IPFS_GATEWAY_HEADERS = 'invalid json';
-
-      expect(() => getIpfsGateway()).to.throw(
-        'Error while parsing IPFS_GATEWAY_HEADERS option',
-      );
     });
   });
 });
