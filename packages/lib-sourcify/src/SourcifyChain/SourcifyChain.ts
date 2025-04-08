@@ -20,6 +20,18 @@ interface JsonRpcProviderWithUrl extends JsonRpcProvider {
   url?: string;
 }
 
+export function createFetchRequest(rpc: FetchRequestRPC): FetchRequest {
+  const ethersFetchReq = new FetchRequest(rpc.url);
+  ethersFetchReq.setHeader('Content-Type', 'application/json');
+  const headers = rpc.headers;
+  if (headers) {
+    headers.forEach(({ headerName, headerValue }) => {
+      ethersFetchReq.setHeader(headerName, headerValue);
+    });
+  }
+  return ethersFetchReq;
+}
+
 export class SourcifyChain {
   name: string;
   readonly title?: string | undefined;
@@ -91,7 +103,7 @@ export class SourcifyChain {
       } else {
         // else: rpc is of type FetchRequestRPC
         // Build ethers.js FetchRequest object for custom rpcs with auth headers
-        const ethersFetchReq = this.createFetchRequest(rpc);
+        const ethersFetchReq = createFetchRequest(rpc);
         provider = new JsonRpcProvider(ethersFetchReq, ethersNetwork, {
           staticNetwork: ethersNetwork,
         });
@@ -116,18 +128,6 @@ export class SourcifyChain {
       traceSupportedRPCs: this.traceSupportedRPCs,
     };
   };
-
-  createFetchRequest(rpc: FetchRequestRPC): FetchRequest {
-    const ethersFetchReq = new FetchRequest(rpc.url);
-    ethersFetchReq.setHeader('Content-Type', 'application/json');
-    const headers = rpc.headers;
-    if (headers) {
-      headers.forEach(({ headerName, headerValue }) => {
-        ethersFetchReq.setHeader(headerName, headerValue);
-      });
-    }
-    return ethersFetchReq;
-  }
 
   rejectInMs = (host?: string) =>
     new Promise<never>((_resolve, reject) => {
