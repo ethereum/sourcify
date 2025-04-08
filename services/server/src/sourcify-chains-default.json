@@ -127,7 +127,30 @@
   },
   "560048": {
     "sourcifyName": "Ethereum Hoodi Testnet",
-    "supported": true
+    "supported": true,
+    "etherscanApi": {
+      "apiURL": "https://api-hoodi.etherscan.io",
+      "apiKeyEnvName": "ETHERSCAN_API_KEY"
+    },
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://eth-hoodi.blockscout.com/"
+      },
+      "etherscanApi": true,
+      "routescanApi": {
+        "type": "testnet"
+      }
+    },
+    "rpc": [
+      "https://rpc.hoodi.ethpandaops.io",
+      {
+        "type": "APIKeyRPC",
+        "url": "https://{SUBDOMAIN}.ethereum-hoodi.quiknode.pro/{API_KEY}",
+        "apiKeyEnvName": "QUICKNODE_API_KEY",
+        "subDomainEnvName": "QUICKNODE_SUBDOMAIN",
+        "traceSupport": "trace_transaction"
+      }
+    ]
   },
   "7078815900": {
     "sourcifyName": "Ethereum Mekong Testnet",
