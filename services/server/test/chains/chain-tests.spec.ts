@@ -1520,7 +1520,7 @@ describe("Test Supported Chains", function () {
 
   // Auroria Testnet
   verifyContract(
-    "0x317306CE2b9CE1C8f419bfB2E480b4f000FB6B09",
+    "0xe446f231A55e8a376ec7cF5Ae7345f91BBAb5D8E",
     "205205",
     "Auroria Testnet",
     "shared/",
