@@ -14,6 +14,8 @@ import {
   VyperJsonInput,
   VyperOutput,
   VerificationStatus,
+  VyperOutputSource,
+  SolidityOutputSource,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Response } from "express";
 import { Abi } from "abitype";
@@ -86,6 +88,12 @@ export interface VerifiedContract extends VerifiedContractMinimal {
   storageLayout?: Nullable<StorageLayout>;
   userdoc?: Nullable<Userdoc>;
   devdoc?: Nullable<Devdoc>;
+  sourceIds?: Nullable<
+    Record<
+      string,
+      Pick<SolidityOutputSource, "id"> | Pick<VyperOutputSource, "id">
+    >
+  >;
   stdJsonInput?: SolidityJsonInput | VyperJsonInput;
   stdJsonOutput?: SolidityOutput | VyperOutput;
   proxyResolution?: ProxyResolution;

@@ -127,12 +127,15 @@ export interface ImmutableReferences {
 interface SolidityOutputEvmDeployedBytecode extends SolidityOutputEvmBytecode {
   immutableReferences?: ImmutableReferences;
 }
+
+export interface SolidityOutputSource {
+  id: number;
+  ast: any;
+  legacyAST: any;
+}
+
 export interface SolidityOutputSources {
-  [globalName: string]: {
-    id: number;
-    ast: any;
-    legacyAST: any;
-  };
+  [globalName: string]: SolidityOutputSource;
 }
 
 export interface StorageLayout {
