@@ -14,6 +14,8 @@ import {
   Metadata,
   Userdoc,
   VyperSettings,
+  SolidityOutputSource,
+  VyperOutputSource,
 } from '@ethereum-sourcify/compilers-types';
 import { ErrorMessagePayload, SourcifyLibError } from '../SourcifyLibError';
 import { Transformation, TransformationValues } from './Transformations';
@@ -95,7 +97,10 @@ export interface VerificationExport {
     sources: StringMap;
     compilerOutput: {
       // The export should not include the AST object to reduce the size
-      sources?: Record<string, { id: number }>;
+      sources?: Record<
+        string,
+        Pick<SolidityOutputSource, 'id'> | Pick<VyperOutputSource, 'id'>
+      >;
     };
     contractCompilerOutput: {
       abi?: Abi;

@@ -195,6 +195,7 @@ describe("GET /v2/contract/:chainId/:address", function () {
     "storageLayout",
     "userdoc",
     "devdoc",
+    "sourceIds",
     "stdJsonInput",
     "stdJsonOutput",
     "proxyResolution",
@@ -340,6 +341,14 @@ describe("GET /v2/contract/:chainId/:address", function () {
             );
           }
           objectToExpect = chainFixture.defaultContractArtifact.devdoc;
+          break;
+        case "sourceIds":
+          if (subField) {
+            throw new Error(
+              "Malformed test. SourceIds should not have subfields.",
+            );
+          }
+          objectToExpect = { [contractPath]: { id: 0 } };
           break;
         case "stdJsonInput":
           if (subField) {
@@ -575,6 +584,20 @@ describe("GET /v2/contract/:chainId/:address", function () {
 
     assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
       "devdoc",
+    ]);
+  });
+
+  it("should return sourceIds information when requested", async function () {
+    await verifyContract(serverFixture, chainFixture);
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(
+        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}?fields=sourceIds`,
+      );
+
+    assertGetContractResponse(res, chainFixture.defaultContractDeploymentInfo, [
+      "sourceIds",
     ]);
   });
 

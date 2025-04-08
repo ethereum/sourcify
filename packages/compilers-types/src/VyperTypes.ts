@@ -53,9 +53,13 @@ export interface VyperError {
   formattedMessage?: string;
 }
 
-interface VyperOutputSource {
+export interface VyperOutputSource {
   id: number;
   ast: any;
+}
+
+export interface VyperOutputSources {
+  [sourcePath: string]: VyperOutputSource;
 }
 
 export interface VyperOutputContract {
@@ -88,8 +92,6 @@ interface VyperOutputContracts {
 export interface VyperOutput {
   compiler: string;
   errors?: VyperError[];
-  sources: {
-    [sourcePath: string]: VyperOutputSource;
-  };
+  sources: VyperOutputSources;
   contracts: VyperOutputContracts;
 }

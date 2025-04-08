@@ -243,6 +243,7 @@ export type GetSourcifyMatchByChainAddressWithPropertiesResult = Partial<
       deployer: string;
       sources: { [path: string]: { content: string } };
       storage_layout: Tables.CompiledContract["compilation_artifacts"]["storageLayout"];
+      source_ids: Tables.CompiledContract["compilation_artifacts"]["sources"];
       std_json_input: SolidityJsonInput | VyperJsonInput;
       std_json_output: SolidityOutput | VyperOutput;
     }
@@ -336,6 +337,8 @@ export const STORED_PROPERTIES_TO_SELECTORS = {
     "compiled_contracts.compilation_artifacts->'storageLayout' as storage_layout",
   userdoc: "compiled_contracts.compilation_artifacts->'userdoc' as userdoc",
   devdoc: "compiled_contracts.compilation_artifacts->'devdoc' as devdoc",
+  source_ids:
+    "compiled_contracts.compilation_artifacts->'sources' as source_ids",
   std_json_input: `json_build_object(
     'language', INITCAP(compiled_contracts.language), 
     'sources', ${sourcesAggregation},
@@ -457,6 +460,7 @@ export const FIELDS_TO_STORED_PROPERTIES: Record<
   storageLayout: "storage_layout",
   userdoc: "userdoc",
   devdoc: "devdoc",
+  sourceIds: "source_ids",
   stdJsonInput: "std_json_input",
   stdJsonOutput: "std_json_output",
   proxyResolution: {
