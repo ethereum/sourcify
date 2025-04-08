@@ -18,28 +18,19 @@ import genFunc from "connect-pg-simple";
 // local imports
 import logger from "../common/logger";
 import { sourcifyChainsMap } from "../sourcify-chains";
-import { Server } from "./server";
+import { LibSourcifyConfig, Server } from "./server";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
-
 import session from "express-session";
 import { VyperLocal } from "./services/compiler/local/VyperLocal";
-import {
-  setLibSourcifyLoggerLevel,
-  SolidityMetadataContract,
-  SourcifyChain,
-} from "@ethereum-sourcify/lib-sourcify";
 
 // lib-sourcify configuration
+const libSourcifyConfig: LibSourcifyConfig = {};
 if (process.env.IPFS_GATEWAY || process.env.IPFS_GATEWAY_HEADERS) {
   try {
-    SolidityMetadataContract.setGlobalIpfsGateway({
+    libSourcifyConfig.ipfsGateway = {
       url: process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/",
       headers: JSON.parse(process.env.IPFS_GATEWAY_HEADERS || "{}"),
-    });
-    logger.info("lib-sourcifs IPFS gateway set", {
-      ipfsGateway: process.env.IPFS_GATEWAY,
-      ipfsGatewayHeaders: process.env.IPFS_GATEWAY_HEADERS,
-    });
+    };
   } catch (error) {
     logger.error("Error setting lib-sourcify IPFS gateway", { error });
     throw new Error("Error setting lib-sourcify IPFS gateway");
@@ -48,7 +39,7 @@ if (process.env.IPFS_GATEWAY || process.env.IPFS_GATEWAY_HEADERS) {
 
 if (process.env.RPC_TIMEOUT) {
   try {
-    SourcifyChain.setGlobalRpcTimeout(parseInt(process.env.RPC_TIMEOUT));
+    libSourcifyConfig.rpcTimeout = parseInt(process.env.RPC_TIMEOUT);
     logger.info("lib-sourcify RPC timeout set", {
       rpcTimeout: process.env.RPC_TIMEOUT,
     });
@@ -60,7 +51,7 @@ if (process.env.RPC_TIMEOUT) {
 
 if (process.env.NODE_ENV !== "production") {
   // Set the log level to 4 (debug) in non-production environments
-  setLibSourcifyLoggerLevel(4);
+  libSourcifyConfig.logLevel = 4;
   logger.info("lib-sourcify log level set to debug");
 }
 
@@ -101,6 +92,7 @@ const server = new Server(
     upgradeContract: config.get("upgradeContract"),
     sessionOptions: getSessionOptions(),
     sourcifyPrivateToken: process.env.SOURCIFY_PRIVATE_TOKEN,
+    libSourcifyConfig,
   },
   {
     initCompilers: config.get("initCompilers") || false,

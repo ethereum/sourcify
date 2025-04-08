@@ -60,6 +60,10 @@ export function setLogger(logger: ILogger) {
   AppLogger = logger;
 }
 
+export function getLevel(): number {
+  return AppLogger.logLevel;
+}
+
 export function setLevel(level: number) {
   AppLogger.setLevel(level);
 }

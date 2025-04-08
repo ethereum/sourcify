@@ -1,7 +1,8 @@
 // Logger exports
-import { setLogger, setLevel, ILogger } from './logger';
+import { setLogger, setLevel, ILogger, getLevel } from './logger';
 export const setLibSourcifyLogger = setLogger;
 export const setLibSourcifyLoggerLevel = setLevel;
+export const getLibSourcifyLoggerLevel = getLevel;
 export type ILibSourcifyLogger = ILogger;
 
 // Compilation exports

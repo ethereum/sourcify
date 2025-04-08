@@ -61,6 +61,10 @@ export class SourcifyChain {
     SourcifyChain.rpcTimeout = timeoutMs;
   }
 
+  public static getGlobalRpcTimeout(): number {
+    return SourcifyChain.rpcTimeout;
+  }
+
   constructor(sourcifyChainObj: SourcifyChainInstance) {
     this.name = sourcifyChainObj.name;
     this.title = sourcifyChainObj.title;
