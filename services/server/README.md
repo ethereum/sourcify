@@ -225,13 +225,30 @@ Sourcify's database schema is defined in the [services/database](../database/) a
 
 ## Docker
 
-If you want to build yourself, the builds need to be run from the project root context, e.g.:
+The images are published in the [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fserver)
+
+### Running the server with docker compose
+
+There is a docker compose file which makes running the server locally easy:
+
+```bash
+cd ../..
+docker compose -f ./services/server/docker-compose.local.yml up
+```
+
+The setup starts a postgres database, runs the needed database migrations, and starts the Sourcify server with port 5555 exposed to your local machine.
+
+The server will use your local config (`./src/config/local.js`) and env file (`.env`). You can modify the docker compose file to also add a custom `sourcify-chains.json` for example.
+
+### Building the image
+
+If you want to build the image yourself, the builds need to be run from the project root context, e.g.:
 
 ```bash
 cd sourcify/ && docker build -f services/server/Dockerfile .
 ```
 
-The containers are published in the [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fserver)
+### Running the image directly
 
 You can run the server using Docker and pass in a custom `sourcify-chains.json` (see above [Chains Config](#chains-config)) and `local.js` (see above [Server Config](#server-config)) config file.
 
@@ -248,7 +265,8 @@ $ docker run \
 ```
 
 ### Connecting to a node on the host
-If you are running an RPC server for a chain on the Docker host, you can have your Sourcify container connect to it by using `host.docker.internal` as the hostname (or `host.containers.internal` if using Podman instead of Docker). For example, if the RPC server is accessible on the host at `http://localhost:8545`, configure the RPC's URL in `sourcify-chains.json` as `http://host.docker.internal:8545`.
+
+The following feature is only supported on Docker Desktop for Mac and Windows: If you are running an RPC server for a chain on the Docker host, you can have your Sourcify container connect to it by using `host.docker.internal` as the hostname (or `host.containers.internal` if using Podman instead of Docker). For example, if the RPC server is accessible on the host at `http://localhost:8545`, configure the RPC's URL in `sourcify-chains.json` as `http://host.docker.internal:8545`.
 
 ## Logging
 
