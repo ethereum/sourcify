@@ -11,16 +11,16 @@ import { Router } from "express";
 
 const router = Router();
 
-// router
-//   .route("/verify/:chainId/:address")
-//   .post(
-//     validateChainId,
-//     validateAddress,
-//     validateStandardJsonInput,
-//     validateContractIdentifier,
-//     checkIfAlreadyVerified,
-//     checkIfJobIsAlreadyRunning,
-//     verifyFromJsonInputEndpoint,
-//   );
+router
+  .route("/verify/:chainId/:address")
+  .post(
+    validateChainId,
+    validateAddress,
+    validateStandardJsonInput,
+    validateContractIdentifier,
+    checkIfAlreadyVerified,
+    checkIfJobIsAlreadyRunning,
+    verifyFromJsonInputEndpoint,
+  );
 
 export default router;
