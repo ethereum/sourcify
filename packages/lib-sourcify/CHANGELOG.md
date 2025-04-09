@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@2.0.0 - 2025-04-09
+
+- (Breaking change) Complete refactoring of the verification flow (#1845)
+- Add Validation classes and types (#1851)
+- Add Compilation classes and types (#1849)
+- Implement tests for the new verification flow
+- Implement SolidityMetadataContract (#1869)
+- Add Verification classes (#1879)
+- Improve auxdata position generation return types and error handling (#1993)
+- Add VerificationExport (#1994)
+
 ## @ethereum-sourcify/lib-sourcify@1.13.0 - 2025-03-19
 
 - Use @ethereum-sourcify/compilers package instead of built-in compiler

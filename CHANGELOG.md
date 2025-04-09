@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.5.1 - 2025-04-09
+
+- Update dependencies
+- Add @ethereum-sourcify/compilers-types package
+- Delete h5ai-nginx (#2055) 
+
 ## sourcify-monorepo@1.5.0 - 2025-03-19
 
 - Add @ethereum-sourcify/compilers package
