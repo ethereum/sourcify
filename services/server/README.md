@@ -77,49 +77,50 @@ const {
 } = require("../server/services/storageServices/identifiers");
 
 module.exports = {
-  serverUrl: "http://sourcify.dev/server", // The public URL of the server
-  server: {
-    port: 5555, // The port the server will run on
-    maxFileSize: 30 * 1024 * 1024, // The maximum uploaded file size in bytes
-  },
-  // The storage services where the verified contract be saved and read from
-  storage: {
-    // read option will be the "source of truth" where the contracts read from for the API requests.
-    read: RWStorageIdentifiers.SourcifyDatabase,
-    // User request will NOT fail if saving to these fail, but only log a warning
-    writeOrWarn: [
-      WStorageIdentifiers.AllianceDatabase,
-      RWStorageIdentifiers.RepositoryV1,
-    ],
-    // The user request will fail if saving to these fail
-    writeOrErr: [
-      WStorageIdentifiers.RepositoryV2,
-      RWStorageIdentifiers.SourcifyDatabase,
-    ],
-  },
-  repositoryV1: {
-    path: "/tmp/sourcify/repository", // The path to the repositoryV1 on the filesystem
-  },
-  repositoryV2: {
-    path: "/tmp/sourcify/repositoryV2", // The path to the repositoryV2 on the filesystem
-  },
-  solcRepo: "/tmp/solc-bin/linux-amd64", // The path to the solc binaries on the filesystem
-  solJsonRepo: "/tmp/solc-bin/soljson", // The path to the solJson binaries on the filesystem
-  vyperRepo: "/tmp/vyper-bin/linux-amd64", // The path to the vyper binaries on the filesystem
-  session: {
-    secret: process.env.SESSION * SECRET || "CHANGE_ME", // The secret used to sign the session cookie
-    maxAge: 12 * 60 * 60 * 1000, // The maximum age of the session in milliseconds
-    secure: false, //
-    storeType: "memory", // Where to save the session info. "memory" is only good for testing and local development. Don't use it in production!
-  },
-  // If true, downloads all production version compilers and saves them.
-  initCompilers: false,
-  // The origins that are allowed to access the server, regex allowed
-  corsAllowedOrigins: [/^https?:\/\/(?:.+\.)?sourcify.dev$/],
-  // verify-deprecated endpoint used in services/database/scripts.mjs. Used when recreating the DB with deprecated chains that don't have an RPC.
-  verifyDeprecated: false,
+serverUrl: "http://sourcify.dev/server", // The public URL of the server
+server: {
+port: 5555, // The port the server will run on
+maxFileSize: 30 _ 1024 _ 1024, // The maximum uploaded file size in bytes
+},
+// The storage services where the verified contract be saved and read from
+storage: {
+// read option will be the "source of truth" where the contracts read from for the API requests.
+read: RWStorageIdentifiers.SourcifyDatabase,
+// User request will NOT fail if saving to these fail, but only log a warning
+writeOrWarn: [
+WStorageIdentifiers.AllianceDatabase,
+RWStorageIdentifiers.RepositoryV1,
+],
+// The user request will fail if saving to these fail
+writeOrErr: [
+WStorageIdentifiers.RepositoryV2,
+RWStorageIdentifiers.SourcifyDatabase,
+],
+},
+repositoryV1: {
+path: "/tmp/sourcify/repository", // The path to the repositoryV1 on the filesystem
+},
+repositoryV2: {
+path: "/tmp/sourcify/repositoryV2", // The path to the repositoryV2 on the filesystem
+},
+solcRepo: "/tmp/solc-bin/linux-amd64", // The path to the solc binaries on the filesystem
+solJsonRepo: "/tmp/solc-bin/soljson", // The path to the solJson binaries on the filesystem
+vyperRepo: "/tmp/vyper-bin/linux-amd64", // The path to the vyper binaries on the filesystem
+session: {
+secret: process.env.SESSION _ SECRET || "CHANGE_ME", // The secret used to sign the session cookie
+maxAge: 12 _ 60 _ 60 _ 1000, // The maximum age of the session in milliseconds
+secure: false, //
+storeType: "memory", // Where to save the session info. "memory" is only good for testing and local development. Don't use it in production!
+},
+// If true, downloads all production version compilers and saves them.
+initCompilers: false,
+// The origins that are allowed to access the server, regex allowed
+corsAllowedOrigins: [/^https?:\/\/(?:.+\.)?sourcify.dev$/],
+// verify-deprecated endpoint used in services/database/scripts.mjs. Used when recreating the DB with deprecated chains that don't have an RPC.
+verifyDeprecated: false,
 };
-```
+
+````
 </details>
 
 ### Chains Config
@@ -185,7 +186,7 @@ A full example of a chain entry is as follows:
     ]
   }
 }
-```
+````
 
 ### Choosing the storage backend
 
@@ -248,7 +249,8 @@ $ docker run \
 ```
 
 ### Connecting to a node on the host
-If you are running an RPC server for a chain on the Docker host, you can have your Sourcify container connect to it by using `host.docker.internal` as the hostname (or `host.containers.internal` if using Podman instead of Docker). For example, if the RPC server is accessible on the host at `http://localhost:8545`, configure the RPC's URL in `sourcify-chains.json` as `http://host.docker.internal:8545`.
+
+The following feature is only supported on Docker Desktop for Mac and Windows: If you are running an RPC server for a chain on the Docker host, you can have your Sourcify container connect to it by using `host.docker.internal` as the hostname (or `host.containers.internal` if using Podman instead of Docker). For example, if the RPC server is accessible on the host at `http://localhost:8545`, configure the RPC's URL in `sourcify-chains.json` as `http://host.docker.internal:8545`.
 
 ## Logging
 

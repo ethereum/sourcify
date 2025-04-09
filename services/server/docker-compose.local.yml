@@ -1,0 +1,27 @@
+version: "3.8"
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: "sourcify"
+      POSTGRES_USER: "sourcify"
+      POSTGRES_PASSWORD: "sourcify"
+    ports:
+      - 5431:5432
+
+  server:
+    build:
+      context: ../..
+      dockerfile: services/server/Dockerfile
+    ports:
+      - "5555:5555"
+    env_file:
+      - .env
+    volumes:
+      - ./config/local.js:/home/app/services/server/dist/config/local.js
+      - ../database:/home/app/services/database
+    working_dir: /home/app/services/server
+    command: sh -c "cd ../database && npm install && npm run migrate:up -- --env local-docker && cd ../server && npm run start"
+    depends_on:
+      - db
