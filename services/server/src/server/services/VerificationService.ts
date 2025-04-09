@@ -158,7 +158,7 @@ export class VerificationService {
   public async close() {
     logger.info("Gracefully closing all in-process verifications");
     // Immediately abort all workers. Tasks that still run will have their Promises rejected.
-    await this.workerPool.destroy();
+    // await this.workerPool.destroy();
     // Here, we wait for the rejected tasks which also waits for writing the failed status to the database.
     await Promise.all(this.runningTasks);
   }

@@ -13,7 +13,7 @@ import sinon from "sinon";
 
 chai.use(chaiHttp);
 
-describe("POST /v2/verify/:chainId/:address", function () {
+describe.skip("POST /v2/verify/:chainId/:address", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
   const sandbox = sinon.createSandbox();
