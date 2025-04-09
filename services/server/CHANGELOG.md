@@ -2,6 +2,22 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@3.0.0 - 2025-04-09
+
+- Integrate new lib-sourcify classes in server (#1960) 
+- Use VerificationExport for storeVerification methods of storage services (#1995)
+- Improve express error handler (#2027)
+- Add upgrade contract private endpoint (#2042)
+- Add updated_at column and trigger to sourcify_matches (#2047) 
+- Remove rate limiter (#2046)
+- Update sourcify-chains-default.json to set multiple chains as unsupported
+- Add sourceIds field to v2 lookup (#2060)
+- Update Hoodi Testnet with RPCs and creatorTxHash
+- Update dependencies
+
+New Chains:
+- Added Zircuit Garfield Testnet (#2016)
+
 ## sourcify-server@2.7.1 - 2025-03-20
 
 - hot fix for unique constraint conflicts
