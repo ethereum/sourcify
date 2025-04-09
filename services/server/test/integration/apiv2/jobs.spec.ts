@@ -12,7 +12,7 @@ import { verifyContract } from "../../helpers/helpers";
 
 chai.use(chaiHttp);
 
-describe.skip("GET /v2/verify/:verificationId", function () {
+describe("GET /v2/verify/:verificationId", function () {
   const serverFixture = new ServerFixture();
   const chainFixture = new LocalChainFixture();
 
