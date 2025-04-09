@@ -52,7 +52,7 @@ export class VerificationService {
     [chainIdAndAddress: string]: boolean;
   } = {};
 
-  private workerPool: Piscina;
+  private workerPool!: Piscina;
   private runningTasks: Set<Promise<void>> = new Set();
 
   constructor(
@@ -85,19 +85,19 @@ export class VerificationService {
     const minThreads = availableParallelism * 0.5;
     const maxThreads = availableParallelism * 1.5;
 
-    this.workerPool = new Piscina({
-      filename: path.resolve(__dirname, "./workers/workerWrapper.js"),
-      workerData: {
-        fullpath: verificationWorkerFilename,
-        sourcifyChainInstanceMap,
-        solcRepoPath: options.solcRepoPath,
-        solJsonRepoPath: options.solJsonRepoPath,
-        vyperRepoPath: options.vyperRepoPath,
-      },
-      minThreads,
-      maxThreads,
-      idleTimeout: 10000, // 10 seconds idle timeout
-    });
+    // this.workerPool = new Piscina({
+    //   filename: path.resolve(__dirname, "./workers/workerWrapper.js"),
+    //   workerData: {
+    //     fullpath: verificationWorkerFilename,
+    //     sourcifyChainInstanceMap,
+    //     solcRepoPath: options.solcRepoPath,
+    //     solJsonRepoPath: options.solJsonRepoPath,
+    //     vyperRepoPath: options.vyperRepoPath,
+    //   },
+    //   minThreads,
+    //   maxThreads,
+    //   idleTimeout: 10000, // 10 seconds idle timeout
+    // });
   }
 
   // All of the solidity compilation actually run outside the VerificationService but this is an OK place to init everything.
