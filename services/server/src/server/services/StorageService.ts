@@ -40,7 +40,7 @@ import {
 } from "./storageServices/S3RepositoryService";
 import { DatabaseOptions } from "./utils/Database";
 import { Field } from "./utils/database-util";
-import { MatchingErrorResponse } from "../apiv2/errors";
+import { VerifyErrorExport } from "./workers/workerTypes";
 
 export interface WStorageService {
   IDENTIFIER: StorageIdentifiers;
@@ -61,7 +61,7 @@ export interface WStorageService {
   setJobError?(
     verificationId: VerificationJobId,
     finishTime: Date,
-    error: Omit<MatchingErrorResponse, "message">,
+    error: VerifyErrorExport,
   ): Promise<void>;
 }
 

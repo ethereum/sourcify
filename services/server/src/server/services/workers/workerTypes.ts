@@ -5,7 +5,8 @@ import type {
   CompilationTarget,
   Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
-import type { MatchingErrorResponse } from "../../apiv2/errors";
+import { type MatchingErrorResponse } from "../../apiv2/errors";
+import { JobErrorData } from "../utils/database-util";
 
 export interface VerifyFromJsonInput {
   chainId: string;
@@ -24,6 +25,18 @@ export interface VerifyFromMetadataInput {
   creationTransactionHash?: string;
 }
 
+export class VerifyError extends Error {
+  constructor(public errorExport: VerifyErrorExport) {
+    super(
+      `The worker task completed with an error. Error export: ${JSON.stringify(errorExport)}`,
+    );
+  }
+}
+
+export type VerifyErrorExport = Omit<MatchingErrorResponse, "message"> & {
+  errorData?: JobErrorData;
+};
+
 // We need to return an object from the worker for being able to return an
 // error with custom properties. Structured clone only copies the default
 // properties (name and message) of Error objects when they are thrown, but
@@ -32,5 +45,5 @@ export interface VerifyFromMetadataInput {
 // one of the two properties.
 export interface VerifyOutput {
   verificationExport?: VerificationExport;
-  errorResponse?: MatchingErrorResponse;
+  errorExport?: VerifyErrorExport;
 }

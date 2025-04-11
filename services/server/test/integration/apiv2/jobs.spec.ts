@@ -9,6 +9,7 @@ import {
   MatchingErrorResponse,
 } from "../../../src/server/apiv2/errors";
 import { verifyContract } from "../../helpers/helpers";
+import { JobErrorData } from "../../../src/server/services/utils/database-util";
 
 chai.use(chaiHttp);
 
@@ -68,13 +69,18 @@ describe("GET /v2/verify/:verificationId", function () {
     const onchainCreationCode = chainFixture.defaultContractArtifact.bytecode;
     const onchainRuntimeCode =
       chainFixture.defaultContractArtifact.deployedBytecode;
+    let errorData: JobErrorData | null = null;
     let error: MatchingErrorResponse | null = null;
     if (hasError) {
+      errorData = {
+        missingSources: ["someSource.sol"],
+      };
       error = {
-        customCode: "no_match",
+        customCode: "missing_source",
         errorId: uuidv4(),
         message: getVerificationErrorMessage({
-          code: "no_match",
+          code: "missing_source",
+          missingSources: errorData.missingSources,
         }),
         creationTransactionHash,
         recompiledCreationCode,
@@ -96,8 +102,9 @@ describe("GET /v2/verify/:verificationId", function () {
         verified_contract_id,
         error_code,
         error_id,
+        error_data,
         verification_endpoint
-      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)`,
       [
         verificationId,
         startTime,
@@ -108,6 +115,7 @@ describe("GET /v2/verify/:verificationId", function () {
         verifiedContractId,
         error?.customCode || null,
         error?.errorId || null,
+        errorData,
         "/verify",
       ],
     );

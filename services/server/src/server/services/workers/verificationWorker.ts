@@ -16,13 +16,10 @@ import { resolve } from "path";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { SolcLocal } from "../compiler/local/SolcLocal";
 import { VyperLocal } from "../compiler/local/VyperLocal";
-import {
-  getVerificationErrorMessage,
-  MatchingErrorResponse,
-} from "../../apiv2/errors";
 import { v4 as uuidv4 } from "uuid";
 import { getCreatorTx } from "../utils/contract-creation-util";
 import type {
+  VerifyErrorExport,
   VerifyFromJsonInput,
   VerifyFromMetadataInput,
   VerifyOutput,
@@ -88,17 +85,14 @@ export async function verifyFromJsonInput({
     }
   } catch (error: any) {
     return {
-      errorResponse: createMatchingError(error),
+      errorExport: createErrorExport(error),
     };
   }
 
   if (!compilation) {
     return {
-      errorResponse: {
+      errorExport: {
         customCode: "unsupported_language",
-        message: getVerificationErrorMessage({
-          code: "unsupported_language",
-        }),
         errorId: uuidv4(),
       },
     };
@@ -121,7 +115,7 @@ export async function verifyFromJsonInput({
     await verification.verify();
   } catch (error: any) {
     return {
-      errorResponse: createMatchingError(error, verification),
+      errorExport: createErrorExport(error, verification),
     };
   }
 
@@ -151,7 +145,7 @@ export async function verifyFromMetadata({
     compilation = await metadataContract.createCompilation(solc);
   } catch (error: any) {
     return {
-      errorResponse: createMatchingError(error),
+      errorExport: createErrorExport(error),
     };
   }
 
@@ -173,7 +167,7 @@ export async function verifyFromMetadata({
   } catch (error: any) {
     if (error.code !== "extra_file_input_bug") {
       return {
-        errorResponse: createMatchingError(error, verification),
+        errorExport: createErrorExport(error, verification),
       };
     }
 
@@ -202,7 +196,7 @@ export async function verifyFromMetadata({
       await verification.verify();
     } catch (allSourcesError: any) {
       return {
-        errorResponse: createMatchingError(allSourcesError, verification),
+        errorExport: createErrorExport(allSourcesError, verification),
       };
     }
   }
@@ -212,10 +206,10 @@ export async function verifyFromMetadata({
   };
 }
 
-function createMatchingError(
+function createErrorExport(
   error: Error,
   verification?: Verification,
-): MatchingErrorResponse {
+): VerifyErrorExport {
   if (!(error instanceof SourcifyLibError)) {
     // If the error is not a SourcifyLibError, the server reached an unexpected state.
     // Let the VerificationService log and handle it.
@@ -224,10 +218,14 @@ function createMatchingError(
 
   // Use VerificationExport to get bytecodes as it does not throw when accessing properties
   const verificationExport = verification?.export();
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { chainId, address, ...jobErrorData } = error.data;
+
   return {
     customCode: error.code,
-    message: error.message,
     errorId: uuidv4(),
+    errorData: Object.keys(jobErrorData).length > 0 ? jobErrorData : undefined,
     onchainRuntimeCode: verificationExport?.onchainRuntimeBytecode,
     onchainCreationCode: verificationExport?.onchainCreationBytecode,
     recompiledRuntimeCode: verificationExport?.compilation.runtimeBytecode,

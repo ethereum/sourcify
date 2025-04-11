@@ -12,8 +12,7 @@ import { sourcifyChainsMap } from "../../src/sourcify-chains";
 import {
   type SourcifyChainInstance,
   type SoliditySettings,
-  getErrorMessageFromCode,
-  SourcifyLibErrorParameters,
+  SourcifyLibErrorCode,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getAddress } from "ethers";
 import { VerifyOutput } from "../../src/server/services/workers/workerTypes";
@@ -21,6 +20,7 @@ import {
   deployFromAbiAndBytecodeForCreatorTxHash,
   DeploymentInfo,
 } from "../helpers/helpers";
+import { JobErrorData } from "../../src/server/services/utils/database-util";
 
 chai.use(chaiHttp);
 
@@ -169,13 +169,14 @@ describe("verificationWorker", function () {
 
   const assertErrorResponse = (
     result: VerifyOutput,
-    errorParameters: SourcifyLibErrorParameters,
+    code: SourcifyLibErrorCode,
+    data?: JobErrorData,
   ) => {
     expect(result).to.not.have.property("verificationExport");
-    expect(result).to.have.property("errorResponse");
-    expect(result.errorResponse).to.deep.include({
-      customCode: errorParameters.code,
-      message: getErrorMessageFromCode(errorParameters),
+    expect(result).to.have.property("errorExport");
+    expect(result.errorExport).to.deep.include({
+      customCode: code,
+      errorData: data,
     });
   };
 
@@ -249,7 +250,7 @@ describe("verificationWorker", function () {
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
-      assertErrorResponse(result, { code: "compiler_error" });
+      assertErrorResponse(result, "compiler_error");
     });
   });
 
@@ -319,8 +320,7 @@ describe("verificationWorker", function () {
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
-      assertErrorResponse(result, {
-        code: "missing_or_invalid_source",
+      assertErrorResponse(result, "missing_or_invalid_source", {
         invalidSources: [sourcePath],
         missingSources: [],
       });
@@ -336,8 +336,7 @@ describe("verificationWorker", function () {
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
-      assertErrorResponse(result, {
-        code: "missing_source",
+      assertErrorResponse(result, "missing_source", {
         missingSources: Object.keys(
           chainFixture.defaultContractMetadataObject.sources,
         ),
@@ -385,7 +384,7 @@ describe("verificationWorker", function () {
           creationTransactionHash: deploymentInfo.txHash,
         });
 
-        assertErrorResponse(result, { code: "extra_file_input_bug" });
+        assertErrorResponse(result, "extra_file_input_bug");
       });
 
       it("should verify with all input files if extra-file-input-bug is detected", async () => {

@@ -787,6 +787,7 @@ ${
       verification_jobs.verified_contract_id,
       verification_jobs.error_code,
       verification_jobs.error_id,
+      verification_jobs.error_data,
       verification_jobs.compilation_time,
       nullif(concat('0x',encode(verification_jobs_ephemeral.recompiled_creation_code, 'hex')), '0x') as recompiled_creation_code,
       nullif(concat('0x',encode(verification_jobs_ephemeral.recompiled_runtime_code, 'hex')), '0x') as recompiled_runtime_code,
@@ -858,6 +859,7 @@ ${
     compilation_time,
     error_code,
     error_id,
+    error_data,
   }: Pick<
     Tables.VerificationJob,
     | "id"
@@ -866,6 +868,7 @@ ${
     | "compilation_time"
     | "error_code"
     | "error_id"
+    | "error_data"
   >): Promise<void> {
     await this.pool.query(
       `UPDATE ${this.schema}.verification_jobs 
@@ -874,7 +877,8 @@ ${
         verified_contract_id = $3,
         compilation_time = $4,
         error_code = $5,
-        error_id = $6
+        error_id = $6,
+        error_data = $7
       WHERE id = $1`,
       [
         id,
@@ -883,6 +887,7 @@ ${
         compilation_time,
         error_code,
         error_id,
+        error_data,
       ],
     );
   }
