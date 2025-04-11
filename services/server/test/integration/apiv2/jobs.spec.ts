@@ -73,9 +73,8 @@ describe("GET /v2/verify/:verificationId", function () {
       error = {
         customCode: "no_match",
         errorId: uuidv4(),
-        message: getVerificationErrorMessage("no_match", {
-          chainId: chainFixture.chainId,
-          address: chainFixture.defaultContractAddress,
+        message: getVerificationErrorMessage({
+          code: "no_match",
         }),
         creationTransactionHash,
         recompiledCreationCode,

@@ -7,34 +7,61 @@ export type SourcifyLibErrorCode =
   | CompilationErrorCode
   | VerificationErrorCode;
 
-export interface ErrorMessagePayload {
-  address?: string;
-  chainId?: string;
-  compilationTargets?: string[];
-  missingSources?: string[];
-  invalidSources?: string[];
+interface SourcifyLibErrorDataRequired {
+  chainId: string;
+  address: string;
+  missingSources: string[];
+  invalidSources: string[];
+  compilationTargets: string[];
 }
+
+export type SourcifyLibErrorData = Partial<SourcifyLibErrorDataRequired>;
+
+// This structure gives type safety to the error parameters depending on the code.
+export type SourcifyLibErrorParameters =
+  | {
+      code: Exclude<
+        SourcifyLibErrorCode,
+        | 'missing_source'
+        | 'missing_or_invalid_source'
+        | 'invalid_compilation_target'
+        | 'cannot_fetch_bytecode'
+        | 'contract_not_deployed'
+      >;
+    }
+  | ({
+      code: 'missing_source';
+    } & Pick<SourcifyLibErrorDataRequired, 'missingSources'>)
+  | ({
+      code: 'missing_or_invalid_source';
+    } & Pick<SourcifyLibErrorDataRequired, 'missingSources' | 'invalidSources'>)
+  | ({
+      code: 'invalid_compilation_target';
+    } & Pick<SourcifyLibErrorDataRequired, 'compilationTargets'>)
+  | ({
+      code: 'cannot_fetch_bytecode' | 'contract_not_deployed';
+    } & Pick<SourcifyLibErrorDataRequired, 'address' | 'chainId'>);
 
 export class SourcifyLibError extends Error {
   public code: SourcifyLibErrorCode;
-  constructor(code: SourcifyLibErrorCode, payload?: ErrorMessagePayload) {
-    super(getErrorMessageFromCode(code, payload));
+  public data: SourcifyLibErrorData;
+  constructor(params: SourcifyLibErrorParameters) {
+    super(getErrorMessageFromCode(params));
+    const { code, ...data } = params;
     this.code = code;
+    this.data = data;
   }
 }
 
-export function getErrorMessageFromCode(
-  code: SourcifyLibErrorCode,
-  payload: ErrorMessagePayload = {},
-) {
-  switch (code) {
+export function getErrorMessageFromCode(params: SourcifyLibErrorParameters) {
+  switch (params.code) {
     // Validation errors
     case 'missing_source':
-      return `One or more sources are mentioned in the metadata but are not provided or could not be fetched.${payload.missingSources?.length ? ' Missing sources: ' + payload.missingSources.join(', ') : ''}`;
+      return `One or more sources are mentioned in the metadata but are not provided or could not be fetched. Missing sources: ${params.missingSources.join(', ')}`;
     case 'missing_or_invalid_source':
-      return `One or more sources are mentioned in the metadata but are missing or are invalid.${payload.missingSources?.length ? ' Missing sources: ' + payload.missingSources.join(', ') : ''}${payload.invalidSources?.length ? ' Invalid sources: ' + payload.invalidSources.join(', ') : ''}`;
+      return `One or more sources are mentioned in the metadata but are missing or are invalid. Missing sources: ${params.missingSources.join(', ')}; Invalid sources: ${params.invalidSources.join(', ')}`;
     case 'invalid_compilation_target':
-      return `More than one compilationTarget in the metadata, or the compilationTarget is invalid.${payload.compilationTargets ? ' compilationTarget: ' + payload.compilationTargets.join(', ') : ''}`;
+      return `More than one compilationTarget in the metadata, or the compilationTarget is invalid. compilationTarget: ${params.compilationTargets.join(', ')}`;
     // Compilation errors
     case 'compiler_error':
       return 'Compiler error.';
@@ -54,9 +81,9 @@ export function getErrorMessageFromCode(
       return 'Cannot generate cbor auxdata positions.';
     // Verification errors
     case 'cannot_fetch_bytecode':
-      return `Cannot fetch bytecode for chain #${payload.chainId} and address ${payload.address}.`;
+      return `Cannot fetch bytecode for chain #${params.chainId} and address ${params.address}.`;
     case 'contract_not_deployed':
-      return `Chain #${payload.chainId} does not have a contract deployed at ${payload.address}.`;
+      return `Chain #${params.chainId} does not have a contract deployed at ${params.address}.`;
     case 'compiled_bytecode_is_zero':
       return 'The compiled contract bytecode is "0x". Are you trying to verify an abstract contract?';
     case 'extra_file_input_bug':

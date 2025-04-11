@@ -4,7 +4,10 @@ import {
   VyperJsonInput,
   VyperOutput,
 } from '@ethereum-sourcify/compilers-types';
-import { SourcifyLibError } from '../SourcifyLibError';
+import {
+  SourcifyLibError,
+  SourcifyLibErrorParameters,
+} from '../SourcifyLibError';
 
 export interface CompiledContractCborAuxdata {
   [index: string]: {
@@ -41,8 +44,11 @@ export type CompilationErrorCode =
   | 'runtime_bytecode_cbor_auxdata_not_set';
 
 export class CompilationError extends SourcifyLibError {
-  constructor(code: CompilationErrorCode) {
-    super(code);
+  declare code: CompilationErrorCode;
+  constructor(
+    params: SourcifyLibErrorParameters & { code: CompilationErrorCode },
+  ) {
+    super(params);
   }
 }
 

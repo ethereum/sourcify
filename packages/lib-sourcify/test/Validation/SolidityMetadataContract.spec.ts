@@ -241,7 +241,12 @@ describe('SolidityMetadataContract', () => {
       };
       expect(
         () => new SolidityMetadataContract(metadata, validSources),
-      ).to.throw(getErrorMessageFromCode('invalid_compilation_target'));
+      ).to.throw(
+        getErrorMessageFromCode({
+          code: 'invalid_compilation_target',
+          compilationTargets: ['contract1.sol', 'contract2.sol'],
+        }),
+      );
     });
   });
 
@@ -313,7 +318,11 @@ describe('SolidityMetadataContract', () => {
     it('should throw error when there are missing sources', () => {
       const contract = new SolidityMetadataContract(validMetadata, []);
       expect(() => contract.createJsonInputFromMetadata()).to.throw(
-        getErrorMessageFromCode('missing_or_invalid_source'),
+        getErrorMessageFromCode({
+          code: 'missing_or_invalid_source',
+          missingSources: [validSourcePath],
+          invalidSources: [],
+        }),
       );
     });
 
@@ -329,7 +338,11 @@ describe('SolidityMetadataContract', () => {
         invalidSources,
       );
       expect(() => contract.createJsonInputFromMetadata()).to.throw(
-        getErrorMessageFromCode('missing_or_invalid_source'),
+        getErrorMessageFromCode({
+          code: 'missing_or_invalid_source',
+          missingSources: [validSourcePath],
+          invalidSources: [],
+        }),
       );
     });
   });
@@ -458,7 +471,10 @@ describe('SolidityMetadataContract', () => {
       nock('https://ipfs.io').get(/.*/).reply(404);
 
       await expect(contract.fetchMissing()).to.be.eventually.rejectedWith(
-        getErrorMessageFromCode('missing_source'),
+        getErrorMessageFromCode({
+          code: 'missing_source',
+          missingSources: [validSourcePath],
+        }),
       );
     });
   });

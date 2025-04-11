@@ -80,14 +80,16 @@ export class Verification {
         this.address,
       );
     } catch (e: any) {
-      throw new VerificationError('cannot_fetch_bytecode', {
+      throw new VerificationError({
+        code: 'cannot_fetch_bytecode',
         address: this.address,
         chainId: this.sourcifyChain.chainId.toString(),
       });
     }
 
     if (this.onchainRuntimeBytecode === '0x') {
-      throw new VerificationError('contract_not_deployed', {
+      throw new VerificationError({
+        code: 'contract_not_deployed',
         address: this.address,
         chainId: this.sourcifyChain.chainId.toString(),
       });
@@ -104,7 +106,9 @@ export class Verification {
     const compiledCreationBytecode = this.compilation.creationBytecode;
 
     if (compiledRuntimeBytecode === '0x' || compiledCreationBytecode === '0x') {
-      throw new VerificationError('compiled_bytecode_is_zero');
+      throw new VerificationError({
+        code: 'compiled_bytecode_is_zero',
+      });
     }
 
     // Early bytecode length check:
@@ -123,10 +127,14 @@ export class Verification {
       if (this.compilation instanceof SolidityCompilation) {
         const solidityBugType = this.handleSolidityExtraFileInputBug();
         if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
-          throw new VerificationError('extra_file_input_bug');
+          throw new VerificationError({
+            code: 'extra_file_input_bug',
+          });
         }
       }
-      throw new VerificationError('bytecode_length_mismatch');
+      throw new VerificationError({
+        code: 'bytecode_length_mismatch',
+      });
     }
 
     // We need to manually generate the auxdata positions because they are not automatically produced during compilation
@@ -160,7 +168,9 @@ export class Verification {
       // Handle Solidity extra file input bug
       let solidityBugType = this.handleSolidityExtraFileInputBug();
       if (solidityBugType === SolidityBugType.EXTRA_FILE_INPUT_BUG) {
-        throw new VerificationError('extra_file_input_bug');
+        throw new VerificationError({
+          code: 'extra_file_input_bug',
+        });
       }
 
       // Handle Solidity IR output ordering bug
@@ -216,7 +226,9 @@ export class Verification {
       return;
     }
 
-    throw new VerificationError('no_match');
+    throw new VerificationError({
+      code: 'no_match',
+    });
   }
 
   private async checkForPerfectMetadata(forceEmscripten: boolean) {
@@ -497,14 +509,18 @@ export class Verification {
 
   get onchainRuntimeBytecode() {
     if (!this._onchainRuntimeBytecode) {
-      throw new VerificationError('onchain_runtime_bytecode_not_available');
+      throw new VerificationError({
+        code: 'onchain_runtime_bytecode_not_available',
+      });
     }
     return this._onchainRuntimeBytecode;
   }
 
   get onchainCreationBytecode() {
     if (!this._onchainCreationBytecode) {
-      throw new VerificationError('onchain_creation_bytecode_not_available');
+      throw new VerificationError({
+        code: 'onchain_creation_bytecode_not_available',
+      });
     }
     return this._onchainCreationBytecode;
   }

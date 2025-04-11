@@ -96,7 +96,9 @@ export async function verifyFromJsonInput({
     return {
       errorResponse: {
         customCode: "unsupported_language",
-        message: getVerificationErrorMessage("unsupported_language"),
+        message: getVerificationErrorMessage({
+          code: "unsupported_language",
+        }),
         errorId: uuidv4(),
       },
     };

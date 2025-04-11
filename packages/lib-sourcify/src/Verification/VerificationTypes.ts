@@ -17,7 +17,10 @@ import {
   SolidityOutputSource,
   VyperOutputSource,
 } from '@ethereum-sourcify/compilers-types';
-import { ErrorMessagePayload, SourcifyLibError } from '../SourcifyLibError';
+import {
+  SourcifyLibErrorParameters,
+  SourcifyLibError,
+} from '../SourcifyLibError';
 import { Transformation, TransformationValues } from './Transformations';
 
 export interface BytecodeMatchingResult {
@@ -41,8 +44,11 @@ export type VerificationErrorCode =
   | 'bytecode_length_mismatch';
 
 export class VerificationError extends SourcifyLibError {
-  constructor(code: VerificationErrorCode, payload?: ErrorMessagePayload) {
-    super(code, payload);
+  declare code: VerificationErrorCode;
+  constructor(
+    params: SourcifyLibErrorParameters & { code: VerificationErrorCode },
+  ) {
+    super(params);
   }
 }
 
