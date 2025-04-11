@@ -52,7 +52,7 @@ export type FetchRequestRPC = Omit<BaseRPC, 'type'> & {
   type: 'FetchRequest';
   headers?: Array<{
     headerName: string;
-    headerEnvName: string;
+    headerValue: string;
   }>;
 };
 

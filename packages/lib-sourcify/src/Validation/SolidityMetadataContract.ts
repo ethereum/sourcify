@@ -1,6 +1,6 @@
 import { id as keccak256str } from 'ethers';
 import semver from 'semver';
-import { getIpfsGateway, performFetch } from './fetchUtils';
+import { performFetch } from './fetchUtils';
 import { SolidityCompilation } from '../Compilation/SolidityCompilation';
 import {
   Libraries,
@@ -10,7 +10,12 @@ import {
   MetadataSourceMap,
 } from '@ethereum-sourcify/compilers-types';
 import { ISolidityCompiler, StringMap } from '../Compilation/CompilationTypes';
-import { InvalidSources, MissingSources, PathContent } from './ValidationTypes';
+import {
+  InvalidSources,
+  IpfsGateway,
+  MissingSources,
+  PathContent,
+} from './ValidationTypes';
 import {
   AuxdataStyle,
   decode as decodeBytecode,
@@ -37,6 +42,20 @@ export class SolidityMetadataContract {
   metadataPathToProvidedFilePath: StringMap; // maps the file path as in metadata.sources to the path of the provided by the user. E.g. metadata can have "contracts/1_Storage.sol" but the user provided "/Users/user/project/contracts/1_Storage.sol"
   compilation: SolidityCompilation | null;
   solcJsonInput: SolidityJsonInput | null;
+
+  // Static IPFS gateway configuration
+  private static ipfsGateway: IpfsGateway = {
+    url: 'https://ipfs.io/ipfs/',
+  };
+
+  // Static method to set the IPFS gateway
+  public static setGlobalIpfsGateway(gateway: IpfsGateway): void {
+    SolidityMetadataContract.ipfsGateway = gateway;
+  }
+
+  public static getGlobalIpfsGateway(): IpfsGateway {
+    return SolidityMetadataContract.ipfsGateway;
+  }
 
   constructor(metadata: Metadata, providedSources: PathContent[]) {
     this.metadata = metadata;
@@ -197,13 +216,12 @@ export class SolidityMetadataContract {
         for (const url of file.urls) {
           if (url.startsWith(IPFS_PREFIX)) {
             const ipfsCID = url.slice(IPFS_PREFIX.length);
-            const ipfsGateway = getIpfsGateway();
-            const ipfsUrl = ipfsGateway.url + ipfsCID;
+            const ipfsUrl = SolidityMetadataContract.ipfsGateway.url + ipfsCID;
             retrievedContent = await performFetch(
               ipfsUrl,
               hash,
               fileName,
-              ipfsGateway.headers,
+              SolidityMetadataContract.ipfsGateway.headers,
             );
             if (retrievedContent) {
               break;

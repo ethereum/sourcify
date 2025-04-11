@@ -13,8 +13,8 @@ import {
   IVyperCompiler,
   PathBuffer,
   PathContent,
-  getIpfsGateway,
   performFetch,
+  SolidityMetadataContract,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../common/errors";
 
@@ -113,7 +113,7 @@ export async function addInputContractEndpoint(req: Request, res: Response) {
     throw new BadRequestError("The contract doesn't have a metadata IPFS CID");
   }
 
-  const ipfsGateway = getIpfsGateway();
+  const ipfsGateway = SolidityMetadataContract.getGlobalIpfsGateway();
   const ipfsUrl = `${ipfsGateway.url}${metadataIpfsCid}`;
   const metadataFileName = "metadata.json";
   const retrievedMetadataText = await performFetch(

@@ -14,6 +14,7 @@ import storageContractMetadataModified from "../testcontracts/Storage/metadataMo
 import storageJsonInput from "../testcontracts/Storage/StorageJsonInput.json";
 import { ChildProcess, spawn } from "child_process";
 import treeKill from "tree-kill";
+import { SolidityMetadataContract } from "@ethereum-sourcify/lib-sourcify";
 
 const storageContractSourcePath = path.join(
   __dirname,
@@ -118,7 +119,7 @@ export class LocalChainFixture {
         path.join(__dirname, "..", "mocks", "ipfs"),
       );
       for (const ipfsKey of Object.keys(mockContent)) {
-        nock(process.env.IPFS_GATEWAY || "")
+        nock(SolidityMetadataContract.getGlobalIpfsGateway().url || "")
           .persist()
           .get("/" + ipfsKey)
           .reply(function () {

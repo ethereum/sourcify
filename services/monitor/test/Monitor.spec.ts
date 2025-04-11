@@ -105,8 +105,10 @@ describe("Monitor", function () {
     });
 
     it("should create FetchRequest for ethpandaops.io URLs", () => {
-      process.env.CF_ACCESS_CLIENT_ID = "client123";
-      process.env.CF_ACCESS_CLIENT_SECRET = "secret456";
+      const clientId = "client123";
+      const clientSecret = "secret456";
+      process.env.CF_ACCESS_CLIENT_ID = clientId;
+      process.env.CF_ACCESS_CLIENT_SECRET = clientSecret;
       const rpc = ["https://rpc.ethpandaops.io/test"];
       const result = authenticateRpcs({ chainId: 1, rpc: rpc, name: "Test" });
 
@@ -116,11 +118,11 @@ describe("Monitor", function () {
       expect(fetchRequest.headers).to.have.lengthOf(2);
       expect(fetchRequest.headers).to.deep.include({
         headerName: "CF-Access-Client-Id",
-        headerEnvName: "CF_ACCESS_CLIENT_ID",
+        headerValue: clientId,
       });
       expect(fetchRequest.headers).to.deep.include({
         headerName: "CF-Access-Client-Secret",
-        headerEnvName: "CF_ACCESS_CLIENT_SECRET",
+        headerValue: clientSecret,
       });
     });
 

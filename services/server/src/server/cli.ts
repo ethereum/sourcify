@@ -18,11 +18,42 @@ import genFunc from "connect-pg-simple";
 // local imports
 import logger from "../common/logger";
 import { sourcifyChainsMap } from "../sourcify-chains";
-import { Server } from "./server";
+import { LibSourcifyConfig, Server } from "./server";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
-
 import session from "express-session";
 import { VyperLocal } from "./services/compiler/local/VyperLocal";
+
+// lib-sourcify configuration
+const libSourcifyConfig: LibSourcifyConfig = {};
+if (process.env.IPFS_GATEWAY || process.env.IPFS_GATEWAY_HEADERS) {
+  try {
+    libSourcifyConfig.ipfsGateway = {
+      url: process.env.IPFS_GATEWAY || "https://ipfs.io/ipfs/",
+      headers: JSON.parse(process.env.IPFS_GATEWAY_HEADERS || "{}"),
+    };
+  } catch (error) {
+    logger.error("Error setting lib-sourcify IPFS gateway", { error });
+    throw new Error("Error setting lib-sourcify IPFS gateway");
+  }
+}
+
+if (process.env.RPC_TIMEOUT) {
+  try {
+    libSourcifyConfig.rpcTimeout = parseInt(process.env.RPC_TIMEOUT);
+    logger.info("lib-sourcify RPC timeout set", {
+      rpcTimeout: process.env.RPC_TIMEOUT,
+    });
+  } catch (error) {
+    logger.error("Error setting lib-sourcify RPC timeout", { error });
+    throw new Error("Error setting lib-sourcify RPC timeout");
+  }
+}
+
+if (process.env.NODE_ENV !== "production") {
+  // Set the log level to 4 (debug) in non-production environments
+  libSourcifyConfig.logLevel = 4;
+  logger.info("lib-sourcify log level set to debug");
+}
 
 // Solidity Compiler
 
@@ -61,6 +92,7 @@ const server = new Server(
     upgradeContract: config.get("upgradeContract"),
     sessionOptions: getSessionOptions(),
     sourcifyPrivateToken: process.env.SOURCIFY_PRIVATE_TOKEN,
+    libSourcifyConfig,
   },
   {
     initCompilers: config.get("initCompilers") || false,
