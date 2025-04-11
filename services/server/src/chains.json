@@ -21720,7 +21720,7 @@
     "explorers": [
       {
         "name": "Syscoin Testnet Block Explorer",
-        "url": "https://explorer.tanenbaum.io",
+        "url": "https://tanenbaum.io",
         "standard": "EIP3091"
       }
     ]
