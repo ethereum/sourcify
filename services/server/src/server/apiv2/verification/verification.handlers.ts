@@ -23,13 +23,13 @@ interface VerifyFromJsonInputRequest extends Request {
   };
 }
 
-type VerifyFromJsonInputResponse = TypedResponse<{
+type VerifyResponse = TypedResponse<{
   verificationId: string;
 }>;
 
 export async function verifyFromJsonInputEndpoint(
   req: VerifyFromJsonInputRequest,
-  res: VerifyFromJsonInputResponse,
+  res: VerifyResponse,
 ) {
   logger.debug("verifyFromJsonInputEndpoint", {
     chainId: req.params.chainId,
@@ -77,13 +77,9 @@ interface VerifyFromMetadataRequest extends Request {
   };
 }
 
-type VerifyFromMetadataResponse = TypedResponse<{
-  verificationId: string;
-}>;
-
 export async function verifyFromMetadataEndpoint(
   req: VerifyFromMetadataRequest,
-  res: VerifyFromMetadataResponse,
+  res: VerifyResponse,
 ) {
   logger.debug("verifyFromMetadataEndpoint", {
     chainId: req.params.chainId,
@@ -91,6 +87,39 @@ export async function verifyFromMetadataEndpoint(
     sources: req.body.sources,
     metadata: req.body.metadata,
     creationTransactionHash: req.body.creationTransactionHash,
+  });
+
+  const services = req.app.get("services") as Services;
+  const verificationId =
+    await services.verification.verifyFromMetadataViaWorker(
+      req.baseUrl + req.path,
+      req.params.chainId,
+      req.params.address,
+      req.body.metadata,
+      req.body.sources,
+      req.body.creationTransactionHash,
+    );
+
+  res.status(StatusCodes.ACCEPTED).json({ verificationId });
+}
+
+interface VerifyFromEtherscanRequest extends Request {
+  params: {
+    chainId: string;
+    address: string;
+  };
+  body: {
+    apiKey: string;
+  };
+}
+
+export async function verifyFromEtherscanEndpoint(
+  req: VerifyFromEtherscanRequest,
+  res: VerifyResponse,
+) {
+  logger.debug("verifyFromEtherscanEndpoint", {
+    chainId: req.params.chainId,
+    address: req.params.address,
   });
 
   const services = req.app.get("services") as Services;
