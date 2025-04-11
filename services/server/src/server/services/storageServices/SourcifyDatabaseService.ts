@@ -784,13 +784,11 @@ export class SourcifyDatabaseService
     if (row.error_code && row.error_id) {
       job.error = {
         customCode: row.error_code as VerificationErrorCode,
-        message: getVerificationErrorMessage(
-          row.error_code as VerificationErrorCode,
-          {
-            chainId: row.chain_id,
-            address,
-          },
-        ),
+        message: getVerificationErrorMessage({
+          code: row.error_code as VerificationErrorCode,
+          chainId: row.chain_id,
+          address,
+        }),
         errorId: row.error_id,
         recompiledCreationCode: row.recompiled_creation_code || undefined,
         recompiledRuntimeCode: row.recompiled_runtime_code || undefined,

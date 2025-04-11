@@ -229,7 +229,8 @@ export class SolidityMetadataContract {
       logDebug('Resource missing; unsuccessful fetching.', {
         missing: this.missingSources,
       });
-      throw new ValidationError('missing_source', {
+      throw new ValidationError({
+        code: 'missing_source',
         missingSources: Object.keys(this.missingSources),
       });
     }
@@ -249,7 +250,8 @@ export class SolidityMetadataContract {
           invalid: this.invalidSources,
         },
       );
-      throw new ValidationError('missing_or_invalid_source', {
+      throw new ValidationError({
+        code: 'missing_or_invalid_source',
         missingSources: Object.keys(this.missingSources),
         invalidSources: Object.keys(this.invalidSources),
       });
@@ -281,7 +283,8 @@ export class SolidityMetadataContract {
           ),
         },
       );
-      throw new ValidationError('invalid_compilation_target', {
+      throw new ValidationError({
+        code: 'invalid_compilation_target',
         compilationTargets: Object.keys(
           this.metadata.settings.compilationTarget,
         ),

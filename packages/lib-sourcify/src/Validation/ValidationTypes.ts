@@ -1,4 +1,7 @@
-import { ErrorMessagePayload, SourcifyLibError } from '../SourcifyLibError';
+import {
+  SourcifyLibErrorParameters,
+  SourcifyLibError,
+} from '../SourcifyLibError';
 
 export interface PathBuffer {
   path: string;
@@ -40,7 +43,10 @@ export type ValidationErrorCode =
   | 'invalid_compilation_target';
 
 export class ValidationError extends SourcifyLibError {
-  constructor(code: ValidationErrorCode, payload?: ErrorMessagePayload) {
-    super(code, payload);
+  declare code: ValidationErrorCode;
+  constructor(
+    params: SourcifyLibErrorParameters & { code: ValidationErrorCode },
+  ) {
+    super(params);
   }
 }

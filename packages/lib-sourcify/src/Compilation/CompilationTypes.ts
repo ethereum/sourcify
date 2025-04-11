@@ -1,6 +1,9 @@
 import { Abi } from 'abitype';
 import { SoliditySettings } from './SolidityTypes';
-import { SourcifyLibError } from '../SourcifyLibError';
+import {
+  SourcifyLibErrorParameters,
+  SourcifyLibError,
+} from '../SourcifyLibError';
 
 export interface LinkReferences {
   [filePath: string]: {
@@ -138,7 +141,10 @@ export type CompilationErrorCode =
   | 'runtime_bytecode_cbor_auxdata_not_set';
 
 export class CompilationError extends SourcifyLibError {
-  constructor(code: CompilationErrorCode) {
-    super(code);
+  declare code: CompilationErrorCode;
+  constructor(
+    params: SourcifyLibErrorParameters & { code: CompilationErrorCode },
+  ) {
+    super(params);
   }
 }
