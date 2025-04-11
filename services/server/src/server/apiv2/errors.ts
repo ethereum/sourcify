@@ -40,12 +40,6 @@ export interface MatchingErrorResponse extends GenericErrorResponse {
   creationTransactionHash?: string;
 }
 
-export class MatchingError extends Error {
-  constructor(public response: MatchingErrorResponse) {
-    super(response.message);
-  }
-}
-
 export class InternalError extends InternalServerError {
   payload: GenericErrorResponse;
 

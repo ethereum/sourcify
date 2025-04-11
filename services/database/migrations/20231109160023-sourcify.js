@@ -99,6 +99,7 @@ exports.up = function (db, callback) {
             verified_contract_id BIGINT,
             error_code varchar,
             error_id uuid,
+            error_data json,
             verification_endpoint varchar NOT NULL,
             hardware varchar,
             compilation_time BIGINT,
