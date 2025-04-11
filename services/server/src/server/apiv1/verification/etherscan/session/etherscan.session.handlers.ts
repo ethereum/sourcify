@@ -17,7 +17,7 @@ import {
   processEtherscanVyperContract,
   processRequestFromEtherscan,
   stringToBase64,
-} from "../etherscan.common";
+} from "../../../../services/utils/etherscan-utils";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import { Services } from "../../../../services/services";

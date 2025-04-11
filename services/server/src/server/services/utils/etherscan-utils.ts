@@ -1,4 +1,4 @@
-import { BadRequestError, NotFoundError } from "../../../../common/errors";
+import { BadRequestError, NotFoundError } from "../../../common/errors";
 import {
   ISolidityCompiler,
   IVyperCompiler,
@@ -10,9 +10,9 @@ import {
   CompilationTarget,
   SolidityMetadataContract,
 } from "@ethereum-sourcify/lib-sourcify";
-import { TooManyRequests } from "../../../../common/errors/TooManyRequests";
-import { BadGatewayError } from "../../../../common/errors/BadGatewayError";
-import logger from "../../../../common/logger";
+import { TooManyRequests } from "../../../common/errors/TooManyRequests";
+import { BadGatewayError } from "../../../common/errors/BadGatewayError";
+import logger from "../../../common/logger";
 
 const findContractPathFromContractName = (
   contracts: any,
