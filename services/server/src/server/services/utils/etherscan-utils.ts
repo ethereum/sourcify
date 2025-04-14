@@ -474,17 +474,6 @@ export const getMetadataFromCompiler = async (
   );
 };
 
-export const getMappedSourcesFromJsonInput = (jsonInput: SolidityJsonInput) => {
-  const mappedSources: any = {};
-  for (const name in jsonInput.sources) {
-    const source = jsonInput.sources[name];
-    if (source.content) {
-      mappedSources[name] = source.content;
-    }
-  }
-  return mappedSources;
-};
-
 export const stringToBase64 = (str: string): string => {
   return Buffer.from(str, "utf8").toString("base64");
 };

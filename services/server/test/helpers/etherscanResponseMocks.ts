@@ -1,3 +1,26 @@
+import nock from "nock";
+import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+
+export const mockEtherscanApi = (
+  sourcifyChain: SourcifyChain,
+  contractAddress: string,
+  response: any,
+  apiKey?: string,
+): nock.Scope => {
+  if (!sourcifyChain.etherscanApi) {
+    chai.assert.fail(
+      `Etherscan for chain ${sourcifyChain.chainId} not configured`,
+    );
+  }
+  return nock(sourcifyChain.etherscanApi!.apiURL)
+    .get(
+      `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey ?? process.env["ETHERSCAN_API_KEY"]}`,
+    )
+    .reply(function () {
+      return [200, response];
+    });
+};
+
 export const UNVERIFIED_CONTRACT_RESPONSE = {
   status: "1",
   message: "OK",
