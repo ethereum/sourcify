@@ -9,10 +9,18 @@ import {
   VyperCompilation,
   CompilationTarget,
   SolidityMetadataContract,
+  Sources,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../../common/errors/BadGatewayError";
 import logger from "../../../common/logger";
+import {
+  ChainNotFoundError,
+  EtherscanLimitError,
+  EtherscanRequestFailedError,
+  MalformedEtherscanResponseError,
+  NotEtherscanVerifiedError,
+} from "../../apiv2/errors";
 
 const findContractPathFromContractName = (
   contracts: any,
@@ -104,7 +112,8 @@ export type EtherscanResult = {
   SwarmSource: string;
 };
 
-export const parseJsonInput = (sourceCodeObject: string) => {
+export const parseEtherscanJsonInput = (sourceCodeObject: string) => {
+  // Etherscan wraps the json object: {{ ... }}
   return JSON.parse(sourceCodeObject.slice(1, -1));
 };
 
@@ -125,7 +134,7 @@ export const isEtherscanJsonInput = (sourceCodeObject: string) => {
 
 export const getSolcJsonInputFromEtherscanResult = (
   etherscanResult: EtherscanResult,
-  sources: any,
+  sources: Sources,
 ): SolidityJsonInput => {
   const generatedSettings = {
     optimizer: {
@@ -151,7 +160,7 @@ export const getSolcJsonInputFromEtherscanResult = (
   return solcJsonInput;
 };
 
-export const getVyperJsonInputFromEtherscanResult = (
+export const getVyperJsonInputFromSingleFileResult = (
   etherscanResult: EtherscanResult,
   sources: VyperJsonInput["sources"],
 ): VyperJsonInput => {
@@ -172,33 +181,35 @@ export const getVyperJsonInputFromEtherscanResult = (
   };
 };
 
-export interface ProcessedEtherscanSolidityResult {
+export interface FetchFromEtherscanSolidityResult {
   compilerVersion: string;
   solcJsonInput: SolidityJsonInput;
   contractName: string;
 }
 
-export interface ProcessedEtherscanVyperResult {
+export interface FetchFromEtherscanVyperResult {
   compilerVersion: string;
   vyperJsonInput: VyperJsonInput;
   contractPath: string;
   contractName: string;
 }
 
-export interface ProcessedEtherscanResult {
-  vyperResult?: ProcessedEtherscanVyperResult;
-  solidityResult?: ProcessedEtherscanSolidityResult;
+export interface FetchFromEtherscanResult {
+  vyperResult?: FetchFromEtherscanVyperResult;
+  solidityResult?: FetchFromEtherscanSolidityResult;
 }
 
-export const processRequestFromEtherscan = async (
+export const fetchCompilerInputFromEtherscan = async (
   sourcifyChain: SourcifyChain,
   address: string,
   apiKey?: string,
-): Promise<ProcessedEtherscanResult> => {
+  throwV2Errors: boolean = false,
+): Promise<FetchFromEtherscanResult> => {
   if (!sourcifyChain.etherscanApi) {
-    throw new BadRequestError(
-      `Requested chain ${sourcifyChain.chainId} is not supported for importing from Etherscan`,
-    );
+    const errorMessage = `Requested chain ${sourcifyChain.chainId} is not supported for importing from Etherscan.`;
+    throw throwV2Errors
+      ? new ChainNotFoundError(errorMessage)
+      : new BadRequestError(errorMessage);
   }
 
   const url = `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}`;
@@ -207,33 +218,36 @@ export const processRequestFromEtherscan = async (
   let response;
   const secretUrl = `${url}&apikey=${usedApiKey || ""}`;
   logger.debug("Fetching from Etherscan", {
-    secretUrl,
+    url,
     chainId: sourcifyChain.chainId,
     address,
   });
   try {
     response = await fetch(secretUrl);
-  } catch (e: any) {
-    throw new BadGatewayError(
-      `Request to ${url}&apiKey=XXX failed with code ${e.code}`,
-    );
+  } catch (error) {
+    const errorMessage = `Request to ${url}&apiKey=XXX failed.`;
+    throw throwV2Errors
+      ? new EtherscanRequestFailedError(errorMessage)
+      : new BadGatewayError(errorMessage);
   }
   logger.debug("Fetched from Etherscan", {
-    secretUrl,
+    url,
     chainId: sourcifyChain.chainId,
     address,
   });
 
   if (!response.ok) {
     logger.warn("Etherscan API error", {
-      secretUrl,
+      url,
       chainId: sourcifyChain.chainId,
       address,
+      status: response.status,
       response: JSON.stringify(response),
     });
-    throw new BadRequestError(
-      "Error in Etherscan API response. Status code: " + response.status,
-    );
+    const errorMessage = `Etherscan API responded with an error. Status code: ${response.status}.`;
+    throw throwV2Errors
+      ? new EtherscanRequestFailedError(errorMessage)
+      : new BadGatewayError(errorMessage);
   }
 
   const resultJson = await response.json();
@@ -243,39 +257,51 @@ export const processRequestFromEtherscan = async (
     resultJson.result.includes("rate limit reached")
   ) {
     logger.info("Etherscan Rate Limit", {
-      secretUrl,
+      url,
       chainId: sourcifyChain.chainId,
       address,
-      resultJson: JSON.stringify(resultJson),
+      resultJson,
     });
-    throw new TooManyRequests("Etherscan API rate limit reached, try later");
+    const errorMessage = "Etherscan API rate limit reached, try later.";
+    throw throwV2Errors
+      ? new EtherscanLimitError(errorMessage)
+      : new TooManyRequests(errorMessage);
   }
 
   if (resultJson.message === "NOTOK") {
     logger.error("Etherscan API error", {
-      secretUrl,
+      url,
       chainId: sourcifyChain.chainId,
       address,
-      resultJson: JSON.stringify(resultJson),
+      resultJson,
     });
-    throw new BadGatewayError(
-      "Error in Etherscan API response. Result message: " + resultJson.result,
-    );
+    const errorMessage =
+      "Error in Etherscan API response. Result message: " + resultJson.result;
+    throw throwV2Errors
+      ? new EtherscanRequestFailedError(errorMessage)
+      : new BadGatewayError(errorMessage);
   }
+
   if (resultJson.result[0].SourceCode === "") {
     logger.info("Contract not found on Etherscan", {
+      url,
       chainId: sourcifyChain.chainId,
       address,
-      secretUrl,
     });
-    throw new NotFoundError("This contract is not verified on Etherscan");
+    const errorMessage = "This contract is not verified on Etherscan.";
+    throw throwV2Errors
+      ? new NotEtherscanVerifiedError(errorMessage)
+      : new NotFoundError(errorMessage);
   }
 
   const contractResultJson = resultJson.result[0] as EtherscanResult;
 
   if (contractResultJson.CompilerVersion.startsWith("vyper")) {
     return {
-      vyperResult: await processVyperResultFromEtherscan(contractResultJson),
+      vyperResult: await processVyperResultFromEtherscan(
+        contractResultJson,
+        throwV2Errors,
+      ),
     };
   } else {
     return {
@@ -286,9 +312,8 @@ export const processRequestFromEtherscan = async (
 
 const processSolidityResultFromEtherscan = (
   contractResultJson: EtherscanResult,
-): ProcessedEtherscanSolidityResult => {
+): FetchFromEtherscanSolidityResult => {
   const sourceCodeObject = contractResultJson.SourceCode;
-  // TODO: this is not used by lib-sourcify's useSolidityCompiler
   const contractName = contractResultJson.ContractName;
 
   const compilerVersion =
@@ -300,7 +325,7 @@ const processSolidityResultFromEtherscan = (
   // SourceCode can be the Solidity code if there is only one contract file, or the json object if there are multiple files
   if (isEtherscanJsonInput(sourceCodeObject)) {
     logger.debug("Etherscan solcJsonInput contract found");
-    solcJsonInput = parseJsonInput(sourceCodeObject);
+    solcJsonInput = parseEtherscanJsonInput(sourceCodeObject);
 
     if (solcJsonInput?.settings) {
       // Tell compiler to output metadata and bytecode
@@ -329,13 +354,6 @@ const processSolidityResultFromEtherscan = (
     );
   }
 
-  if (!solcJsonInput) {
-    logger.info("Etherscan API - no solcJsonInput");
-    throw new BadRequestError(
-      "Sourcify cannot generate the solcJsonInput from Etherscan result",
-    );
-  }
-
   return {
     compilerVersion,
     solcJsonInput,
@@ -345,16 +363,19 @@ const processSolidityResultFromEtherscan = (
 
 const processVyperResultFromEtherscan = async (
   contractResultJson: EtherscanResult,
-): Promise<ProcessedEtherscanVyperResult> => {
+  throwV2Errors: boolean,
+): Promise<FetchFromEtherscanVyperResult> => {
   const sourceCodeProperty = contractResultJson.SourceCode;
 
   const compilerVersion = await getVyperCompilerVersion(
     contractResultJson.CompilerVersion,
   );
   if (!compilerVersion) {
-    throw new BadRequestError(
-      "Could not map the Vyper version from Etherscan to a valid compiler version",
-    );
+    const errorMessage =
+      "Could not map the Vyper version from Etherscan to a valid compiler version.";
+    throw throwV2Errors
+      ? new MalformedEtherscanResponseError(errorMessage)
+      : new BadRequestError(errorMessage);
   }
 
   let contractName: string;
@@ -363,7 +384,7 @@ const processVyperResultFromEtherscan = async (
   if (isEtherscanJsonInput(sourceCodeProperty)) {
     logger.debug("Etherscan vyperJsonInput contract found");
 
-    const parsedJsonInput = parseJsonInput(sourceCodeProperty);
+    const parsedJsonInput = parseEtherscanJsonInput(sourceCodeProperty);
 
     // Etherscan derives the ContractName from the @title natspec. Therefore, we cannot use the ContractName to find the contract path.
     contractPath = Object.keys(parsedJsonInput.settings.outputSelection)[0];
@@ -375,9 +396,11 @@ const processVyperResultFromEtherscan = async (
         source.includes(contractResultJson.ContractName),
       )!;
       if (!contractPath) {
-        throw new BadRequestError(
-          "This Vyper contracts is not verifiable by using Import From Etherscan",
-        );
+        const errorMessage =
+          "The json input sources in the response from Etherscan don't include the expected contract.";
+        throw throwV2Errors
+          ? new MalformedEtherscanResponseError(errorMessage)
+          : new BadRequestError(errorMessage);
       }
     }
 
@@ -406,10 +429,17 @@ const processVyperResultFromEtherscan = async (
       [contractPath]: { content: sourceCode },
     };
 
-    vyperJsonInput = getVyperJsonInputFromEtherscanResult(
+    vyperJsonInput = getVyperJsonInputFromSingleFileResult(
       contractResultJson,
       sources,
     );
+  }
+
+  if (!vyperJsonInput.settings) {
+    const errorMessage = "Couldn't get Vyper compiler settings from Etherscan.";
+    throw throwV2Errors
+      ? new MalformedEtherscanResponseError(errorMessage)
+      : new BadRequestError(errorMessage);
   }
 
   return {
@@ -435,7 +465,7 @@ export const getMetadataFromCompiler = async (
 
   if (!contractPath) {
     throw new BadRequestError(
-      "This contract was verified with errors on Etherscan",
+      "This contract was verified with errors on Etherscan.",
     );
   }
 
@@ -461,24 +491,22 @@ export const stringToBase64 = (str: string): string => {
 
 export async function processEtherscanSolidityContract(
   solc: ISolidityCompiler,
-  compilerVersion: string,
-  solcJsonInput: SolidityJsonInput,
-  contractName: string,
+  fetchedResult: FetchFromEtherscanSolidityResult,
 ) {
   // TODO: we need to find a way to skip recompilation
   // the problem is that I don't know how to get the contract path from the etherscan result
   const metadata = await getMetadataFromCompiler(
     solc,
-    compilerVersion,
-    solcJsonInput,
-    contractName,
+    fetchedResult.compilerVersion,
+    fetchedResult.solcJsonInput,
+    fetchedResult.contractName,
   );
 
   const solidityMetadataContract = new SolidityMetadataContract(
     metadata,
-    Object.keys(solcJsonInput.sources).map((source) => ({
+    Object.keys(fetchedResult.solcJsonInput.sources).map((source) => ({
       path: source,
-      content: solcJsonInput.sources[source].content,
+      content: fetchedResult.solcJsonInput.sources[source].content,
     })),
   );
 
@@ -487,28 +515,19 @@ export async function processEtherscanSolidityContract(
 
 export async function processEtherscanVyperContract(
   vyperCompiler: IVyperCompiler,
-  compilerVersion: string,
-  vyperJsonInput: VyperJsonInput,
-  contractPath: string,
-  contractName: string,
+  fetchedResult: FetchFromEtherscanVyperResult,
 ) {
-  if (!vyperJsonInput.settings) {
-    throw new BadRequestError(
-      "Couldn't get Vyper compiler settings from Etherscan",
-    );
-  }
-
   // Create compilation target
   const compilationTarget: CompilationTarget = {
-    path: contractPath,
-    name: contractName,
+    path: fetchedResult.contractPath,
+    name: fetchedResult.contractName,
   };
 
   // Create and return VyperCompilation directly
   return new VyperCompilation(
     vyperCompiler,
-    compilerVersion,
-    vyperJsonInput,
+    fetchedResult.compilerVersion,
+    fetchedResult.vyperJsonInput,
     compilationTarget,
   );
 }

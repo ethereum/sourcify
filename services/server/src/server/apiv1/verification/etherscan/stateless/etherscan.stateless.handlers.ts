@@ -2,7 +2,7 @@ import { Response, Request } from "express";
 import {
   processEtherscanSolidityContract,
   processEtherscanVyperContract,
-  processRequestFromEtherscan,
+  fetchCompilerInputFromEtherscan,
 } from "../../../../services/utils/etherscan-utils";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
@@ -29,7 +29,7 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   logger.info("verifyFromEtherscan", { chain, address, apiKey });
 
-  const { vyperResult, solidityResult } = await processRequestFromEtherscan(
+  const { vyperResult, solidityResult } = await fetchCompilerInputFromEtherscan(
     sourcifyChain,
     address,
     apiKey,
@@ -39,20 +39,12 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   if (solidityResult) {
     // Process Solidity contract from Etherscan and get SolidityCompilation directly
-    compilation = await processEtherscanSolidityContract(
-      solc,
-      solidityResult.compilerVersion,
-      solidityResult.solcJsonInput,
-      solidityResult.contractName,
-    );
+    compilation = await processEtherscanSolidityContract(solc, solidityResult);
   } else if (vyperResult) {
     // Process Vyper contract from Etherscan and get VyperCompilation directly
     compilation = await processEtherscanVyperContract(
       vyperCompiler,
-      vyperResult.compilerVersion,
-      vyperResult.vyperJsonInput,
-      vyperResult.contractPath,
-      vyperResult.contractName,
+      vyperResult,
     );
   } else {
     logger.error("Import from Etherscan: unsupported language");
