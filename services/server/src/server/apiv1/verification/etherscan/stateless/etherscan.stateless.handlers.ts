@@ -3,7 +3,7 @@ import {
   processEtherscanSolidityContract,
   processEtherscanVyperContract,
   fetchCompilerInputFromEtherscan,
-} from "../../../../services/utils/etherscan-utils";
+} from "../../../../services/utils/etherscan-util";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import {

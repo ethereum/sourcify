@@ -17,7 +17,7 @@ import {
   getVyperCompilerVersion,
   processEtherscanSolidityContract,
   processEtherscanVyperContract,
-} from "../../../src/server/services/utils/etherscan-utils";
+} from "../../../src/server/services/utils/etherscan-util";
 import {
   solc,
   vyperCompiler,
