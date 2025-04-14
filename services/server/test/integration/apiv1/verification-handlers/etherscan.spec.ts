@@ -5,18 +5,18 @@ import {
   assertVerification,
   assertValidationError,
   assertVerificationSession,
-} from "../helpers/assertions";
-import { sourcifyChainsMap } from "../../src/sourcify-chains";
-import testContracts from "../helpers/etherscanInstanceContracts.json";
+} from "../../../helpers/assertions";
+import { sourcifyChainsMap } from "../../../../src/sourcify-chains";
+import testContracts from "../../../helpers/etherscanInstanceContracts.json";
 import {
   unusedAddress,
   invalidAddress,
   unsupportedChain,
   verifyAndAssertEtherscanSession,
   verifyAndAssertEtherscan,
-} from "../helpers/helpers";
+} from "../../../helpers/helpers";
 import type { Response } from "superagent";
-import { ServerFixture } from "../helpers/ServerFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import nock from "nock";
 import {
   INVALID_API_KEY_RESPONSE,
@@ -27,7 +27,7 @@ import {
   UNVERIFIED_CONTRACT_RESPONSE,
   VYPER_SINGLE_CONTRACT_RESPONSE,
   VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
-} from "../helpers/etherscanResponseMocks";
+} from "../../../helpers/etherscanResponseMocks";
 
 chai.use(chaiHttp);
 
