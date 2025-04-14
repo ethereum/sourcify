@@ -2317,5 +2317,14 @@
         "url": "https://amescan.io/"
       }
     }
+  },
+  "5330": {
+    "sourcifyName": "Superseed Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.superseed.xyz"
+      }
+    }
   }
 }

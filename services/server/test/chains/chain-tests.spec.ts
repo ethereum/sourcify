@@ -1821,6 +1821,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Superseed Mainnet
+  verifyContract(
+    "0xaa0b508D986702650e4D3AaB253f5E97e2cF86A8",
+    "5330",
+    "Superseed Mainnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
