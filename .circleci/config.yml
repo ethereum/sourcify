@@ -183,7 +183,7 @@ jobs:
       DOCKERFILE: "services/server/Dockerfile"
   publish-multiarch-images:
     docker:
-      - image: cimg/base:2024.07
+      - image: cimg/base:2024.12
     resource_class: small
     steps:
       - checkout
