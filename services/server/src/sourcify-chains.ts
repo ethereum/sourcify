@@ -1,12 +1,12 @@
 import {
   SourcifyChain,
   SourcifyChainMap,
-  SourcifyChainsExtensionsObject,
   Chain,
   APIKeyRPC,
   FetchRequestRPC,
   BaseRPC,
   TraceSupportedRPC,
+  SourcifyChainExtension,
 } from "@ethereum-sourcify/lib-sourcify";
 import chainsRaw from "./chains.json";
 import rawSourcifyChainExtentions from "./sourcify-chains-default.json";
@@ -19,7 +19,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 // Extended type for FetchRequestRPC with headerEnvName
-export type ExtendedFetchRequestRPC = Omit<FetchRequestRPC, "headers"> & {
+type FetchRequestRPCWithHeaderEnvName = Omit<FetchRequestRPC, "headers"> & {
   headers?: Array<{
     headerName: string;
     headerValue?: string;
@@ -27,21 +27,18 @@ export type ExtendedFetchRequestRPC = Omit<FetchRequestRPC, "headers"> & {
   }>;
 };
 
-// Extended type for SourcifyChainsExtensionsObject that uses ExtendedFetchRequestRPC
-export interface ExtendedSourcifyChainsExtensionsObject {
-  [chainId: string]: {
-    sourcifyName: string;
-    supported: boolean;
-    etherscanApi?: {
-      apiURL: string;
-      apiKeyEnvName?: string;
-    };
-    fetchContractCreationTxUsing?: any; // Using any to avoid importing the full type
-    rpc?: Array<string | BaseRPC | APIKeyRPC | ExtendedFetchRequestRPC>;
+// Extended type for SourcifyChainsExtensionsObject that uses FetchRequestRPCWithHeaderEnvName
+
+interface SourcifyChainsExtensionsObjectWithHeaderEnvName {
+  [chainId: string]: Omit<SourcifyChainExtension, "rpc"> & {
+    rpc?: Array<
+      string | BaseRPC | APIKeyRPC | FetchRequestRPCWithHeaderEnvName
+    >;
   };
 }
 
-let sourcifyChainsExtensions: ExtendedSourcifyChainsExtensionsObject = {};
+let sourcifyChainsExtensions: SourcifyChainsExtensionsObjectWithHeaderEnvName =
+  {};
 
 // If sourcify-chains.json exists, override sourcify-chains-default.json
 if (fs.existsSync(path.resolve(__dirname, "./sourcify-chains.json"))) {
@@ -54,12 +51,12 @@ if (fs.existsSync(path.resolve(__dirname, "./sourcify-chains.json"))) {
   );
   sourcifyChainsExtensions = JSON.parse(
     rawSourcifyChainExtentionsFromFile,
-  ) as ExtendedSourcifyChainsExtensionsObject;
+  ) as SourcifyChainsExtensionsObjectWithHeaderEnvName;
 }
 // sourcify-chains-default.json
 else {
   sourcifyChainsExtensions =
-    rawSourcifyChainExtentions as ExtendedSourcifyChainsExtensionsObject;
+    rawSourcifyChainExtentions as SourcifyChainsExtensionsObjectWithHeaderEnvName;
 }
 
 // chains.json from ethereum-lists (chainId.network/chains.json)
@@ -97,10 +94,12 @@ export const LOCAL_CHAINS: SourcifyChain[] = [
  * SourcifyChain expects  url strings or ethers.js FetchRequest objects.
  */
 function buildCustomRpcs(
-  sourcifyRpcs: Array<string | BaseRPC | APIKeyRPC | ExtendedFetchRequestRPC>,
+  sourcifyRpcs: Array<
+    string | BaseRPC | APIKeyRPC | FetchRequestRPCWithHeaderEnvName
+  >,
 ) {
   const traceSupportedRPCs: TraceSupportedRPC[] = [];
-  const rpc: (string | ExtendedFetchRequestRPC)[] = [];
+  const rpc: (string | FetchRequestRPCWithHeaderEnvName)[] = [];
   const rpcWithoutApiKeys: string[] = [];
   sourcifyRpcs.forEach((sourcifyRpc, index) => {
     // simple url, can't have traceSupport
@@ -195,7 +194,7 @@ for (const chain of allChains) {
   if (chainId in sourcifyChainsExtensions) {
     const sourcifyExtension = sourcifyChainsExtensions[chainId];
 
-    let rpc: (string | ExtendedFetchRequestRPC)[] = [];
+    let rpc: (string | FetchRequestRPCWithHeaderEnvName)[] = [];
     let rpcWithoutApiKeys: string[] = [];
     let traceSupportedRPCs: TraceSupportedRPC[] | undefined = undefined;
     if (sourcifyExtension.rpc) {
