@@ -40,20 +40,17 @@ if (process.env.IPFS_GATEWAY || process.env.IPFS_GATEWAY_HEADERS) {
 if (process.env.RPC_TIMEOUT) {
   try {
     libSourcifyConfig.rpcTimeout = parseInt(process.env.RPC_TIMEOUT);
-    logger.info("lib-sourcify RPC timeout set", {
-      rpcTimeout: process.env.RPC_TIMEOUT,
-    });
   } catch (error) {
     logger.error("Error setting lib-sourcify RPC timeout", { error });
     throw new Error("Error setting lib-sourcify RPC timeout");
   }
 }
 
-if (process.env.NODE_ENV !== "production") {
-  // Set the log level to 4 (debug) in non-production environments
-  libSourcifyConfig.logLevel = 4;
-  logger.info("lib-sourcify log level set to debug");
-}
+// This variable is used to set the log level for the server and lib-sourcify
+const logLevel = parseInt(
+  process.env.NODE_LOG_LEVEL ||
+    (process.env.NODE_ENV === "production" ? "1" : "5"),
+);
 
 // Solidity Compiler
 
@@ -92,6 +89,7 @@ const server = new Server(
     upgradeContract: config.get("upgradeContract"),
     sessionOptions: getSessionOptions(),
     sourcifyPrivateToken: process.env.SOURCIFY_PRIVATE_TOKEN,
+    logLevel,
     libSourcifyConfig,
   },
   {

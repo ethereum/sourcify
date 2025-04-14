@@ -15,19 +15,7 @@ export enum LogLevels {
 }
 
 export const validLogLevels = Object.values(LogLevels);
-
-if (
-  process.env.NODE_LOG_LEVEL &&
-  !validLogLevels.includes(process.env.NODE_LOG_LEVEL)
-) {
-  throw new Error(`Invalid log level: ${process.env.NODE_LOG_LEVEL}`);
-}
-
-const loggerInstance: Logger = createLogger({
-  level:
-    process.env.NODE_LOG_LEVEL ||
-    (process.env.NODE_ENV === "production" ? "info" : "debug"),
-});
+const loggerInstance: Logger = createLogger();
 
 // 2024-03-06T17:04:16.375Z [warn]: [RepositoryV2Service] Storing contract address=0x5FbDB2315678afecb367f032d93F642f64180aa3, chainId=1337, matchQuality=0.5
 const rawlineFormat = format.printf(

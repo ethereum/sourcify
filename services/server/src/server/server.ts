@@ -12,7 +12,11 @@ import { v4 as uuidv4 } from "uuid";
 import { asyncLocalStorage } from "../common/async-context";
 
 // local imports
-import logger from "../common/logger";
+import logger, {
+  LogLevels,
+  setLogLevel,
+  validLogLevels,
+} from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "../common/errors/GenericErrorHandler";
 import { initDeprecatedRoutes } from "./apiv1/deprecated.routes";
@@ -47,7 +51,6 @@ export interface LibSourcifyConfig {
     headers?: HeadersInit;
   };
   rpcTimeout?: number;
-  logLevel?: number;
 }
 
 export interface ServerOptions {
@@ -62,6 +65,7 @@ export interface ServerOptions {
   sessionOptions: SessionOptions;
   sourcifyPrivateToken?: string;
   libSourcifyConfig?: LibSourcifyConfig;
+  logLevel?: number;
 }
 
 export class Server {
@@ -76,6 +80,14 @@ export class Server {
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
+    if (options.logLevel) {
+      if (options.logLevel && !validLogLevels.includes(options.logLevel)) {
+        throw new Error(`Invalid log level: ${options.logLevel}`);
+      }
+      setLogLevel(LogLevels[options.logLevel]);
+      setLibSourcifyLoggerLevel(options.logLevel);
+    }
+
     this.port = options.port;
     logger.info("Server port set", { port: this.port });
     this.app = express();
@@ -89,10 +101,6 @@ export class Server {
 
       if (options.libSourcifyConfig.rpcTimeout) {
         SourcifyChain.setGlobalRpcTimeout(options.libSourcifyConfig.rpcTimeout);
-      }
-
-      if (options.libSourcifyConfig.logLevel) {
-        setLibSourcifyLoggerLevel(options.libSourcifyConfig.logLevel);
       }
     }
     logger.info("lib-sourcify config", {
