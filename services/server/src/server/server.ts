@@ -80,8 +80,8 @@ export class Server {
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
-    if (options.logLevel) {
-      if (options.logLevel && !validLogLevels.includes(options.logLevel)) {
+    if (options.logLevel !== undefined) {
+      if (!validLogLevels.includes(options.logLevel)) {
         throw new Error(`Invalid log level: ${options.logLevel}`);
       }
       setLogLevel(LogLevels[options.logLevel]);
