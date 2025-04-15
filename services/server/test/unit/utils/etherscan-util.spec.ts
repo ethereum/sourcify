@@ -14,6 +14,7 @@ import {
 } from "../../helpers/etherscanResponseMocks";
 import {
   fetchCompilerInputFromEtherscan,
+  getContractPathFromSourcesOrThrow,
   getVyperCompilerVersion,
   processEtherscanSolidityContract,
   processEtherscanVyperContract,
@@ -30,7 +31,7 @@ import {
 
 chai.use(chaiAsPromised);
 
-describe.only("etherscan util", function () {
+describe("etherscan util", function () {
   const testChainId = "1";
   const testAddress = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
 
@@ -141,6 +142,7 @@ describe.only("etherscan util", function () {
           },
         },
         contractName: SINGLE_CONTRACT_RESPONSE.result[0].ContractName,
+        contractPath: SINGLE_CONTRACT_RESPONSE.result[0].ContractName + ".sol",
       });
     });
 
@@ -156,12 +158,15 @@ describe.only("etherscan util", function () {
         testAddress,
       );
       expect(result.vyperResult).to.be.undefined;
+      const expectedSources = JSON.parse(
+        MULTIPLE_CONTRACT_RESPONSE.result[0].SourceCode,
+      );
       expect(result.solidityResult).to.deep.equal({
         compilerVersion:
           MULTIPLE_CONTRACT_RESPONSE.result[0].CompilerVersion.substring(1),
         solcJsonInput: {
           language: "Solidity",
-          sources: JSON.parse(MULTIPLE_CONTRACT_RESPONSE.result[0].SourceCode),
+          sources: expectedSources,
           settings: {
             optimizer: {
               enabled:
@@ -182,6 +187,11 @@ describe.only("etherscan util", function () {
           },
         },
         contractName: MULTIPLE_CONTRACT_RESPONSE.result[0].ContractName,
+        contractPath: getContractPathFromSourcesOrThrow(
+          MULTIPLE_CONTRACT_RESPONSE.result[0].ContractName,
+          expectedSources,
+          false,
+        ),
       });
     });
 
@@ -214,6 +224,11 @@ describe.only("etherscan util", function () {
           ),
         solcJsonInput: expectedJsonInput,
         contractName: STANDARD_JSON_CONTRACT_RESPONSE.result[0].ContractName,
+        contractPath: getContractPathFromSourcesOrThrow(
+          STANDARD_JSON_CONTRACT_RESPONSE.result[0].ContractName,
+          expectedJsonInput.sources,
+          false,
+        ),
       });
     });
 
@@ -303,6 +318,46 @@ describe.only("etherscan util", function () {
     });
   });
 
+  describe("getContractPathFromSourcesOrThrow", () => {
+    it("should return the correct contract path", () => {
+      const sources = {
+        // It should not derive it from the path
+        "SolidityContract.sol": {
+          content: "contract WrongContract {}",
+        },
+        "path/file.sol": {
+          content: "contract WrongContract {}\ncontract SolidityContract {}",
+        },
+      };
+
+      const result = getContractPathFromSourcesOrThrow(
+        "SolidityContract",
+        sources,
+        true,
+      );
+      expect(result).to.equal("path/file.sol");
+    });
+
+    it("should throw when the contract path is not found in the provided sources", () => {
+      const sources = {
+        "path/file.sol": {
+          content: "contract SolidityContract {}",
+        },
+      };
+
+      expect(() =>
+        getContractPathFromSourcesOrThrow(
+          "AnotherSolidityContract",
+          sources,
+          true,
+        ),
+      )
+        .to.throw()
+        .with.property("payload")
+        .that.has.property("customCode", "malformed_etherscan_response");
+    });
+  });
+
   describe("processEtherscanSolidityContract", () => {
     it("should return a SolidityCompilation", async () => {
       mockEtherscanApi(
@@ -325,7 +380,7 @@ describe.only("etherscan util", function () {
         solidityResult!.compilerVersion,
         solidityResult!.solcJsonInput,
         {
-          path: solidityResult!.contractName + ".sol",
+          path: solidityResult!.contractPath,
           name: solidityResult!.contractName,
         },
       );
