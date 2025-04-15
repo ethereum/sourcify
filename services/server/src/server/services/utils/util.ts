@@ -134,6 +134,17 @@ export function toMatchLevel(status: VerificationStatus): MatchLevel {
   }
 }
 
+export function toVerificationStatus(level: MatchLevel): VerificationStatus {
+  switch (level) {
+    case "exact_match":
+      return "perfect";
+    case "match":
+      return "partial";
+    default:
+      return null;
+  }
+}
+
 export function getTotalMatchLevel(
   creationStatus: VerificationStatus,
   runtimeStatus: VerificationStatus,

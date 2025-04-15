@@ -130,7 +130,7 @@ export async function verifyFromEtherscanEndpoint(
   const etherscanResult = await fetchCompilerInputFromEtherscan(
     chainRepository.supportedChainMap[req.params.chainId],
     req.params.address,
-    req.body.apiKey,
+    req.body?.apiKey,
     true,
   );
 

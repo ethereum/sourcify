@@ -10,7 +10,6 @@ import {
   bytesFromString,
   Field,
   FIELDS_TO_STORED_PROPERTIES,
-  JobErrorData,
   StoredProperties,
 } from "../utils/database-util";
 import {

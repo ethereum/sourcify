@@ -19,6 +19,7 @@ import type { Done } from "mocha";
 import { LocalChainFixture } from "./LocalChainFixture";
 import { Pool } from "pg";
 import sinon from "sinon";
+import { VerificationStatus } from "@ethereum-sourcify/lib-sourcify";
 
 chai.use(chaiHttp);
 
@@ -201,7 +202,7 @@ export function verifyAndAssertEtherscan(
   serverFixture: ServerFixture,
   chainId: string,
   address: string,
-  expectedStatus: string,
+  expectedStatus: VerificationStatus,
   done: Done,
 ) {
   const request = chai
@@ -226,7 +227,7 @@ export function verifyAndAssertEtherscanSession(
   serverFixture: ServerFixture,
   chainId: string,
   address: string,
-  expectedStatus: string,
+  expectedStatus: VerificationStatus,
   done: Done,
 ) {
   chai

@@ -29,6 +29,7 @@ import {
   VYPER_SINGLE_CONTRACT_RESPONSE,
   VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
 } from "../../../helpers/etherscanResponseMocks";
+import { VerificationStatus } from "@ethereum-sourcify/lib-sourcify";
 
 chai.use(chaiHttp);
 
@@ -172,7 +173,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         singleContract.address,
-        singleContract.expectedStatus,
+        singleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -190,7 +191,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         multipleContract.address,
-        multipleContract.expectedStatus,
+        multipleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -208,7 +209,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         standardJsonContract.address,
-        standardJsonContract.expectedStatus,
+        standardJsonContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -276,7 +277,7 @@ describe("Import From Etherscan and Verify", function () {
             },
             contract.address,
             testChainId,
-            contract.expectedStatus,
+            contract.expectedStatus as VerificationStatus,
           );
         });
     });
@@ -453,7 +454,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         singleContract.address,
-        singleContract.expectedStatus,
+        singleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -471,7 +472,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         multipleContract.address,
-        multipleContract.expectedStatus,
+        multipleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -489,7 +490,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         standardJsonContract.address,
-        standardJsonContract.expectedStatus,
+        standardJsonContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -557,7 +558,7 @@ describe("Import From Etherscan and Verify", function () {
             },
             contract.address,
             testChainId,
-            contract.expectedStatus,
+            contract.expectedStatus as VerificationStatus,
           );
         });
     });

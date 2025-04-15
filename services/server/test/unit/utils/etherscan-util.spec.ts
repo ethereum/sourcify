@@ -1,4 +1,4 @@
-import chai, { expect } from "chai";
+import { expect, use } from "chai";
 import { sourcifyChainsMap } from "../../../src/sourcify-chains";
 import nock from "nock";
 import {
@@ -30,7 +30,7 @@ import {
   VyperJsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 
-chai.use(chaiAsPromised);
+use(chaiAsPromised);
 
 describe("etherscan util", function () {
   const testChainId = "1";
@@ -42,7 +42,7 @@ describe("etherscan util", function () {
 
   describe("fetchCompilerInputFromEtherscan", () => {
     it("should throw when fetching a non verified contract from etherscan", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         UNVERIFIED_CONTRACT_RESPONSE,
@@ -59,10 +59,11 @@ describe("etherscan util", function () {
         "payload.customCode",
         "not_etherscan_verified",
       );
+      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should throw when an invalid api key is provided", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         INVALID_API_KEY_RESPONSE,
@@ -79,10 +80,11 @@ describe("etherscan util", function () {
         "payload.customCode",
         "etherscan_request_failed",
       );
+      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should throw when the rate limit is reached", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         RATE_LIMIT_REACHED_RESPONSE,
@@ -99,10 +101,11 @@ describe("etherscan util", function () {
         "payload.customCode",
         "etherscan_limit",
       );
+      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a single contract response from etherscan", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         SINGLE_CONTRACT_RESPONSE,
@@ -144,10 +147,11 @@ describe("etherscan util", function () {
         contractName: SINGLE_CONTRACT_RESPONSE.result[0].ContractName,
         contractPath: SINGLE_CONTRACT_RESPONSE.result[0].ContractName + ".sol",
       });
+      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a multiple contract response from etherscan", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         MULTIPLE_CONTRACT_RESPONSE,
@@ -192,10 +196,11 @@ describe("etherscan util", function () {
           false,
         ),
       });
+      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a standard json contract response from etherscan", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         STANDARD_JSON_CONTRACT_RESPONSE,
@@ -220,7 +225,7 @@ describe("etherscan util", function () {
           STANDARD_JSON_CONTRACT_RESPONSE.result[0].CompilerVersion.substring(
             1,
           ),
-        solcJsonInput: expectedJsonInput,
+        jsonInput: expectedJsonInput,
         contractName: STANDARD_JSON_CONTRACT_RESPONSE.result[0].ContractName,
         contractPath: getContractPathFromSourcesOrThrow(
           STANDARD_JSON_CONTRACT_RESPONSE.result[0].ContractName,
@@ -228,10 +233,11 @@ describe("etherscan util", function () {
           false,
         ),
       });
+      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a vyper single contract response from etherscan", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         VYPER_SINGLE_CONTRACT_RESPONSE,
@@ -253,7 +259,7 @@ describe("etherscan util", function () {
         compilerVersion: await getVyperCompilerVersion(
           VYPER_SINGLE_CONTRACT_RESPONSE.result[0].CompilerVersion,
         ),
-        vyperJsonInput: {
+        jsonInput: {
           language: "Vyper",
           sources: {
             [expectedPath]: {
@@ -278,10 +284,11 @@ describe("etherscan util", function () {
         contractName: expectedName,
         contractPath: expectedPath,
       });
+      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a vyper standard json contract response from etherscan", async () => {
-      mockEtherscanApi(
+      const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
@@ -307,10 +314,11 @@ describe("etherscan util", function () {
         compilerVersion: await getVyperCompilerVersion(
           VYPER_STANDARD_JSON_CONTRACT_RESPONSE.result[0].CompilerVersion,
         ),
-        vyperJsonInput: expectedJsonInput,
+        jsonInput: expectedJsonInput,
         contractName: expectedName,
         contractPath: expectedPath,
       });
+      expect(nockScope.isDone()).to.equal(true);
     });
   });
 

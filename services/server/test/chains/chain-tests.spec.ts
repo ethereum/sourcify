@@ -6,7 +6,10 @@ import path from "path";
 import addContext from "mochawesome/addContext";
 import { assertVerification } from "../helpers/assertions";
 import testEtherscanContracts from "../helpers/etherscanInstanceContracts.json";
-import type { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
+import type {
+  SourcifyChain,
+  VerificationStatus,
+} from "@ethereum-sourcify/lib-sourcify";
 import config from "config";
 // @ts-ignore
 config["session"].storeType = "memory";
@@ -1889,7 +1892,7 @@ describe("Test Supported Chains", function () {
     chainId: string,
     chainName: string,
     sourceAndMetadataDir: string, // folder
-    expectedStatus = "perfect",
+    expectedStatus: VerificationStatus = "perfect",
   ) {
     // If it is a pull request for adding new chain support, only test the new chain
     if (newAddedChainIds.length && !newAddedChainIds.includes(chainId)) return;

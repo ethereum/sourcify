@@ -6,6 +6,7 @@ import { verifyAndAssertEtherscan } from "../helpers/helpers";
 import chai from "chai";
 import { ServerFixture } from "../helpers/ServerFixture";
 import { ChainRepository } from "../../src/sourcify-chain-repository";
+import { VerificationStatus } from "@ethereum-sourcify/lib-sourcify";
 
 const CUSTOM_PORT = 5679;
 
@@ -37,7 +38,7 @@ describe("Test each Etherscan instance", function () {
             serverFixture,
             chain,
             address,
-            expectedStatus,
+            expectedStatus as VerificationStatus,
             done,
           );
         });
