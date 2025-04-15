@@ -15,10 +15,6 @@ import {
   TraceSupportedRPC,
 } from './SourcifyChainTypes';
 
-const RPC_TIMEOUT = process.env.RPC_TIMEOUT
-  ? parseInt(process.env.RPC_TIMEOUT)
-  : 10 * 1000;
-
 // It is impossible to get the url from the Provider for logging purposes
 interface JsonRpcProviderWithUrl extends JsonRpcProvider {
   url?: string;
@@ -29,9 +25,8 @@ export function createFetchRequest(rpc: FetchRequestRPC): FetchRequest {
   ethersFetchReq.setHeader('Content-Type', 'application/json');
   const headers = rpc.headers;
   if (headers) {
-    headers.forEach(({ headerName, headerEnvName }) => {
-      const headerValue = process.env[headerEnvName];
-      ethersFetchReq.setHeader(headerName, headerValue || '');
+    headers.forEach(({ headerName, headerValue }) => {
+      ethersFetchReq.setHeader(headerName, headerValue);
     });
   }
   return ethersFetchReq;
@@ -55,6 +50,20 @@ export class SourcifyChain {
     apiURL: string;
     apiKeyEnvName?: string;
   };
+
+  private static rpcTimeout: number = 10 * 1000;
+
+  /**
+   * Sets the global RPC timeout for all SourcifyChain instances
+   * @param timeoutMs Timeout in milliseconds
+   */
+  public static setGlobalRpcTimeout(timeoutMs: number): void {
+    SourcifyChain.rpcTimeout = timeoutMs;
+  }
+
+  public static getGlobalRpcTimeout(): number {
+    return SourcifyChain.rpcTimeout;
+  }
 
   constructor(sourcifyChainObj: SourcifyChainInstance) {
     this.name = sourcifyChainObj.name;
@@ -124,11 +133,11 @@ export class SourcifyChain {
     };
   };
 
-  rejectInMs = (ms: number, host?: string) =>
+  rejectInMs = (host?: string) =>
     new Promise<never>((_resolve, reject) => {
       setTimeout(
         () => reject(new Error(`RPC ${host} took too long to respond`)),
-        ms,
+        SourcifyChain.rpcTimeout,
       );
     });
 
@@ -143,7 +152,7 @@ export class SourcifyChain {
         // Race the RPC call with a timeout
         const tx = await Promise.race([
           provider.getTransaction(creatorTxHash),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
+          this.rejectInMs(provider.url),
         ]);
         if (tx instanceof TransactionResponse) {
           logInfo('Fetched tx', { creatorTxHash, providerUrl: provider.url });
@@ -182,7 +191,7 @@ export class SourcifyChain {
         // Race the RPC call with a timeout
         const tx = await Promise.race([
           provider.getTransactionReceipt(creatorTxHash),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
+          this.rejectInMs(provider.url),
         ]);
         if (tx instanceof TransactionReceipt) {
           logInfo('Fetched tx receipt', {
@@ -315,7 +324,7 @@ export class SourcifyChain {
     // Race the RPC call with a timeout
     const traces = await Promise.race([
       provider.send('trace_transaction', [creatorTxHash]),
-      this.rejectInMs(RPC_TIMEOUT, provider.url),
+      this.rejectInMs(provider.url),
     ]);
     if (traces instanceof Array && traces.length > 0) {
       logInfo('Fetched tx traces', {
@@ -363,7 +372,7 @@ export class SourcifyChain {
         creatorTxHash,
         { tracer: 'callTracer' },
       ]),
-      this.rejectInMs(RPC_TIMEOUT, provider.url),
+      this.rejectInMs(provider.url),
     ]);
     if (traces?.calls instanceof Array && traces.calls.length > 0) {
       logInfo('Fetched tx traces', {
@@ -448,7 +457,7 @@ export class SourcifyChain {
         // Race the RPC call with a timeout
         const bytecode = await Promise.race([
           provider.getCode(address, blockNumber),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
+          this.rejectInMs(provider.url),
         ]);
         logInfo('Fetched bytecode', {
           address,
@@ -490,7 +499,7 @@ export class SourcifyChain {
         // Race the RPC call with a timeout
         const block = await Promise.race([
           provider.getBlock(blockNumber, preFetchTxs),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
+          this.rejectInMs(provider.url),
         ]);
         if (block) {
           logInfo('Fetched block', {
@@ -537,7 +546,7 @@ export class SourcifyChain {
         // Race the RPC call with a timeout
         const block = await Promise.race([
           provider.getBlockNumber(),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
+          this.rejectInMs(provider.url),
         ]);
         logInfo('Fetched eth_blockNumber', {
           blockNumber: block,
@@ -571,7 +580,7 @@ export class SourcifyChain {
         // Race the RPC call with a timeout
         const data = await Promise.race([
           provider.getStorage(address, position),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
+          this.rejectInMs(provider.url),
         ]);
         logInfo('Fetched eth_getStorageAt', {
           address,
@@ -606,7 +615,7 @@ export class SourcifyChain {
         // Race the RPC call with a timeout
         const callResult = await Promise.race([
           provider.call(transaction),
-          this.rejectInMs(RPC_TIMEOUT, provider.url),
+          this.rejectInMs(provider.url),
         ]);
         logInfo('Fetched eth_call result', {
           tx: transaction,

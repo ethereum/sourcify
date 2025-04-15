@@ -130,6 +130,64 @@ lib-sourcify v2 consists of several key components:
 - **Verification**: Compares compiled bytecode from a `Compilation` with an on-chain bytecode from a `SourcifyChain`
   - `Verification`: Main class orchestrating the verification process
 
+## Configuration
+
+### RPC Timeout Configuration
+
+You can set a global timeout for all RPC requests through the `SourcifyChain` class:
+
+```typescript
+import { SourcifyChain } from '@ethereum-sourcify/lib-sourcify';
+
+// Set global RPC timeout to 30 seconds
+SourcifyChain.setGlobalRpcTimeout(30 * 1000);
+
+// Get the current global RPC timeout
+const timeout = SourcifyChain.getGlobalRpcTimeout(); // Default is 10 seconds
+```
+
+### IPFS Gateway Configuration
+
+You can configure the IPFS gateway used for fetching missing sources:
+
+```typescript
+import { SolidityMetadataContract } from '@ethereum-sourcify/lib-sourcify';
+
+// Set a custom IPFS gateway
+SolidityMetadataContract.setGlobalIpfsGateway({
+  url: 'https://my-ipfs-gateway.com/ipfs/',
+  headers: { 'Authorization': 'Bearer my-token' }
+});
+
+// Get the current IPFS gateway configuration
+const gateway = SolidityMetadataContract.getGlobalIpfsGateway();
+```
+
+### Logging Configuration
+
+You can set the global log level and provide a custom logger:
+
+```typescript
+import { setLibSourcifyLoggerLevel, setLibSourcifyLogger, getLibSourcifyLoggerLevel } from '@ethereum-sourcify/lib-sourcify';
+
+// Set the log level
+setLibSourcifyLoggerLevel(5); // 0=errors, 1=warnings, 2=info, 5=debug, 6=silly
+
+// Get the current log level
+const logLevel = getLibSourcifyLoggerLevel();
+
+// Use a custom logger
+setLibSourcifyLogger({
+  logLevel: 2,
+  setLevel(level: number) {
+    this.logLevel = level;
+  },
+  log(level, msg) {
+    // Custom logging implementation
+  }
+});
+```
+
 ## Compiler Setup
 
 The `lib-sourcify` library does not come with compilers as dependencies. Instead, you need to provide a class that implements either the `ISolidityCompiler` or `IVyperCompiler` interface and pass it to any function that requires a compiler. We suggest you to use the official [`@ethereum-sourcify/compilers`](https://github.com/ethereum/sourcify/tree/staging/packages/compilers) package.
@@ -227,6 +285,36 @@ const mainnetChain = new SourcifyChain({
 });
 ```
 
+### Using Authenticated RPCs
+
+For RPCs that require authentication, you can specify the headers directly in the configuration:
+
+```typescript
+import { SourcifyChain } from '@ethereum-sourcify/lib-sourcify';
+
+const authenticatedChain = new SourcifyChain({
+  name: 'Protected Network',
+  chainId: 1234,
+  rpc: [
+    {
+      type: 'FetchRequest',
+      url: 'https://protected-rpc.example.com',
+      headers: [
+        {
+          headerName: 'Authorization',
+          headerValue: 'Bearer my-auth-token',
+        },
+        {
+          headerName: 'X-API-Key',
+          headerValue: 'my-api-key',
+        },
+      ],
+    },
+  ],
+  supported: true,
+});
+```
+
 ## Validation
 
 Note: Vyper contracts do not support validation through metadata files since they do not include a metadata JSON field in their bytecode. Instead, Vyper contracts must be verified directly using their source files and compiler settings.
@@ -275,7 +363,7 @@ Each contract source either has a `content` field containing the Solidity code a
 await metadataContract.fetchMissing();
 ```
 
-By default, IPFS resources will be fetched via https://ipfs.io/ipfs. You can specify a custom IPFS gateway using `process.env.IPFS_GATEWAY=https://custom-gateway`, if you need to pass additional headers to the request (e.g. for authentication) you can use `process.env.IPFS_GATEWAY_HEADERS={ 'custom-header': 'value' }`.
+IPFS resources will be fetched using the configured IPFS gateway. You can configure the gateway using the `SolidityMetadataContract.setGlobalIpfsGateway()` method as shown in the Global Configuration section.
 
 You can check if a contract is ready to be compiled with:
 
@@ -331,9 +419,9 @@ See `VerificationErrorCode` type in [VerificationTypes.ts](./src/Verification/Ve
 
 ## Logging
 
-`lib-sourcify` has a basic logging system
+`lib-sourcify` has a basic logging system that can be configured globally.
 
-You can specify the log level using the `setLibSourcifyLoggerLevel(level)` where:
+You can specify the log level using the `setLibSourcifyLoggerLevel(level)` function where:
 
 - `0` is errors
 - `1` is warnings
@@ -341,7 +429,9 @@ You can specify the log level using the `setLibSourcifyLoggerLevel(level)` where
 - `5` is debug
 - `6` is silly
 
-You can override the logger by calling `setLogger(logger: ILibSourcifyLogger)`. This is an example:
+You can get the current log level using `getLibSourcifyLoggerLevel()`.
+
+You can override the logger by calling `setLogger(logger: ILibSourcifyLogger)`:
 
 ```javascript
 const winston = require('winston');

@@ -12,7 +12,11 @@ import { v4 as uuidv4 } from "uuid";
 import { asyncLocalStorage } from "../common/async-context";
 
 // local imports
-import logger from "../common/logger";
+import logger, {
+  LogLevels,
+  setLogLevel,
+  validLogLevels,
+} from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "../common/errors/GenericErrorHandler";
 import { initDeprecatedRoutes } from "./apiv1/deprecated.routes";
@@ -21,8 +25,12 @@ import { Services } from "./services/services";
 import { StorageServiceOptions } from "./services/StorageService";
 import { VerificationServiceOptions } from "./services/VerificationService";
 import {
+  getLibSourcifyLoggerLevel,
   ISolidityCompiler,
   IVyperCompiler,
+  setLibSourcifyLoggerLevel,
+  SolidityMetadataContract,
+  SourcifyChain,
   SourcifyChainMap,
 } from "@ethereum-sourcify/lib-sourcify";
 import { ChainRepository } from "../sourcify-chain-repository";
@@ -30,11 +38,20 @@ import { SessionOptions } from "express-session";
 import { makeV1ValidatorFormats } from "./apiv1/validation";
 import { errorHandler as v2ErrorHandler } from "./apiv2/errors";
 import http from "http";
+import { setCompilersLoggerLevel } from "@ethereum-sourcify/compilers";
 
 declare module "express-serve-static-core" {
   interface Request {
     services: Services;
   }
+}
+
+export interface LibSourcifyConfig {
+  ipfsGateway?: {
+    url: string;
+    headers?: HeadersInit;
+  };
+  rpcTimeout?: number;
 }
 
 export interface ServerOptions {
@@ -48,6 +65,8 @@ export interface ServerOptions {
   upgradeContract: boolean;
   sessionOptions: SessionOptions;
   sourcifyPrivateToken?: string;
+  libSourcifyConfig?: LibSourcifyConfig;
+  logLevel?: number;
 }
 
 export class Server {
@@ -62,9 +81,35 @@ export class Server {
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
+    if (options.logLevel !== undefined) {
+      if (!validLogLevels.includes(options.logLevel)) {
+        throw new Error(`Invalid log level: ${options.logLevel}`);
+      }
+      setLogLevel(LogLevels[options.logLevel]);
+      setLibSourcifyLoggerLevel(options.logLevel);
+      setCompilersLoggerLevel(options.logLevel);
+    }
+
     this.port = options.port;
     logger.info("Server port set", { port: this.port });
     this.app = express();
+
+    if (options.libSourcifyConfig) {
+      if (options.libSourcifyConfig.ipfsGateway) {
+        SolidityMetadataContract.setGlobalIpfsGateway(
+          options.libSourcifyConfig.ipfsGateway,
+        );
+      }
+
+      if (options.libSourcifyConfig.rpcTimeout) {
+        SourcifyChain.setGlobalRpcTimeout(options.libSourcifyConfig.rpcTimeout);
+      }
+    }
+    logger.info("lib-sourcify config", {
+      ipfsGateway: SolidityMetadataContract.getGlobalIpfsGateway(),
+      rpcTimeout: SourcifyChain.getGlobalRpcTimeout(),
+      logLevel: getLibSourcifyLoggerLevel(),
+    });
 
     this.chainRepository = new ChainRepository(options.chains);
     logger.info("SourcifyChains.Initialized", {
