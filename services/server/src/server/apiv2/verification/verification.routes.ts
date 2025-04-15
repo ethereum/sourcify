@@ -10,6 +10,7 @@ import {
 import {
   verifyFromJsonInputEndpoint,
   verifyFromMetadataEndpoint,
+  verifyFromEtherscanEndpoint,
 } from "./verification.handlers";
 import { Router } from "express";
 
@@ -36,6 +37,16 @@ router
     checkIfAlreadyVerified,
     checkIfJobIsAlreadyRunning,
     verifyFromMetadataEndpoint,
+  );
+
+router
+  .route("/verify/etherscan/:chainId/:address")
+  .post(
+    validateChainId,
+    validateAddress,
+    checkIfAlreadyVerified,
+    checkIfJobIsAlreadyRunning,
+    verifyFromEtherscanEndpoint,
   );
 
 export default router;

@@ -209,23 +209,11 @@ export const getVyperJsonInputFromSingleFileResult = (
   };
 };
 
-export interface FetchFromEtherscanSolidityResult {
-  compilerVersion: string;
-  solcJsonInput: SolidityJsonInput;
-  contractPath: string;
-  contractName: string;
-}
-
-export interface FetchFromEtherscanVyperResult {
-  compilerVersion: string;
-  vyperJsonInput: VyperJsonInput;
-  contractPath: string;
-  contractName: string;
-}
-
 export interface FetchFromEtherscanResult {
-  vyperResult?: FetchFromEtherscanVyperResult;
-  solidityResult?: FetchFromEtherscanSolidityResult;
+  compilerVersion: string;
+  jsonInput: VyperJsonInput | SolidityJsonInput;
+  contractPath: string;
+  contractName: string;
 }
 
 export const fetchCompilerInputFromEtherscan = async (
@@ -326,26 +314,22 @@ export const fetchCompilerInputFromEtherscan = async (
   const contractResultJson = resultJson.result[0] as EtherscanResult;
 
   if (contractResultJson.CompilerVersion.startsWith("vyper")) {
-    return {
-      vyperResult: await processVyperResultFromEtherscan(
-        contractResultJson,
-        throwV2Errors,
-      ),
-    };
+    return await processVyperResultFromEtherscan(
+      contractResultJson,
+      throwV2Errors,
+    );
   } else {
-    return {
-      solidityResult: processSolidityResultFromEtherscan(
-        contractResultJson,
-        throwV2Errors,
-      ),
-    };
+    return processSolidityResultFromEtherscan(
+      contractResultJson,
+      throwV2Errors,
+    );
   }
 };
 
 const processSolidityResultFromEtherscan = (
   contractResultJson: EtherscanResult,
   throwV2Errors: boolean,
-): FetchFromEtherscanSolidityResult => {
+): FetchFromEtherscanResult => {
   const sourceCodeObject = contractResultJson.SourceCode;
   const contractName = contractResultJson.ContractName;
 
@@ -402,7 +386,7 @@ const processSolidityResultFromEtherscan = (
 
   return {
     compilerVersion,
-    solcJsonInput,
+    jsonInput: solcJsonInput,
     contractPath,
     contractName,
   };
@@ -411,7 +395,7 @@ const processSolidityResultFromEtherscan = (
 const processVyperResultFromEtherscan = async (
   contractResultJson: EtherscanResult,
   throwV2Errors: boolean,
-): Promise<FetchFromEtherscanVyperResult> => {
+): Promise<FetchFromEtherscanResult> => {
   const sourceCodeProperty = contractResultJson.SourceCode;
 
   const compilerVersion = await getVyperCompilerVersion(
@@ -491,7 +475,7 @@ const processVyperResultFromEtherscan = async (
 
   return {
     compilerVersion,
-    vyperJsonInput,
+    jsonInput: vyperJsonInput,
     contractPath,
     contractName,
   };
@@ -501,38 +485,35 @@ export const stringToBase64 = (str: string): string => {
   return Buffer.from(str, "utf8").toString("base64");
 };
 
-export async function processEtherscanSolidityContract(
+export function getCompilationFromEtherscanResult(
+  fetchedResult: FetchFromEtherscanResult,
   solc: ISolidityCompiler,
-  fetchedResult: FetchFromEtherscanSolidityResult,
-) {
-  const compilationTarget: CompilationTarget = {
-    path: fetchedResult.contractPath,
-    name: fetchedResult.contractName,
-  };
-
-  return new SolidityCompilation(
-    solc,
-    fetchedResult.compilerVersion,
-    fetchedResult.solcJsonInput,
-    compilationTarget,
-  );
-}
-
-export async function processEtherscanVyperContract(
   vyperCompiler: IVyperCompiler,
-  fetchedResult: FetchFromEtherscanVyperResult,
-) {
-  // Create compilation target
+): SolidityCompilation | VyperCompilation {
   const compilationTarget: CompilationTarget = {
     path: fetchedResult.contractPath,
     name: fetchedResult.contractName,
   };
 
-  // Create and return VyperCompilation directly
-  return new VyperCompilation(
-    vyperCompiler,
-    fetchedResult.compilerVersion,
-    fetchedResult.vyperJsonInput,
-    compilationTarget,
-  );
+  let compilation: SolidityCompilation | VyperCompilation;
+  if (fetchedResult.jsonInput.language === "Solidity") {
+    compilation = new SolidityCompilation(
+      solc,
+      fetchedResult.compilerVersion,
+      fetchedResult.jsonInput as SolidityJsonInput,
+      compilationTarget,
+    );
+  } else if (fetchedResult.jsonInput.language === "Vyper") {
+    compilation = new VyperCompilation(
+      vyperCompiler,
+      fetchedResult.compilerVersion,
+      fetchedResult.jsonInput as VyperJsonInput,
+      compilationTarget,
+    );
+  } else {
+    logger.error("Import from Etherscan: unsupported language");
+    throw new BadRequestError("Received unsupported language from Etherscan");
+  }
+
+  return compilation;
 }

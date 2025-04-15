@@ -1,8 +1,7 @@
 import { Response, Request } from "express";
 import {
-  processEtherscanSolidityContract,
-  processEtherscanVyperContract,
   fetchCompilerInputFromEtherscan,
+  getCompilationFromEtherscanResult,
 } from "../../../../services/utils/etherscan-util";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
@@ -11,7 +10,6 @@ import {
   IVyperCompiler,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Services } from "../../../../services/services";
-import { BadRequestError } from "../../../../../common/errors";
 import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 
 export async function verifyFromEtherscan(req: Request, res: Response) {
@@ -29,27 +27,17 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   logger.info("verifyFromEtherscan", { chain, address, apiKey });
 
-  const { vyperResult, solidityResult } = await fetchCompilerInputFromEtherscan(
+  const etherscanResult = await fetchCompilerInputFromEtherscan(
     sourcifyChain,
     address,
     apiKey,
   );
 
-  let compilation;
-
-  if (solidityResult) {
-    // Process Solidity contract from Etherscan and get SolidityCompilation directly
-    compilation = await processEtherscanSolidityContract(solc, solidityResult);
-  } else if (vyperResult) {
-    // Process Vyper contract from Etherscan and get VyperCompilation directly
-    compilation = await processEtherscanVyperContract(
-      vyperCompiler,
-      vyperResult,
-    );
-  } else {
-    logger.error("Import from Etherscan: unsupported language");
-    throw new BadRequestError("Received unsupported language from Etherscan");
-  }
+  const compilation = getCompilationFromEtherscanResult(
+    etherscanResult,
+    solc,
+    vyperCompiler,
+  );
 
   // Verify the contract using the new verification flow
   const verification = await services.verification.verifyFromCompilation(

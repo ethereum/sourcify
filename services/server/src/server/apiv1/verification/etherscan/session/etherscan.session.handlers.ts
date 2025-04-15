@@ -9,14 +9,12 @@ import {
   ISolidityCompiler,
   IVyperCompiler,
   PathContent,
-  Sources,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import {
-  processEtherscanSolidityContract,
-  processEtherscanVyperContract,
   fetchCompilerInputFromEtherscan,
   stringToBase64,
+  getCompilationFromEtherscanResult,
 } from "../../../../services/utils/etherscan-util";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
@@ -40,24 +38,18 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const apiKey = req.body?.apiKey;
   const sourcifyChain = chainRepository.supportedChainMap[chain];
 
-  const { vyperResult, solidityResult } = await fetchCompilerInputFromEtherscan(
+  const etherscanResult = await fetchCompilerInputFromEtherscan(
     sourcifyChain,
     address,
     apiKey,
   );
 
-  let compilation;
-  let sources: Sources;
-  if (solidityResult) {
-    compilation = await processEtherscanSolidityContract(solc, solidityResult);
-    sources = solidityResult.solcJsonInput.sources;
-  } else if (vyperResult) {
-    compilation = await processEtherscanVyperContract(vyper, vyperResult);
-    sources = vyperResult.vyperJsonInput.sources;
-  } else {
-    logger.error("Import from Etherscan: unsupported language");
-    throw new BadRequestError("Received unsupported language from Etherscan");
-  }
+  const compilation = getCompilationFromEtherscanResult(
+    etherscanResult,
+    solc,
+    vyper,
+  );
+  const sources = etherscanResult.jsonInput.sources;
 
   const pathContents: PathContent[] = Object.keys(sources).map((path) => {
     if (!sources[path].content) {

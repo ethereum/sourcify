@@ -14,10 +14,9 @@ import {
 } from "../../helpers/etherscanResponseMocks";
 import {
   fetchCompilerInputFromEtherscan,
+  getCompilationFromEtherscanResult,
   getContractPathFromSourcesOrThrow,
   getVyperCompilerVersion,
-  processEtherscanSolidityContract,
-  processEtherscanVyperContract,
 } from "../../../src/server/services/utils/etherscan-util";
 import {
   solc,
@@ -26,7 +25,9 @@ import {
 import chaiAsPromised from "chai-as-promised";
 import {
   SolidityCompilation,
+  SolidityJsonInput,
   VyperCompilation,
+  VyperJsonInput,
 } from "@ethereum-sourcify/lib-sourcify";
 
 chai.use(chaiAsPromised);
@@ -111,11 +112,10 @@ describe("etherscan util", function () {
         sourcifyChainsMap[testChainId],
         testAddress,
       );
-      expect(result.vyperResult).to.be.undefined;
-      expect(result.solidityResult).to.deep.equal({
+      expect(result).to.deep.equal({
         compilerVersion:
           SINGLE_CONTRACT_RESPONSE.result[0].CompilerVersion.substring(1),
-        solcJsonInput: {
+        jsonInput: {
           language: "Solidity",
           sources: {
             [SINGLE_CONTRACT_RESPONSE.result[0].ContractName + ".sol"]: {
@@ -157,14 +157,13 @@ describe("etherscan util", function () {
         sourcifyChainsMap[testChainId],
         testAddress,
       );
-      expect(result.vyperResult).to.be.undefined;
       const expectedSources = JSON.parse(
         MULTIPLE_CONTRACT_RESPONSE.result[0].SourceCode,
       );
-      expect(result.solidityResult).to.deep.equal({
+      expect(result).to.deep.equal({
         compilerVersion:
           MULTIPLE_CONTRACT_RESPONSE.result[0].CompilerVersion.substring(1),
-        solcJsonInput: {
+        jsonInput: {
           language: "Solidity",
           sources: expectedSources,
           settings: {
@@ -206,7 +205,6 @@ describe("etherscan util", function () {
         sourcifyChainsMap[testChainId],
         testAddress,
       );
-      expect(result.vyperResult).to.be.undefined;
       const expectedJsonInput = JSON.parse(
         STANDARD_JSON_CONTRACT_RESPONSE.result[0].SourceCode.substring(
           1,
@@ -217,7 +215,7 @@ describe("etherscan util", function () {
         "metadata",
         "evm.deployedBytecode.object",
       ];
-      expect(result.solidityResult).to.deep.equal({
+      expect(result).to.deep.equal({
         compilerVersion:
           STANDARD_JSON_CONTRACT_RESPONSE.result[0].CompilerVersion.substring(
             1,
@@ -243,7 +241,6 @@ describe("etherscan util", function () {
         sourcifyChainsMap[testChainId],
         testAddress,
       );
-      expect(result.solidityResult).to.be.undefined;
       const expectedName =
         VYPER_SINGLE_CONTRACT_RESPONSE.result[0].ContractName.replace(
           /\s+/g,
@@ -252,7 +249,7 @@ describe("etherscan util", function () {
           .replace(/\n/g, "")
           .replace(/\r/g, "");
       const expectedPath = `${expectedName}.vy`;
-      expect(result.vyperResult).to.deep.equal({
+      expect(result).to.deep.equal({
         compilerVersion: await getVyperCompilerVersion(
           VYPER_SINGLE_CONTRACT_RESPONSE.result[0].CompilerVersion,
         ),
@@ -294,7 +291,6 @@ describe("etherscan util", function () {
         sourcifyChainsMap[testChainId],
         testAddress,
       );
-      expect(result.solidityResult).to.be.undefined;
       const expectedJsonInput = JSON.parse(
         VYPER_STANDARD_JSON_CONTRACT_RESPONSE.result[0].SourceCode.substring(
           1,
@@ -307,7 +303,7 @@ describe("etherscan util", function () {
         expectedJsonInput.settings.outputSelection,
       )[0];
       const expectedName = expectedPath.split("/").pop()!.split(".")[0];
-      expect(result.vyperResult).to.deep.equal({
+      expect(result).to.deep.equal({
         compilerVersion: await getVyperCompilerVersion(
           VYPER_STANDARD_JSON_CONTRACT_RESPONSE.result[0].CompilerVersion,
         ),
@@ -358,30 +354,31 @@ describe("etherscan util", function () {
     });
   });
 
-  describe("processEtherscanSolidityContract", () => {
+  describe("getCompilationFromEtherscanResult", () => {
     it("should return a SolidityCompilation", async () => {
       mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         SINGLE_CONTRACT_RESPONSE,
       );
-      const { solidityResult } = await fetchCompilerInputFromEtherscan(
+      const solidityResult = await fetchCompilerInputFromEtherscan(
         sourcifyChainsMap[testChainId],
         testAddress,
       );
 
-      const compilation = await processEtherscanSolidityContract(
+      const compilation = await getCompilationFromEtherscanResult(
+        solidityResult,
         solc,
-        solidityResult!,
+        vyperCompiler,
       );
 
       const expectedCompilation = new SolidityCompilation(
         solc,
-        solidityResult!.compilerVersion,
-        solidityResult!.solcJsonInput,
+        solidityResult.compilerVersion,
+        solidityResult.jsonInput as SolidityJsonInput,
         {
-          path: solidityResult!.contractPath,
-          name: solidityResult!.contractName,
+          path: solidityResult.contractPath,
+          name: solidityResult.contractName,
         },
       );
       expect(compilation).to.be.instanceOf(SolidityCompilation);
@@ -396,32 +393,31 @@ describe("etherscan util", function () {
         expectedCompilation.compilationTarget,
       );
     });
-  });
 
-  describe("processEtherscanVyperContract", () => {
     it("should return a VyperCompilation", async () => {
       mockEtherscanApi(
         sourcifyChainsMap[testChainId],
         testAddress,
         VYPER_SINGLE_CONTRACT_RESPONSE,
       );
-      const { vyperResult } = await fetchCompilerInputFromEtherscan(
+      const vyperResult = await fetchCompilerInputFromEtherscan(
         sourcifyChainsMap[testChainId],
         testAddress,
       );
 
-      const compilation = await processEtherscanVyperContract(
+      const compilation = await getCompilationFromEtherscanResult(
+        vyperResult,
+        solc,
         vyperCompiler,
-        vyperResult!,
       );
 
       const expectedCompilation = new VyperCompilation(
         vyperCompiler,
-        vyperResult!.compilerVersion,
-        vyperResult!.vyperJsonInput,
+        vyperResult.compilerVersion,
+        vyperResult.jsonInput as VyperJsonInput,
         {
-          path: vyperResult!.contractPath,
-          name: vyperResult!.contractName,
+          path: vyperResult.contractPath,
+          name: vyperResult.contractName,
         },
       );
       expect(compilation).to.be.instanceOf(VyperCompilation);
