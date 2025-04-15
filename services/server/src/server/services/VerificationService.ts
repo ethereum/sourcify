@@ -11,6 +11,7 @@ import {
   VerificationExport,
   SourcifyChainInstance,
   CompilationTarget,
+  Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
@@ -22,16 +23,18 @@ import {
 } from "@ethereum-sourcify/compilers";
 import { VerificationJobId } from "../types";
 import { StorageService } from "./StorageService";
-import { MatchingError, MatchingErrorResponse } from "../apiv2/errors";
 import Piscina from "piscina";
 import path from "path";
 import { filename as verificationWorkerFilename } from "./workers/verificationWorker";
 import { v4 as uuidv4 } from "uuid";
 import { ConflictError } from "../../common/errors/ConflictError";
 import os from "os";
-import type {
-  VerifyFromJsonInputs,
-  VerifyFromJsonOutput,
+import {
+  VerifyError,
+  VerifyErrorExport,
+  type VerifyFromJsonInput,
+  type VerifyFromMetadataInput,
+  type VerifyOutput,
 } from "./workers/workerTypes";
 
 export interface VerificationServiceOptions {
@@ -269,7 +272,7 @@ export class VerificationService {
       [new Date(), chainId, address, verificationEndpoint],
     );
 
-    const input: VerifyFromJsonInputs = {
+    const input: VerifyFromJsonInput = {
       chainId,
       address,
       jsonInput,
@@ -280,13 +283,63 @@ export class VerificationService {
 
     const task = this.workerPool
       .run(input, { name: "verifyFromJsonInput" })
-      .then((output: VerifyFromJsonOutput) => {
+      .then((output: VerifyOutput) => {
+        return this.handleWorkerResponse(verificationId, output);
+      })
+      .finally(() => {
+        this.runningTasks.delete(task);
+      });
+    this.runningTasks.add(task);
+
+    return verificationId;
+  }
+
+  public async verifyFromMetadataViaWorker(
+    verificationEndpoint: string,
+    chainId: string,
+    address: string,
+    metadata: Metadata,
+    sources: Record<string, string>,
+    creationTransactionHash?: string,
+  ): Promise<VerificationJobId> {
+    const verificationId = await this.storageService.performServiceOperation(
+      "storeVerificationJob",
+      [new Date(), chainId, address, verificationEndpoint],
+    );
+
+    const input: VerifyFromMetadataInput = {
+      chainId,
+      address,
+      metadata,
+      sources,
+      creationTransactionHash,
+    };
+
+    const task = this.workerPool
+      .run(input, { name: "verifyFromMetadata" })
+      .then((output: VerifyOutput) => {
+        return this.handleWorkerResponse(verificationId, output);
+      })
+      .finally(() => {
+        this.runningTasks.delete(task);
+      });
+    this.runningTasks.add(task);
+
+    return verificationId;
+  }
+
+  private async handleWorkerResponse(
+    verificationId: VerificationJobId,
+    output: VerifyOutput,
+  ): Promise<void> {
+    return Promise.resolve(output)
+      .then((output: VerifyOutput) => {
         if (output.verificationExport) {
           return output.verificationExport;
-        } else if (output.errorResponse) {
-          throw new MatchingError(output.errorResponse);
+        } else if (output.errorExport) {
+          throw new VerifyError(output.errorExport);
         }
-        const errorMessage = `The worker did not return a verification export nor an error response. This should never happen.`;
+        const errorMessage = `The worker did not return a verification export nor an error export. This should never happen.`;
         logger.error(errorMessage, { output });
         throw new Error(errorMessage);
       })
@@ -297,17 +350,17 @@ export class VerificationService {
         });
       })
       .catch((error) => {
-        let errorResponse: Omit<MatchingErrorResponse, "message">;
-        if (error.response) {
+        let errorExport: VerifyErrorExport;
+        if (error instanceof VerifyError) {
           // error comes from the verification worker
           logger.debug("Received verification error from worker", {
             verificationId,
-            errorResponse: error.response,
+            errorExport: error.errorExport,
           });
-          errorResponse = error.response as MatchingErrorResponse;
+          errorExport = error.errorExport;
         } else if (error instanceof ConflictError) {
           // returned by StorageService if match already exists and new one is not better
-          errorResponse = {
+          errorExport = {
             customCode: "already_verified",
             errorId: uuidv4(),
           };
@@ -316,7 +369,7 @@ export class VerificationService {
             verificationId,
             error,
           });
-          errorResponse = {
+          errorExport = {
             customCode: "internal_error",
             errorId: uuidv4(),
           };
@@ -325,14 +378,8 @@ export class VerificationService {
         return this.storageService.performServiceOperation("setJobError", [
           verificationId,
           new Date(),
-          errorResponse,
+          errorExport,
         ]);
-      })
-      .finally(() => {
-        this.runningTasks.delete(task);
       });
-    this.runningTasks.add(task);
-
-    return verificationId;
   }
 }

@@ -9,9 +9,9 @@ import type { Request, Response, NextFunction } from "express";
 import { error as openApiValidatorErrors } from "express-openapi-validator";
 import logger from "../../common/logger";
 import {
-  ErrorMessagePayload,
   getErrorMessageFromCode,
   SourcifyLibErrorCode,
+  SourcifyLibErrorParameters,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../common/errors/TooManyRequests";
 
@@ -38,12 +38,6 @@ export interface MatchingErrorResponse extends GenericErrorResponse {
   onchainCreationCode?: string;
   onchainRuntimeCode?: string;
   creationTransactionHash?: string;
-}
-
-export class MatchingError extends Error {
-  constructor(public response: MatchingErrorResponse) {
-    super(response.message);
-  }
 }
 
 export class InternalError extends InternalServerError {
@@ -169,11 +163,16 @@ export type VerificationErrorCode =
   | "already_verified"
   | "internal_error";
 
+export type VerificationErrorParameters =
+  | SourcifyLibErrorParameters
+  | {
+      code: VerificationErrorCode;
+    };
+
 export function getVerificationErrorMessage(
-  code: VerificationErrorCode,
-  payload?: ErrorMessagePayload,
+  params: VerificationErrorParameters,
 ) {
-  switch (code) {
+  switch (params.code) {
     case "unsupported_language":
       return "The provided language is not supported.";
     case "already_verified":
@@ -181,6 +180,6 @@ export function getVerificationErrorMessage(
     case "internal_error":
       return "The server encountered an unexpected error.";
     default:
-      return getErrorMessageFromCode(code, payload);
+      return getErrorMessageFromCode(params as SourcifyLibErrorParameters);
   }
 }

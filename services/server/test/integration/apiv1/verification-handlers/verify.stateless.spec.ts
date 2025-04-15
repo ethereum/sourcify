@@ -144,7 +144,11 @@ describe("/", function () {
       .field("chain", chainFixture.chainId)
       .attach(
         "files",
-        chainFixture.defaultContractModifiedSourceIpfs,
+        Buffer.from(
+          JSON.stringify(
+            chainFixture.defaultContractMetadataWithModifiedIpfsHash,
+          ),
+        ),
         "metadata.json",
       )
       .end((err, res) => {

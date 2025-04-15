@@ -9,18 +9,22 @@ import {
   SourcifyChain,
   SourcifyChainInstance,
   SourcifyChainMap,
+  SolidityMetadataContract,
+  useAllSourcesAndReturnCompilation,
 } from "@ethereum-sourcify/lib-sourcify";
 import { resolve } from "path";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 import { SolcLocal } from "../compiler/local/SolcLocal";
 import { VyperLocal } from "../compiler/local/VyperLocal";
-import {
-  getVerificationErrorMessage,
-  MatchingErrorResponse,
-} from "../../apiv2/errors";
 import { v4 as uuidv4 } from "uuid";
 import { getCreatorTx } from "../utils/contract-creation-util";
-import { VerifyFromJsonInputs, VerifyFromJsonOutput } from "./workerTypes";
+import type {
+  VerifyErrorExport,
+  VerifyFromJsonInput,
+  VerifyFromMetadataInput,
+  VerifyOutput,
+} from "./workerTypes";
+import logger from "../../../common/logger";
 
 export const filename = resolve(__filename);
 
@@ -59,15 +63,8 @@ export async function verifyFromJsonInput({
   compilerVersion,
   compilationTarget,
   creationTransactionHash,
-}: VerifyFromJsonInputs): Promise<VerifyFromJsonOutput> {
+}: VerifyFromJsonInput): Promise<VerifyOutput> {
   initWorker();
-
-  const sourcifyChain = chainRepository.sourcifyChainMap[chainId];
-
-  const foundCreationTxHash =
-    creationTransactionHash ||
-    (await getCreatorTx(sourcifyChain, address)) ||
-    undefined;
 
   let compilation: SolidityCompilation | VyperCompilation | undefined;
   try {
@@ -88,19 +85,24 @@ export async function verifyFromJsonInput({
     }
   } catch (error: any) {
     return {
-      errorResponse: createMatchingError(error),
+      errorExport: createErrorExport(error),
     };
   }
 
   if (!compilation) {
     return {
-      errorResponse: {
+      errorExport: {
         customCode: "unsupported_language",
-        message: getVerificationErrorMessage("unsupported_language"),
         errorId: uuidv4(),
       },
     };
   }
+
+  const sourcifyChain = chainRepository.sourcifyChainMap[chainId];
+  const foundCreationTxHash =
+    creationTransactionHash ||
+    (await getCreatorTx(sourcifyChain, address)) ||
+    undefined;
 
   const verification = new Verification(
     compilation,
@@ -113,7 +115,7 @@ export async function verifyFromJsonInput({
     await verification.verify();
   } catch (error: any) {
     return {
-      errorResponse: createMatchingError(error, verification),
+      errorExport: createErrorExport(error, verification),
     };
   }
 
@@ -122,10 +124,92 @@ export async function verifyFromJsonInput({
   };
 }
 
-function createMatchingError(
+export async function verifyFromMetadata({
+  chainId,
+  address,
+  metadata,
+  sources,
+  creationTransactionHash,
+}: VerifyFromMetadataInput): Promise<VerifyOutput> {
+  initWorker();
+
+  const sourcesList = Object.entries(sources).map(([path, content]) => ({
+    path,
+    content,
+  }));
+  const metadataContract = new SolidityMetadataContract(metadata, sourcesList);
+
+  let compilation: SolidityCompilation;
+  try {
+    // Includes fetching missing sources
+    compilation = await metadataContract.createCompilation(solc);
+  } catch (error: any) {
+    return {
+      errorExport: createErrorExport(error),
+    };
+  }
+
+  const sourcifyChain = chainRepository.sourcifyChainMap[chainId];
+  const foundCreationTxHash =
+    creationTransactionHash ||
+    (await getCreatorTx(sourcifyChain, address)) ||
+    undefined;
+
+  let verification = new Verification(
+    compilation,
+    sourcifyChain,
+    address,
+    foundCreationTxHash,
+  );
+
+  try {
+    await verification.verify();
+  } catch (error: any) {
+    if (error.code !== "extra_file_input_bug") {
+      return {
+        errorExport: createErrorExport(error, verification),
+      };
+    }
+
+    logger.info("Found extra-file-input-bug", {
+      contract: metadataContract.name,
+      chainId,
+      address,
+    });
+
+    const sourcesBuffer = sourcesList.map(({ path, content }) => ({
+      path,
+      buffer: Buffer.from(content),
+    }));
+    const compilationWithAllSources = await useAllSourcesAndReturnCompilation(
+      compilation,
+      sourcesBuffer,
+    );
+    verification = new Verification(
+      compilationWithAllSources,
+      sourcifyChain,
+      address,
+      foundCreationTxHash,
+    );
+
+    try {
+      await verification.verify();
+    } catch (allSourcesError: any) {
+      return {
+        errorExport: createErrorExport(allSourcesError, verification),
+      };
+    }
+  }
+
+  return {
+    verificationExport: verification.export(),
+  };
+}
+
+function createErrorExport(
   error: Error,
   verification?: Verification,
-): MatchingErrorResponse {
+): VerifyErrorExport {
   if (!(error instanceof SourcifyLibError)) {
     // If the error is not a SourcifyLibError, the server reached an unexpected state.
     // Let the VerificationService log and handle it.
@@ -134,10 +218,14 @@ function createMatchingError(
 
   // Use VerificationExport to get bytecodes as it does not throw when accessing properties
   const verificationExport = verification?.export();
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { chainId, address, ...jobErrorData } = error.data;
+
   return {
     customCode: error.code,
-    message: error.message,
     errorId: uuidv4(),
+    errorData: Object.keys(jobErrorData).length > 0 ? jobErrorData : undefined,
     onchainRuntimeCode: verificationExport?.onchainRuntimeBytecode,
     onchainCreationCode: verificationExport?.onchainCreationBytecode,
     recompiledRuntimeCode: verificationExport?.compilation.runtimeBytecode,

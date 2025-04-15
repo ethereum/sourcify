@@ -2,6 +2,7 @@ import type {
   VyperJsonInput,
   SolidityJsonInput,
   CompilationTarget,
+  Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
 import { TypedResponse } from "../../types";
 import logger from "../../../common/logger";
@@ -58,6 +59,48 @@ export async function verifyFromJsonInputEndpoint(
       req.body.stdJsonInput,
       req.body.compilerVersion,
       compilationTarget,
+      req.body.creationTransactionHash,
+    );
+
+  res.status(StatusCodes.ACCEPTED).json({ verificationId });
+}
+
+interface VerifyFromMetadataRequest extends Request {
+  params: {
+    chainId: string;
+    address: string;
+  };
+  body: {
+    metadata: Metadata;
+    sources: Record<string, string>;
+    creationTransactionHash?: string;
+  };
+}
+
+type VerifyFromMetadataResponse = TypedResponse<{
+  verificationId: string;
+}>;
+
+export async function verifyFromMetadataEndpoint(
+  req: VerifyFromMetadataRequest,
+  res: VerifyFromMetadataResponse,
+) {
+  logger.debug("verifyFromMetadataEndpoint", {
+    chainId: req.params.chainId,
+    address: req.params.address,
+    sources: req.body.sources,
+    metadata: req.body.metadata,
+    creationTransactionHash: req.body.creationTransactionHash,
+  });
+
+  const services = req.app.get("services") as Services;
+  const verificationId =
+    await services.verification.verifyFromMetadataViaWorker(
+      req.baseUrl + req.path,
+      req.params.chainId,
+      req.params.address,
+      req.body.metadata,
+      req.body.sources,
       req.body.creationTransactionHash,
     );
 

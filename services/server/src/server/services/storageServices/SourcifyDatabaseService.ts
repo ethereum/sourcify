@@ -10,6 +10,7 @@ import {
   bytesFromString,
   Field,
   FIELDS_TO_STORED_PROPERTIES,
+  JobErrorData,
   StoredProperties,
 } from "../utils/database-util";
 import {
@@ -42,9 +43,9 @@ import semver from "semver";
 import { DatabaseOptions } from "../utils/Database";
 import {
   getVerificationErrorMessage,
-  MatchingErrorResponse,
   VerificationErrorCode,
 } from "../../apiv2/errors";
+import { VerifyErrorExport } from "../workers/workerTypes";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -784,13 +785,12 @@ export class SourcifyDatabaseService
     if (row.error_code && row.error_id) {
       job.error = {
         customCode: row.error_code as VerificationErrorCode,
-        message: getVerificationErrorMessage(
-          row.error_code as VerificationErrorCode,
-          {
-            chainId: row.chain_id,
-            address,
-          },
-        ),
+        message: getVerificationErrorMessage({
+          code: row.error_code as VerificationErrorCode,
+          chainId: row.chain_id,
+          address,
+          ...row.error_data,
+        }),
         errorId: row.error_id,
         recompiledCreationCode: row.recompiled_creation_code || undefined,
         recompiledRuntimeCode: row.recompiled_runtime_code || undefined,
@@ -843,7 +843,7 @@ export class SourcifyDatabaseService
   async setJobError(
     verificationId: VerificationJobId,
     finishTime: Date,
-    error: Omit<MatchingErrorResponse, "message">,
+    error: VerifyErrorExport,
   ) {
     await this.database.updateVerificationJob({
       id: verificationId,
@@ -852,6 +852,7 @@ export class SourcifyDatabaseService
       compilation_time: null,
       error_code: error.customCode,
       error_id: error.errorId,
+      error_data: error.errorData || null,
     });
 
     await this.database.insertVerificationJobEphemeral({
@@ -933,6 +934,7 @@ export class SourcifyDatabaseService
           verification.compilation.compilationTime?.toString() || null,
         error_code: null,
         error_id: null,
+        error_data: null,
       });
     }
   }

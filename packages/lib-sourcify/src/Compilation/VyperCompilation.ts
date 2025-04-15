@@ -27,7 +27,8 @@ import {
  */
 export class VyperCompilation extends AbstractCompilation {
   public language: CompilationLanguage = 'Vyper';
-  // Use declare to override AbstractCompilation's types to target Solidity types
+  // Use declare to override AbstractCompilation's types to target Vyper types
+  declare jsonInput: VyperJsonInput;
   declare compilerOutput?: VyperOutput;
   declare compileAndReturnCompilationTarget: (
     forceEmscripten: boolean,
@@ -102,10 +103,10 @@ export class VyperCompilation extends AbstractCompilation {
   public constructor(
     public compiler: IVyperCompiler,
     public compilerVersion: string,
-    public jsonInput: VyperJsonInput,
+    jsonInput: VyperJsonInput,
     public compilationTarget: CompilationTarget,
   ) {
-    super();
+    super(jsonInput);
 
     // Vyper beta and rc versions are not semver compliant, so we need to handle them differently
     if (semver.valid(this.compilerVersion)) {
@@ -117,7 +118,7 @@ export class VyperCompilation extends AbstractCompilation {
           .split('+')[0]
           .replace(/(b\d+|rc\d+)$/, '')}+${this.compilerVersion.split('+')[1]}`;
       } else {
-        throw new CompilationError('invalid_compiler_version');
+        throw new CompilationError({ code: 'invalid_compiler_version' });
       }
     }
 
@@ -211,7 +212,9 @@ export class VyperCompilation extends AbstractCompilation {
       logWarn('Cannot generate cbor auxdata positions', {
         error,
       });
-      throw new CompilationError('cannot_generate_cbor_auxdata_positions');
+      throw new CompilationError({
+        code: 'cannot_generate_cbor_auxdata_positions',
+      });
     }
   }
 

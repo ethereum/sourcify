@@ -15,6 +15,7 @@ import storageJsonInput from "../testcontracts/Storage/StorageJsonInput.json";
 import { ChildProcess, spawn } from "child_process";
 import treeKill from "tree-kill";
 import { SolidityMetadataContract } from "@ethereum-sourcify/lib-sourcify";
+import type { Metadata } from "@ethereum-sourcify/lib-sourcify";
 
 const storageContractSourcePath = path.join(
   __dirname,
@@ -49,11 +50,12 @@ export class LocalChainFixture {
   defaultContractMetadata = Buffer.from(
     JSON.stringify(storageContractMetadata),
   );
-  defaultContractMetadataObject = storageContractMetadata;
+  defaultContractMetadataObject = storageContractMetadata as Metadata;
   defaultContractModifiedMetadata = Buffer.from(
     JSON.stringify(storageContractMetadataModified),
   );
-  defaultContractModifiedSourceIpfs = getModifiedSourceIpfs();
+  defaultContractMetadataWithModifiedIpfsHash =
+    getMetadataWithModifiedIpfsHash();
   defaultContractArtifact = storageContractArtifact;
   defaultContractJsonInput = storageJsonInput;
 
@@ -203,7 +205,7 @@ function stopHardhatNetwork(hardhatNodeProcess: ChildProcess) {
 }
 
 // Changes the IPFS hash inside the metadata file to make the source unfetchable
-function getModifiedSourceIpfs(): Buffer {
+function getMetadataWithModifiedIpfsHash(): Metadata {
   const ipfsAddress =
     storageContractMetadata.sources["project:/contracts/Storage.sol"].urls[1];
   // change the last char in ipfs hash of the source file
@@ -218,5 +220,5 @@ function getModifiedSourceIpfs(): Buffer {
   );
   modifiedIpfsMetadata.sources["project:/contracts/Storage.sol"].urls[1] =
     modifiedIpfsAddress;
-  return Buffer.from(JSON.stringify(modifiedIpfsMetadata));
+  return modifiedIpfsMetadata;
 }

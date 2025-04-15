@@ -44,7 +44,7 @@ jobs:
           command: npm run lerna-lint
       - run:
           name: test
-          command: npx lerna run lerna-test
+          command: npm run lerna-test
           environment:
             DOCKER_HOST_POSTGRES_TEST_PORT: 5432
             SOURCIFY_POSTGRES_HOST: "localhost"

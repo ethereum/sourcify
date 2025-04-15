@@ -15,6 +15,7 @@ import {
   SolidityOutputContract,
   SoliditySettings,
   VyperSettings,
+  SourcifyLibErrorData,
 } from "@ethereum-sourcify/lib-sourcify";
 import { Abi } from "abitype";
 import {
@@ -26,6 +27,8 @@ import {
   Nullable,
 } from "../../types";
 import { keccak256 } from "ethers";
+
+export type JobErrorData = Omit<SourcifyLibErrorData, "chainId" | "address">;
 
 // eslint-disable-next-line @typescript-eslint/no-namespace
 export namespace Tables {
@@ -140,6 +143,7 @@ export namespace Tables {
     verified_contract_id: Nullable<string>;
     error_code: Nullable<string>;
     error_id: Nullable<string>;
+    error_data: Nullable<JobErrorData>;
     verification_endpoint: string;
     hardware: Nullable<string>;
     compilation_time: Nullable<string>;
@@ -255,6 +259,7 @@ export type GetVerificationJobByIdResult = Pick<
   | "verified_contract_id"
   | "error_code"
   | "error_id"
+  | "error_data"
   | "compilation_time"
 > & {
   started_at: string;
