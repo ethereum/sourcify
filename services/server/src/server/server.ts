@@ -38,6 +38,7 @@ import { SessionOptions } from "express-session";
 import { makeV1ValidatorFormats } from "./apiv1/validation";
 import { errorHandler as v2ErrorHandler } from "./apiv2/errors";
 import http from "http";
+import { setCompilersLoggerLevel } from "@ethereum-sourcify/compilers";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -86,6 +87,7 @@ export class Server {
       }
       setLogLevel(LogLevels[options.logLevel]);
       setLibSourcifyLoggerLevel(options.logLevel);
+      setCompilersLoggerLevel(options.logLevel);
     }
 
     this.port = options.port;
