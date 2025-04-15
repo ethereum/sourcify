@@ -2312,5 +2312,14 @@
         "url": "https://amescan.io/"
       }
     }
+  },
+  "28058": {
+    "sourcifyName": "Adera Chain Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://adrscan.com"
+      }
+    }
   }
 }

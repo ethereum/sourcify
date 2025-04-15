@@ -1821,6 +1821,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Adera Mainnet
+  verifyContract(
+    "0x3B9F7A55d35cFaC1C352Bf546a024848a0A46C13",
+    "28058",
+    "Adera Chain Mainnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains
