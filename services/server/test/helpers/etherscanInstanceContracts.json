@@ -517,5 +517,17 @@
       "type": "standard-json",
       "expectedStatus": "perfect"
     }
+  ],
+  "560048": [
+    {
+      "address": "0x39cC8eB3F950CA5655937CFB2b01849547057E2c",
+      "type": "standard-json",
+      "expectedStatus": "perfect"
+    },
+    {
+      "address": "0x0178DaECcbA08EF6bfbac16490AEFBDF84D46B65",
+      "type": "single",
+      "expectedStatus": "partial"
+    }
   ]
 }
