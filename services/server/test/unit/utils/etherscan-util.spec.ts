@@ -13,10 +13,12 @@ import {
   mockEtherscanApi,
 } from "../../helpers/etherscanResponseMocks";
 import {
-  fetchCompilerInputFromEtherscan,
+  fetchFromEtherscan,
   getCompilationFromEtherscanResult,
   getContractPathFromSourcesOrThrow,
   getVyperCompilerVersion,
+  processSolidityResultFromEtherscan,
+  processVyperResultFromEtherscan,
 } from "../../../src/server/services/utils/etherscan-util";
 import {
   solc,
@@ -40,7 +42,7 @@ describe("etherscan util", function () {
     nock.cleanAll();
   });
 
-  describe("fetchCompilerInputFromEtherscan", () => {
+  describe("fetchFromEtherscan", () => {
     it("should throw when fetching a non verified contract from etherscan", async () => {
       const nockScope = mockEtherscanApi(
         sourcifyChainsMap[testChainId],
@@ -49,7 +51,7 @@ describe("etherscan util", function () {
       );
 
       await expect(
-        fetchCompilerInputFromEtherscan(
+        fetchFromEtherscan(
           sourcifyChainsMap[testChainId],
           testAddress,
           undefined,
@@ -70,7 +72,7 @@ describe("etherscan util", function () {
       );
 
       await expect(
-        fetchCompilerInputFromEtherscan(
+        fetchFromEtherscan(
           sourcifyChainsMap[testChainId],
           testAddress,
           undefined,
@@ -91,7 +93,7 @@ describe("etherscan util", function () {
       );
 
       await expect(
-        fetchCompilerInputFromEtherscan(
+        fetchFromEtherscan(
           sourcifyChainsMap[testChainId],
           testAddress,
           undefined,
@@ -104,16 +106,35 @@ describe("etherscan util", function () {
       expect(nockScope.isDone()).to.equal(true);
     });
 
-    it("should process a single contract response from etherscan", async () => {
-      const nockScope = mockEtherscanApi(
-        sourcifyChainsMap[testChainId],
-        testAddress,
-        SINGLE_CONTRACT_RESPONSE,
-      );
+    [
+      ["single contract", SINGLE_CONTRACT_RESPONSE],
+      ["multiple contract", MULTIPLE_CONTRACT_RESPONSE],
+      ["standard json contract", STANDARD_JSON_CONTRACT_RESPONSE],
+      ["vyper single contract", VYPER_SINGLE_CONTRACT_RESPONSE],
+      ["vyper standard json contract", VYPER_STANDARD_JSON_CONTRACT_RESPONSE],
+    ].forEach(([description, response]) => {
+      it(`should return a ${description} response from etherscan`, async () => {
+        const nockScope = mockEtherscanApi(
+          sourcifyChainsMap[testChainId],
+          testAddress,
+          response,
+        );
 
-      const result = await fetchCompilerInputFromEtherscan(
-        sourcifyChainsMap[testChainId],
-        testAddress,
+        const result = await fetchFromEtherscan(
+          sourcifyChainsMap[testChainId],
+          testAddress,
+        );
+        expect(result).to.deep.equal((response as any).result[0]);
+        expect(nockScope.isDone()).to.equal(true);
+      });
+    });
+  });
+
+  describe("processSolidityResultFromEtherscan", () => {
+    it("should process a single contract response from etherscan", async () => {
+      const result = processSolidityResultFromEtherscan(
+        SINGLE_CONTRACT_RESPONSE.result[0],
+        false,
       );
       expect(result).to.deep.equal({
         compilerVersion:
@@ -147,19 +168,12 @@ describe("etherscan util", function () {
         contractName: SINGLE_CONTRACT_RESPONSE.result[0].ContractName,
         contractPath: SINGLE_CONTRACT_RESPONSE.result[0].ContractName + ".sol",
       });
-      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a multiple contract response from etherscan", async () => {
-      const nockScope = mockEtherscanApi(
-        sourcifyChainsMap[testChainId],
-        testAddress,
-        MULTIPLE_CONTRACT_RESPONSE,
-      );
-
-      const result = await fetchCompilerInputFromEtherscan(
-        sourcifyChainsMap[testChainId],
-        testAddress,
+      const result = processSolidityResultFromEtherscan(
+        MULTIPLE_CONTRACT_RESPONSE.result[0],
+        false,
       );
       const expectedSources = JSON.parse(
         MULTIPLE_CONTRACT_RESPONSE.result[0].SourceCode,
@@ -196,19 +210,12 @@ describe("etherscan util", function () {
           false,
         ),
       });
-      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a standard json contract response from etherscan", async () => {
-      const nockScope = mockEtherscanApi(
-        sourcifyChainsMap[testChainId],
-        testAddress,
-        STANDARD_JSON_CONTRACT_RESPONSE,
-      );
-
-      const result = await fetchCompilerInputFromEtherscan(
-        sourcifyChainsMap[testChainId],
-        testAddress,
+      const result = processSolidityResultFromEtherscan(
+        STANDARD_JSON_CONTRACT_RESPONSE.result[0],
+        false,
       );
       const expectedJsonInput = JSON.parse(
         STANDARD_JSON_CONTRACT_RESPONSE.result[0].SourceCode.substring(
@@ -233,19 +240,14 @@ describe("etherscan util", function () {
           false,
         ),
       });
-      expect(nockScope.isDone()).to.equal(true);
     });
+  });
 
+  describe("processVyperResultFromEtherscan", () => {
     it("should process a vyper single contract response from etherscan", async () => {
-      const nockScope = mockEtherscanApi(
-        sourcifyChainsMap[testChainId],
-        testAddress,
-        VYPER_SINGLE_CONTRACT_RESPONSE,
-      );
-
-      const result = await fetchCompilerInputFromEtherscan(
-        sourcifyChainsMap[testChainId],
-        testAddress,
+      const result = await processVyperResultFromEtherscan(
+        VYPER_SINGLE_CONTRACT_RESPONSE.result[0],
+        false,
       );
       const expectedName =
         VYPER_SINGLE_CONTRACT_RESPONSE.result[0].ContractName.replace(
@@ -284,19 +286,12 @@ describe("etherscan util", function () {
         contractName: expectedName,
         contractPath: expectedPath,
       });
-      expect(nockScope.isDone()).to.equal(true);
     });
 
     it("should process a vyper standard json contract response from etherscan", async () => {
-      const nockScope = mockEtherscanApi(
-        sourcifyChainsMap[testChainId],
-        testAddress,
-        VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
-      );
-
-      const result = await fetchCompilerInputFromEtherscan(
-        sourcifyChainsMap[testChainId],
-        testAddress,
+      const result = await processVyperResultFromEtherscan(
+        VYPER_STANDARD_JSON_CONTRACT_RESPONSE.result[0],
+        false,
       );
       const expectedJsonInput = JSON.parse(
         VYPER_STANDARD_JSON_CONTRACT_RESPONSE.result[0].SourceCode.substring(
@@ -318,7 +313,6 @@ describe("etherscan util", function () {
         contractName: expectedName,
         contractPath: expectedPath,
       });
-      expect(nockScope.isDone()).to.equal(true);
     });
   });
 
@@ -364,18 +358,13 @@ describe("etherscan util", function () {
 
   describe("getCompilationFromEtherscanResult", () => {
     it("should return a SolidityCompilation", async () => {
-      mockEtherscanApi(
-        sourcifyChainsMap[testChainId],
-        testAddress,
-        SINGLE_CONTRACT_RESPONSE,
-      );
-      const solidityResult = await fetchCompilerInputFromEtherscan(
-        sourcifyChainsMap[testChainId],
-        testAddress,
+      const solidityResult = processSolidityResultFromEtherscan(
+        SINGLE_CONTRACT_RESPONSE.result[0],
+        false,
       );
 
       const compilation = await getCompilationFromEtherscanResult(
-        solidityResult,
+        SINGLE_CONTRACT_RESPONSE.result[0],
         solc,
         vyperCompiler,
       );
@@ -403,18 +392,13 @@ describe("etherscan util", function () {
     });
 
     it("should return a VyperCompilation", async () => {
-      mockEtherscanApi(
-        sourcifyChainsMap[testChainId],
-        testAddress,
-        VYPER_SINGLE_CONTRACT_RESPONSE,
-      );
-      const vyperResult = await fetchCompilerInputFromEtherscan(
-        sourcifyChainsMap[testChainId],
-        testAddress,
+      const vyperResult = await processVyperResultFromEtherscan(
+        VYPER_SINGLE_CONTRACT_RESPONSE.result[0],
+        false,
       );
 
       const compilation = await getCompilationFromEtherscanResult(
-        vyperResult,
+        VYPER_SINGLE_CONTRACT_RESPONSE.result[0],
         solc,
         vyperCompiler,
       );

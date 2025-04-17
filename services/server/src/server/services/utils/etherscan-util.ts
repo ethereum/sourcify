@@ -6,7 +6,6 @@ import {
   SourcifyChain,
   VyperJsonInput,
   VyperCompilation,
-  CompilationTarget,
   SolidityCompilation,
   Sources,
 } from "@ethereum-sourcify/lib-sourcify";
@@ -209,19 +208,19 @@ export const getVyperJsonInputFromSingleFileResult = (
   };
 };
 
-export interface FetchFromEtherscanResult {
+export interface ProcessedEtherscanResult {
   compilerVersion: string;
   jsonInput: VyperJsonInput | SolidityJsonInput;
   contractPath: string;
   contractName: string;
 }
 
-export const fetchCompilerInputFromEtherscan = async (
+export const fetchFromEtherscan = async (
   sourcifyChain: SourcifyChain,
   address: string,
   apiKey?: string,
   throwV2Errors: boolean = false,
-): Promise<FetchFromEtherscanResult> => {
+): Promise<EtherscanResult> => {
   if (!sourcifyChain.etherscanApi) {
     const errorMessage = `Requested chain ${sourcifyChain.chainId} is not supported for importing from Etherscan.`;
     throw throwV2Errors
@@ -312,24 +311,13 @@ export const fetchCompilerInputFromEtherscan = async (
   }
 
   const contractResultJson = resultJson.result[0] as EtherscanResult;
-
-  if (contractResultJson.CompilerVersion.startsWith("vyper")) {
-    return await processVyperResultFromEtherscan(
-      contractResultJson,
-      throwV2Errors,
-    );
-  } else {
-    return processSolidityResultFromEtherscan(
-      contractResultJson,
-      throwV2Errors,
-    );
-  }
+  return contractResultJson;
 };
 
-const processSolidityResultFromEtherscan = (
+export const processSolidityResultFromEtherscan = (
   contractResultJson: EtherscanResult,
   throwV2Errors: boolean,
-): FetchFromEtherscanResult => {
+): ProcessedEtherscanResult => {
   const sourceCodeObject = contractResultJson.SourceCode;
   const contractName = contractResultJson.ContractName;
 
@@ -392,10 +380,10 @@ const processSolidityResultFromEtherscan = (
   };
 };
 
-const processVyperResultFromEtherscan = async (
+export const processVyperResultFromEtherscan = async (
   contractResultJson: EtherscanResult,
   throwV2Errors: boolean,
-): Promise<FetchFromEtherscanResult> => {
+): Promise<ProcessedEtherscanResult> => {
   const sourceCodeProperty = contractResultJson.SourceCode;
 
   const compilerVersion = await getVyperCompilerVersion(
@@ -485,34 +473,46 @@ export const stringToBase64 = (str: string): string => {
   return Buffer.from(str, "utf8").toString("base64");
 };
 
-export function getCompilationFromEtherscanResult(
-  fetchedResult: FetchFromEtherscanResult,
+export const isVyperResult = (etherscanResult: EtherscanResult): boolean => {
+  return etherscanResult.CompilerVersion.startsWith("vyper");
+};
+
+export async function getCompilationFromEtherscanResult(
+  etherscanResult: EtherscanResult,
   solc: ISolidityCompiler,
   vyperCompiler: IVyperCompiler,
-): SolidityCompilation | VyperCompilation {
-  const compilationTarget: CompilationTarget = {
-    path: fetchedResult.contractPath,
-    name: fetchedResult.contractName,
-  };
-
+  throwV2Errors = false,
+): Promise<SolidityCompilation | VyperCompilation> {
   let compilation: SolidityCompilation | VyperCompilation;
-  if (fetchedResult.jsonInput.language === "Solidity") {
-    compilation = new SolidityCompilation(
-      solc,
-      fetchedResult.compilerVersion,
-      fetchedResult.jsonInput as SolidityJsonInput,
-      compilationTarget,
+
+  if (isVyperResult(etherscanResult)) {
+    const processedResult = await processVyperResultFromEtherscan(
+      etherscanResult,
+      throwV2Errors,
     );
-  } else if (fetchedResult.jsonInput.language === "Vyper") {
     compilation = new VyperCompilation(
       vyperCompiler,
-      fetchedResult.compilerVersion,
-      fetchedResult.jsonInput as VyperJsonInput,
-      compilationTarget,
+      processedResult.compilerVersion,
+      processedResult.jsonInput as VyperJsonInput,
+      {
+        path: processedResult.contractPath,
+        name: processedResult.contractName,
+      },
     );
   } else {
-    logger.error("Import from Etherscan: unsupported language");
-    throw new BadRequestError("Received unsupported language from Etherscan");
+    const processedResult = processSolidityResultFromEtherscan(
+      etherscanResult,
+      throwV2Errors,
+    );
+    compilation = new SolidityCompilation(
+      solc,
+      processedResult.compilerVersion,
+      processedResult.jsonInput as SolidityJsonInput,
+      {
+        path: processedResult.contractPath,
+        name: processedResult.contractName,
+      },
+    );
   }
 
   return compilation;

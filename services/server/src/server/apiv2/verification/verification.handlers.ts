@@ -9,7 +9,7 @@ import logger from "../../../common/logger";
 import { Request } from "express";
 import { Services } from "../../services/services";
 import { StatusCodes } from "http-status-codes";
-import { fetchCompilerInputFromEtherscan } from "../../services/utils/etherscan-util";
+import { fetchFromEtherscan } from "../../services/utils/etherscan-util";
 import { ChainRepository } from "../../../sourcify-chain-repository";
 
 interface VerifyFromJsonInputRequest extends Request {
@@ -127,7 +127,9 @@ export async function verifyFromEtherscanEndpoint(
   const services = req.app.get("services") as Services;
   const chainRepository = req.app.get("chainRepository") as ChainRepository;
 
-  const etherscanResult = await fetchCompilerInputFromEtherscan(
+  // Fetch here to give early feedback to the user.
+  // Then, process in worker.
+  const etherscanResult = await fetchFromEtherscan(
     chainRepository.supportedChainMap[req.params.chainId],
     req.params.address,
     req.body?.apiKey,
@@ -135,16 +137,11 @@ export async function verifyFromEtherscanEndpoint(
   );
 
   const verificationId =
-    await services.verification.verifyFromJsonInputViaWorker(
+    await services.verification.verifyFromEtherscanViaWorker(
       req.baseUrl + req.path,
       req.params.chainId,
       req.params.address,
-      etherscanResult.jsonInput,
-      etherscanResult.compilerVersion,
-      {
-        name: etherscanResult.contractName,
-        path: etherscanResult.contractPath,
-      },
+      etherscanResult,
     );
 
   res.status(StatusCodes.ACCEPTED).json({ verificationId });

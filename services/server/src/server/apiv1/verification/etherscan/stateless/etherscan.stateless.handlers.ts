@@ -1,6 +1,6 @@
 import { Response, Request } from "express";
 import {
-  fetchCompilerInputFromEtherscan,
+  fetchFromEtherscan,
   getCompilationFromEtherscanResult,
 } from "../../../../services/utils/etherscan-util";
 import logger from "../../../../../common/logger";
@@ -27,13 +27,13 @@ export async function verifyFromEtherscan(req: Request, res: Response) {
 
   logger.info("verifyFromEtherscan", { chain, address, apiKey });
 
-  const etherscanResult = await fetchCompilerInputFromEtherscan(
+  const etherscanResult = await fetchFromEtherscan(
     sourcifyChain,
     address,
     apiKey,
   );
 
-  const compilation = getCompilationFromEtherscanResult(
+  const compilation = await getCompilationFromEtherscanResult(
     etherscanResult,
     solc,
     vyperCompiler,

@@ -12,9 +12,9 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import {
-  fetchCompilerInputFromEtherscan,
   stringToBase64,
   getCompilationFromEtherscanResult,
+  fetchFromEtherscan,
 } from "../../../../services/utils/etherscan-util";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
@@ -38,18 +38,18 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const apiKey = req.body?.apiKey;
   const sourcifyChain = chainRepository.supportedChainMap[chain];
 
-  const etherscanResult = await fetchCompilerInputFromEtherscan(
+  const etherscanResult = await fetchFromEtherscan(
     sourcifyChain,
     address,
     apiKey,
   );
 
-  const compilation = getCompilationFromEtherscanResult(
+  const compilation = await getCompilationFromEtherscanResult(
     etherscanResult,
     solc,
     vyper,
   );
-  const sources = etherscanResult.jsonInput.sources;
+  const sources = compilation.jsonInput.sources;
 
   const pathContents: PathContent[] = Object.keys(sources).map((path) => {
     if (!sources[path].content) {
