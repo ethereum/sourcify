@@ -1829,6 +1829,14 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Corn Mainnet
+  verifyContract(
+    "0xCFeE055Bf4deC42563F023cA097edf0C48Cc357F",
+    "21000000",
+    "Corn Mainnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains

@@ -2321,5 +2321,14 @@
         "url": "https://explorer.superseed.xyz"
       }
     }
+  },
+  "21000000": {
+    "sourcifyName": "Corn Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://maizenet-explorer.usecorn.com"
+      }
+    }
   }
 }
