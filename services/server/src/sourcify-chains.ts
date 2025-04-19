@@ -270,6 +270,7 @@ if (missingChains.length > 0) {
         chainId: parseInt(chainId),
         supported: chain.supported,
         rpc: rpc as FetchRequestRPC[],
+        fetchContractCreationTxUsing: chain.fetchContractCreationTxUsing,
         rpcWithoutApiKeys,
         traceSupportedRPCs,
       });
