@@ -43,6 +43,8 @@ export interface VerificationServiceOptions {
   solcRepoPath: string;
   solJsonRepoPath: string;
   vyperRepoPath: string;
+  workerIdleTimeout?: number;
+  concurrentVerificationsPerWorker?: number;
 }
 
 export class VerificationService {
@@ -99,7 +101,8 @@ export class VerificationService {
       },
       minThreads,
       maxThreads,
-      idleTimeout: 10000, // 10 seconds idle timeout
+      idleTimeout: options.workerIdleTimeout || 30000,
+      concurrentTasksPerWorker: options.concurrentVerificationsPerWorker || 5,
     });
   }
 
