@@ -14,7 +14,7 @@ export default function genericErrorHandler(
     const errorCode =
       +err.statusCode || err.status || StatusCodes.INTERNAL_SERVER_ERROR;
     if (errorCode === StatusCodes.INTERNAL_SERVER_ERROR) {
-      logger.error("Unexpected server error", { error: err });
+      logger.error(`Unexpected server error: ${err.message}`, { error: err });
     }
 
     if (err.payload) {
