@@ -98,6 +98,13 @@ const server = new Server(
     solcRepoPath,
     solJsonRepoPath,
     vyperRepoPath,
+    workerIdleTimeout: process.env.WORKER_IDLE_TIMEOUT
+      ? parseInt(process.env.WORKER_IDLE_TIMEOUT)
+      : undefined,
+    concurrentVerificationsPerWorker: process.env
+      .CONCURRENT_VERIFICATIONS_PER_WORKER
+      ? parseInt(process.env.CONCURRENT_VERIFICATIONS_PER_WORKER)
+      : undefined,
   },
   {
     serverUrl: config.get("serverUrl"),
