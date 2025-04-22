@@ -66,7 +66,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${testChainId}/${testAddress}`)
-      .send();
+      .send({});
 
     await assertJobVerification(
       serverFixture,
@@ -93,7 +93,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${testChainId}/${testAddress}`)
-      .send();
+      .send({});
 
     await assertJobVerification(
       serverFixture,
@@ -120,7 +120,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${testChainId}/${testAddress}`)
-      .send();
+      .send({});
 
     await assertJobVerification(
       serverFixture,
@@ -145,7 +145,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${testChainId}/${testAddress}`)
-      .send();
+      .send({});
 
     await assertJobVerification(
       serverFixture,
@@ -170,7 +170,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${testChainId}/${testAddress}`)
-      .send();
+      .send({});
 
     await assertJobVerification(
       serverFixture,
@@ -222,7 +222,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${testChainId}/${testAddress}`)
-      .send();
+      .send({});
 
     expect(verifyRes.status).to.equal(404);
     expect(verifyRes.body.customCode).to.equal("not_etherscan_verified");
@@ -262,7 +262,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${testChainId}/${testAddress}`)
-      .send();
+      .send({});
 
     expect(verifyRes.status).to.equal(429);
     expect(verifyRes.body.customCode).to.equal("etherscan_limit");
@@ -311,7 +311,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
 
     const verifyRes = await request(serverFixture.server.app)
       .post(`/v2/verify/etherscan/${chainFixture.chainId}/${invalidAddress}`)
-      .send();
+      .send({});
 
     expect(verifyRes.status).to.equal(400);
     expect(verifyRes.body.customCode).to.equal("invalid_parameter");
@@ -327,7 +327,7 @@ describe("POST /v2/verify/etherscan/:chainId/:address", function () {
       .post(
         `/v2/verify/etherscan/${testChainId}/${chainFixture.defaultContractAddress}`,
       )
-      .send();
+      .send({});
 
     expect(verifyRes.status).to.equal(404);
     expect(verifyRes.body.customCode).to.equal("unsupported_chain");
