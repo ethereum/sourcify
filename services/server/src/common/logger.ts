@@ -6,7 +6,10 @@ import {
   ILibSourcifyLogger,
 } from "@ethereum-sourcify/lib-sourcify";
 import { asyncLocalStorage } from "./async-context";
-import { setCompilersLogger } from "@ethereum-sourcify/compilers";
+import {
+  setCompilersLogger,
+  setCompilersLoggerLevel,
+} from "@ethereum-sourcify/compilers";
 
 export enum LogLevels {
   error = 0,
@@ -171,6 +174,7 @@ export function setLogLevel(level: string): void {
   process.env.NODE_LOG_LEVEL = level;
   // Also set lib-sourcify's logger level
   setLibSourcifyLoggerLevel(logLevelStringToNumber(level));
+  setCompilersLoggerLevel(logLevelStringToNumber(level));
 }
 
 const makePackageLogger = (packageName: string): ILibSourcifyLogger => {
