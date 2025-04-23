@@ -373,7 +373,7 @@ components:
                     }
                 metadata: {}
     EtherscanVerificationRequest:
-      description: '> Should the API key be optional or required?'
+      description: ''
       content:
         application/json:
           schema:
@@ -1455,3 +1455,5 @@ components:
         verificationId:
           type: string
           format: uuid
+      required:
+        - verificationId
