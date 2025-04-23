@@ -9,15 +9,13 @@ import {
   ISolidityCompiler,
   IVyperCompiler,
   PathContent,
-  Sources,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError } from "../../../../../common/errors";
 import {
-  processEtherscanSolidityContract,
-  processEtherscanVyperContract,
-  processRequestFromEtherscan,
   stringToBase64,
-} from "../etherscan.common";
+  getCompilationFromEtherscanResult,
+  fetchFromEtherscan,
+} from "../../../../services/utils/etherscan-util";
 import logger from "../../../../../common/logger";
 import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import { Services } from "../../../../services/services";
@@ -40,35 +38,18 @@ export async function sessionVerifyFromEtherscan(req: Request, res: Response) {
   const apiKey = req.body?.apiKey;
   const sourcifyChain = chainRepository.supportedChainMap[chain];
 
-  const { vyperResult, solidityResult } = await processRequestFromEtherscan(
+  const etherscanResult = await fetchFromEtherscan(
     sourcifyChain,
     address,
     apiKey,
   );
 
-  let compilation;
-  let sources: Sources;
-  if (solidityResult) {
-    compilation = await processEtherscanSolidityContract(
-      solc,
-      solidityResult.compilerVersion,
-      solidityResult.solcJsonInput,
-      solidityResult.contractName,
-    );
-    sources = solidityResult.solcJsonInput.sources;
-  } else if (vyperResult) {
-    compilation = await processEtherscanVyperContract(
-      vyper,
-      vyperResult.compilerVersion,
-      vyperResult.vyperJsonInput,
-      vyperResult.contractPath,
-      vyperResult.contractName,
-    );
-    sources = vyperResult.vyperJsonInput.sources;
-  } else {
-    logger.error("Import from Etherscan: unsupported language");
-    throw new BadRequestError("Received unsupported language from Etherscan");
-  }
+  const compilation = await getCompilationFromEtherscanResult(
+    etherscanResult,
+    solc,
+    vyper,
+  );
+  const sources = compilation.jsonInput.sources;
 
   const pathContents: PathContent[] = Object.keys(sources).map((path) => {
     if (!sources[path].content) {

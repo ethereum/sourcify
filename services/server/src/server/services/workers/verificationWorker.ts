@@ -20,11 +20,18 @@ import { v4 as uuidv4 } from "uuid";
 import { getCreatorTx } from "../utils/contract-creation-util";
 import type {
   VerifyErrorExport,
+  VerifyFromEtherscanInput,
   VerifyFromJsonInput,
   VerifyFromMetadataInput,
   VerifyOutput,
 } from "./workerTypes";
 import logger from "../../../common/logger";
+import {
+  ProcessedEtherscanResult,
+  isVyperResult,
+  processSolidityResultFromEtherscan,
+  processVyperResultFromEtherscan,
+} from "../utils/etherscan-util";
 
 export const filename = resolve(__filename);
 
@@ -204,6 +211,35 @@ export async function verifyFromMetadata({
   return {
     verificationExport: verification.export(),
   };
+}
+
+export async function verifyFromEtherscan({
+  chainId,
+  address,
+  etherscanResult,
+}: VerifyFromEtherscanInput): Promise<VerifyOutput> {
+  initWorker();
+
+  let processedResult: ProcessedEtherscanResult;
+  if (isVyperResult(etherscanResult)) {
+    processedResult = await processVyperResultFromEtherscan(
+      etherscanResult,
+      true,
+    );
+  } else {
+    processedResult = processSolidityResultFromEtherscan(etherscanResult, true);
+  }
+
+  return verifyFromJsonInput({
+    chainId,
+    address,
+    jsonInput: processedResult.jsonInput,
+    compilerVersion: processedResult.compilerVersion,
+    compilationTarget: {
+      name: processedResult.contractName,
+      path: processedResult.contractPath,
+    },
+  });
 }
 
 function createErrorExport(

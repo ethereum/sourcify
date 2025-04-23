@@ -7,6 +7,7 @@ import type {
 } from "@ethereum-sourcify/lib-sourcify";
 import { type MatchingErrorResponse } from "../../apiv2/errors";
 import { JobErrorData } from "../utils/database-util";
+import { EtherscanResult } from "../utils/etherscan-util";
 
 export interface VerifyFromJsonInput {
   chainId: string;
@@ -23,6 +24,12 @@ export interface VerifyFromMetadataInput {
   metadata: Metadata;
   sources: Record<string, string>;
   creationTransactionHash?: string;
+}
+
+export interface VerifyFromEtherscanInput {
+  chainId: string;
+  address: string;
+  etherscanResult: EtherscanResult;
 }
 
 export class VerifyError extends Error {

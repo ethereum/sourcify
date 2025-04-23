@@ -20,6 +20,11 @@ chai.use(chaiHttp);
 describe("GET /v2/contracts/:chainId", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
+  const sandbox = Sinon.createSandbox();
+
+  afterEach(() => {
+    sandbox.restore();
+  });
 
   it("should list verified contracts per chain", async function () {
     const address = await deployAndVerifyContract(
@@ -155,11 +160,8 @@ describe("GET /v2/contracts/:chainId", function () {
 
   it("should return a 404 when the chain is not found", async function () {
     const unknownChainId = "5";
-
-    // Make sure chain is not found
     const chainMap = serverFixture.server.chainRepository.sourcifyChainMap;
-    const chainToRestore = chainMap[unknownChainId];
-    delete chainMap[unknownChainId];
+    sandbox.stub(chainMap, unknownChainId).value(undefined);
 
     const res = await chai
       .request(serverFixture.server.app)
@@ -169,9 +171,6 @@ describe("GET /v2/contracts/:chainId", function () {
     chai.expect(res.body.customCode).to.equal("unsupported_chain");
     chai.expect(res.body).to.have.property("errorId");
     chai.expect(res.body).to.have.property("message");
-
-    // Restore chain
-    chainMap[unknownChainId] = chainToRestore;
   });
 });
 
@@ -996,11 +995,8 @@ describe("GET /v2/contract/:chainId/:address", function () {
 
   it("should return a 404 when the chain is not found", async function () {
     const unknownChainId = "5";
-
-    // Make sure chain is not found
     const chainMap = serverFixture.server.chainRepository.sourcifyChainMap;
-    const chainToRestore = chainMap[unknownChainId];
-    delete chainMap[unknownChainId];
+    sandbox.stub(chainMap, unknownChainId).value(undefined);
 
     await verifyContract(serverFixture, chainFixture);
 
@@ -1014,9 +1010,6 @@ describe("GET /v2/contract/:chainId/:address", function () {
     chai.expect(res.body.customCode).to.equal("unsupported_chain");
     chai.expect(res.body).to.have.property("errorId");
     chai.expect(res.body).to.have.property("message");
-
-    // Restore chain
-    chainMap[unknownChainId] = chainToRestore;
   });
 
   it("should return a 400 when the address has the wrong length", async function () {

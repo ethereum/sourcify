@@ -8,8 +8,12 @@ import { LocalChainFixture } from "../../../helpers/LocalChainFixture";
 import { ServerFixture } from "../../../helpers/ServerFixture";
 import path from "path";
 import fs from "fs";
-import { assertContractSaved } from "../../../helpers/assertions";
+import { assertJobVerification } from "../../../helpers/assertions";
 import sinon from "sinon";
+import {
+  testAlreadyBeingVerified,
+  testAlreadyVerified,
+} from "../../../helpers/common-tests";
 
 chai.use(chaiHttp);
 
@@ -41,68 +45,13 @@ describe("POST /v2/verify/:chainId/:address", function () {
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
-    chai.expect(verifyRes.status).to.equal(202);
-    chai.expect(verifyRes.body).to.have.property("verificationId");
-    chai
-      .expect(verifyRes.body.verificationId)
-      .to.match(
-        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
-      );
-
-    const jobRes = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/verify/${verifyRes.body.verificationId}`);
-
-    chai.expect(jobRes.status).to.equal(200);
-    chai.expect(jobRes.body).to.deep.include({
-      isJobCompleted: false,
-      verificationId: verifyRes.body.verificationId,
-      contract: {
-        match: null,
-        creationMatch: null,
-        runtimeMatch: null,
-        chainId: chainFixture.chainId,
-        address: chainFixture.defaultContractAddress,
-      },
-    });
-    chai.expect(jobRes.body.error).to.be.undefined;
-
-    await resolveWorkers();
-
-    const jobRes2 = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/verify/${verifyRes.body.verificationId}`);
-
-    const verifiedContract = {
-      match: "exact_match",
-      creationMatch: "exact_match",
-      runtimeMatch: "exact_match",
-      chainId: chainFixture.chainId,
-      address: chainFixture.defaultContractAddress,
-    };
-
-    chai.expect(jobRes2.status).to.equal(200);
-    chai.expect(jobRes2.body).to.include({
-      isJobCompleted: true,
-      verificationId: verifyRes.body.verificationId,
-    });
-    chai.expect(jobRes2.body.error).to.be.undefined;
-    chai.expect(jobRes2.body.contract).to.include(verifiedContract);
-
-    const contractRes = await chai
-      .request(serverFixture.server.app)
-      .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
-      );
-
-    chai.expect(contractRes.status).to.equal(200);
-    chai.expect(contractRes.body).to.include(verifiedContract);
-
-    await assertContractSaved(
-      serverFixture.sourcifyDatabase,
-      chainFixture.defaultContractAddress,
+    await assertJobVerification(
+      serverFixture,
+      verifyRes,
+      resolveWorkers,
       chainFixture.chainId,
-      "perfect",
+      chainFixture.defaultContractAddress,
+      "exact_match",
     );
   });
 
@@ -157,56 +106,13 @@ describe("POST /v2/verify/:chainId/:address", function () {
         creationTransactionHash: txHash,
       });
 
-    chai.expect(verifyRes.status).to.equal(202);
-    chai.expect(verifyRes.body).to.have.property("verificationId");
-    chai
-      .expect(verifyRes.body.verificationId)
-      .to.match(
-        /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/,
-      );
-
-    const jobRes = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/verify/${verifyRes.body.verificationId}`);
-
-    chai.expect(jobRes.status).to.equal(200);
-    chai.expect(jobRes.body).to.deep.include({
-      isJobCompleted: false,
-      verificationId: verifyRes.body.verificationId,
-      contract: {
-        match: null,
-        creationMatch: null,
-        runtimeMatch: null,
-        chainId: chainFixture.chainId,
-        address: contractAddress,
-      },
-    });
-    chai.expect(jobRes.body.error).to.be.undefined;
-
-    await resolveWorkers();
-
-    const jobRes2 = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/verify/${verifyRes.body.verificationId}`);
-
-    chai.expect(jobRes2.status).to.equal(200);
-    chai.expect(jobRes2.body).to.include({
-      isJobCompleted: true,
-      verificationId: verifyRes.body.verificationId,
-    });
-    chai.expect(jobRes2.body.contract).to.include({
-      match: "match",
-      creationMatch: "match",
-      runtimeMatch: "match",
-      chainId: chainFixture.chainId,
-      address: contractAddress,
-    });
-
-    await assertContractSaved(
-      serverFixture.sourcifyDatabase,
-      contractAddress,
+    await assertJobVerification(
+      serverFixture,
+      verifyRes,
+      resolveWorkers,
       chainFixture.chainId,
-      "partial",
+      contractAddress,
+      "match",
     );
   });
 
@@ -227,26 +133,14 @@ describe("POST /v2/verify/:chainId/:address", function () {
         )[0].join(":"),
       });
 
-    chai.expect(verifyRes.status).to.equal(202);
-
-    await resolveWorkers();
-
-    const jobRes = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/verify/${verifyRes.body.verificationId}`);
-
-    chai.expect(jobRes.status).to.equal(200);
-    chai.expect(jobRes.body).to.include({
-      isJobCompleted: true,
-    });
-    chai.expect(jobRes.body.error).to.be.undefined;
-    chai.expect(jobRes.body.contract).to.include({
-      match: "exact_match",
-      creationMatch: "exact_match",
-      runtimeMatch: "exact_match",
-      chainId: chainFixture.chainId,
-      address: chainFixture.defaultContractAddress,
-    });
+    await assertJobVerification(
+      serverFixture,
+      verifyRes,
+      resolveWorkers,
+      chainFixture.chainId,
+      chainFixture.defaultContractAddress,
+      "exact_match",
+    );
   });
 
   it("should store a job error if the compiler returns an error", async () => {
@@ -302,15 +196,11 @@ describe("POST /v2/verify/:chainId/:address", function () {
   });
 
   it("should return a 429 if the contract is being verified at the moment already", async () => {
-    makeWorkersWait();
-
-    // First verification request
-    const verifyRes1 = await chai
-      .request(serverFixture.server.app)
-      .post(
-        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
-      )
-      .send({
+    await testAlreadyBeingVerified(
+      serverFixture,
+      makeWorkersWait,
+      `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      {
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -318,44 +208,16 @@ describe("POST /v2/verify/:chainId/:address", function () {
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
-      });
-
-    chai.expect(verifyRes1.status).to.equal(202);
-
-    // Second verification request before the first one completes
-    const verifyRes2 = await chai
-      .request(serverFixture.server.app)
-      .post(
-        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
-      )
-      .send({
-        stdJsonInput: chainFixture.defaultContractJsonInput,
-        compilerVersion:
-          chainFixture.defaultContractMetadataObject.compiler.version,
-        contractIdentifier: Object.entries(
-          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
-        )[0].join(":"),
-        creationTransactionHash: chainFixture.defaultContractCreatorTx,
-      });
-
-    chai.expect(verifyRes2.status).to.equal(429);
-    chai
-      .expect(verifyRes2.body.customCode)
-      .to.equal("duplicate_verification_request");
-    chai.expect(verifyRes2.body).to.have.property("errorId");
-    chai.expect(verifyRes2.body).to.have.property("message");
+      },
+    );
   });
 
   it("should return a 409 if the contract is already verified", async () => {
-    const { resolveWorkers, runTaskStub } = makeWorkersWait();
-
-    // First verification request
-    const verifyRes1 = await chai
-      .request(serverFixture.server.app)
-      .post(
-        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
-      )
-      .send({
+    await testAlreadyVerified(
+      serverFixture,
+      makeWorkersWait,
+      `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      {
         stdJsonInput: chainFixture.defaultContractJsonInput,
         compilerVersion:
           chainFixture.defaultContractMetadataObject.compiler.version,
@@ -363,51 +225,10 @@ describe("POST /v2/verify/:chainId/:address", function () {
           chainFixture.defaultContractMetadataObject.settings.compilationTarget,
         )[0].join(":"),
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
-      });
-
-    chai.expect(verifyRes1.status).to.equal(202);
-
-    await resolveWorkers();
-    const contractRes = await chai
-      .request(serverFixture.server.app)
-      .get(
-        `/v2/contract/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
-      );
-
-    chai.expect(contractRes.status).to.equal(200);
-    chai.expect(contractRes.body).to.include({
-      match: "exact_match",
-      creationMatch: "exact_match",
-      runtimeMatch: "exact_match",
-      chainId: chainFixture.chainId,
-      address: chainFixture.defaultContractAddress,
-    });
-
-    runTaskStub.restore();
-    const { resolveWorkers: resolveWorkers2 } = makeWorkersWait();
-
-    // Second verification
-    const verifyRes2 = await chai
-      .request(serverFixture.server.app)
-      .post(
-        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
-      )
-      .send({
-        stdJsonInput: chainFixture.defaultContractJsonInput,
-        compilerVersion:
-          chainFixture.defaultContractMetadataObject.compiler.version,
-        contractIdentifier: Object.entries(
-          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
-        )[0].join(":"),
-        creationTransactionHash: chainFixture.defaultContractCreatorTx,
-      });
-
-    chai.expect(verifyRes2.status).to.equal(409);
-    chai.expect(verifyRes2.body.customCode).to.equal("already_verified");
-    chai.expect(verifyRes2.body).to.have.property("errorId");
-    chai.expect(verifyRes2.body).to.have.property("message");
-
-    await resolveWorkers2();
+      },
+      chainFixture.chainId,
+      chainFixture.defaultContractAddress,
+    );
   });
 
   it("should return a 400 if the standard json input misses the language", async () => {
@@ -550,6 +371,32 @@ describe("POST /v2/verify/:chainId/:address", function () {
 
     chai.expect(verifyRes.status).to.equal(400);
     chai.expect(verifyRes.body.customCode).to.equal("invalid_parameter");
+    chai.expect(verifyRes.body).to.have.property("errorId");
+    chai.expect(verifyRes.body).to.have.property("message");
+  });
+
+  it("should return a 404 when the chain is not found", async function () {
+    const unknownChainId = "5";
+    const chainMap = serverFixture.server.chainRepository.sourcifyChainMap;
+    sandbox.stub(chainMap, unknownChainId).value(undefined);
+
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(
+        `/v2/verify/${unknownChainId}/${chainFixture.defaultContractAddress}`,
+      )
+      .send({
+        stdJsonInput: chainFixture.defaultContractJsonInput,
+        compilerVersion:
+          chainFixture.defaultContractMetadataObject.compiler.version,
+        contractIdentifier: Object.entries(
+          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
+        )[0].join(":"),
+        creationTransactionHash: chainFixture.defaultContractCreatorTx,
+      });
+
+    chai.expect(verifyRes.status).to.equal(404);
+    chai.expect(verifyRes.body.customCode).to.equal("unsupported_chain");
     chai.expect(verifyRes.body).to.have.property("errorId");
     chai.expect(verifyRes.body).to.have.property("message");
   });

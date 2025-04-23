@@ -5,21 +5,22 @@ import {
   assertVerification,
   assertValidationError,
   assertVerificationSession,
-} from "../helpers/assertions";
-import { sourcifyChainsMap } from "../../src/sourcify-chains";
-import testContracts from "../helpers/etherscanInstanceContracts.json";
+} from "../../../helpers/assertions";
+import { sourcifyChainsMap } from "../../../../src/sourcify-chains";
+import testContracts from "../../../helpers/etherscanInstanceContracts.json";
 import {
   unusedAddress,
   invalidAddress,
   unsupportedChain,
   verifyAndAssertEtherscanSession,
-  verifyAndAssertEtherscan,
-} from "../helpers/helpers";
+  verifyAndAssertEtherscanViaApiV1,
+} from "../../../helpers/helpers";
 import type { Response } from "superagent";
-import { ServerFixture } from "../helpers/ServerFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import nock from "nock";
 import {
   INVALID_API_KEY_RESPONSE,
+  mockEtherscanApi,
   MULTIPLE_CONTRACT_RESPONSE,
   RATE_LIMIT_REACHED_RESPONSE,
   SINGLE_CONTRACT_RESPONSE,
@@ -27,29 +28,12 @@ import {
   UNVERIFIED_CONTRACT_RESPONSE,
   VYPER_SINGLE_CONTRACT_RESPONSE,
   VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
-} from "../helpers/etherscanResponseMocks";
+} from "../../../helpers/etherscanResponseMocks";
+import { VerificationStatus } from "@ethereum-sourcify/lib-sourcify";
 
 chai.use(chaiHttp);
 
 const CUSTOM_PORT = 5678;
-
-const mockEtherscanApi = (
-  chainId: string,
-  contractAddress: string,
-  response: any,
-  apiKey?: string,
-): nock.Scope => {
-  if (!sourcifyChainsMap[chainId].etherscanApi) {
-    chai.assert.fail(`Etherscan for chain ${chainId} not configured`);
-  }
-  return nock(sourcifyChainsMap[chainId].etherscanApi!.apiURL)
-    .get(
-      `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey ?? process.env["ETHERSCAN_API_KEY"]}`,
-    )
-    .reply(function () {
-      return [200, response];
-    });
-};
 
 describe("Import From Etherscan and Verify", function () {
   // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
@@ -159,7 +143,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail fetching a non verified contract from etherscan", (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         unusedAddress,
         UNVERIFIED_CONTRACT_RESPONSE,
       );
@@ -172,7 +156,7 @@ describe("Import From Etherscan and Verify", function () {
           assertEtherscanError(
             err,
             res,
-            "This contract is not verified on Etherscan",
+            "This contract is not verified on Etherscan.",
           );
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -181,15 +165,15 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Non-Session: Should import a single contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a ${singleContract.expectedStatus} match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         singleContract.address,
         SINGLE_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         singleContract.address,
-        singleContract.expectedStatus,
+        singleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -199,15 +183,15 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Non-Session: Should import a multiple contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a ${multipleContract.expectedStatus} match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         multipleContract.address,
         MULTIPLE_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         multipleContract.address,
-        multipleContract.expectedStatus,
+        multipleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -217,15 +201,15 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Non-Session: Should import a standard-json contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a ${standardJsonContract.expectedStatus} match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         standardJsonContract.address,
         STANDARD_JSON_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         standardJsonContract.address,
-        standardJsonContract.expectedStatus,
+        standardJsonContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -235,11 +219,11 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Non-Session: Should import a Vyper single contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a partial match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         "0x7BA33456EC00812C6B6BB6C1C3dfF579c34CC2cc",
         VYPER_SINGLE_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         "0x7BA33456EC00812C6B6BB6C1C3dfF579c34CC2cc",
@@ -253,11 +237,11 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Non-Session: Should import a Vyper standard-json contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a partial match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         "0x2dFd89449faff8a532790667baB21cF733C064f2",
         VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         "0x2dFd89449faff8a532790667baB21cF733C064f2",
@@ -273,7 +257,7 @@ describe("Import From Etherscan and Verify", function () {
     it("should also work with `chainId` instead of `chain`", (done) => {
       const contract = singleContract;
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         contract.address,
         SINGLE_CONTRACT_RESPONSE,
       );
@@ -293,7 +277,7 @@ describe("Import From Etherscan and Verify", function () {
             },
             contract.address,
             testChainId,
-            contract.expectedStatus,
+            contract.expectedStatus as VerificationStatus,
           );
         });
     });
@@ -302,7 +286,7 @@ describe("Import From Etherscan and Verify", function () {
       const contract = singleContract;
       const apiKey = "TEST";
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         contract.address,
         INVALID_API_KEY_RESPONSE,
         apiKey,
@@ -327,7 +311,7 @@ describe("Import From Etherscan and Verify", function () {
     it("should fail by exceeding rate limit on etherscan APIs", async () => {
       const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         address,
         RATE_LIMIT_REACHED_RESPONSE,
       );
@@ -339,7 +323,7 @@ describe("Import From Etherscan and Verify", function () {
       assertEtherscanError(
         null,
         response,
-        "Etherscan API rate limit reached, try later",
+        "Etherscan API rate limit reached, try later.",
         StatusCodes.TOO_MANY_REQUESTS,
       );
       chai.expect(nockScope.isDone()).to.equal(true);
@@ -415,7 +399,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it("should fail fetching a non verified contract from etherscan", (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         unusedAddress,
         UNVERIFIED_CONTRACT_RESPONSE,
       );
@@ -428,7 +412,7 @@ describe("Import From Etherscan and Verify", function () {
           assertEtherscanError(
             err,
             res,
-            "This contract is not verified on Etherscan",
+            "This contract is not verified on Etherscan.",
           );
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -438,7 +422,7 @@ describe("Import From Etherscan and Verify", function () {
     it("should support a custom api key", (done) => {
       const apiKey = "TEST";
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         unusedAddress,
         INVALID_API_KEY_RESPONSE,
         apiKey,
@@ -462,7 +446,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Session: Should import a single contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a ${singleContract.expectedStatus} match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         singleContract.address,
         SINGLE_CONTRACT_RESPONSE,
       );
@@ -470,7 +454,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         singleContract.address,
-        singleContract.expectedStatus,
+        singleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -480,7 +464,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Session: Should import a multiple contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a ${multipleContract.expectedStatus} match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         multipleContract.address,
         MULTIPLE_CONTRACT_RESPONSE,
       );
@@ -488,7 +472,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         multipleContract.address,
-        multipleContract.expectedStatus,
+        multipleContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -498,7 +482,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Session: Should import a standard-json contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a ${standardJsonContract.expectedStatus} match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         standardJsonContract.address,
         STANDARD_JSON_CONTRACT_RESPONSE,
       );
@@ -506,7 +490,7 @@ describe("Import From Etherscan and Verify", function () {
         serverFixture,
         testChainId,
         standardJsonContract.address,
-        standardJsonContract.expectedStatus,
+        standardJsonContract.expectedStatus as VerificationStatus,
         () => {
           chai.expect(nockScope.isDone()).to.equal(true);
           done();
@@ -516,7 +500,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Session: Should import a Vyper single contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a partial match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         "0x7BA33456EC00812C6B6BB6C1C3dfF579c34CC2cc",
         VYPER_SINGLE_CONTRACT_RESPONSE,
       );
@@ -534,7 +518,7 @@ describe("Import From Etherscan and Verify", function () {
 
     it(`Session: Should import a Vyper standard-json contract from ${sourcifyChainsMap[testChainId].name} (${sourcifyChainsMap[testChainId].etherscanApi?.apiURL}) and verify the contract, finding a partial match`, (done) => {
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         "0x2dFd89449faff8a532790667baB21cF733C064f2",
         VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
       );
@@ -554,7 +538,7 @@ describe("Import From Etherscan and Verify", function () {
     it("should also work with `chain` instead of `chainId`", (done) => {
       const contract = singleContract;
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         contract.address,
         SINGLE_CONTRACT_RESPONSE,
       );
@@ -574,7 +558,7 @@ describe("Import From Etherscan and Verify", function () {
             },
             contract.address,
             testChainId,
-            contract.expectedStatus,
+            contract.expectedStatus as VerificationStatus,
           );
         });
     });
@@ -582,7 +566,7 @@ describe("Import From Etherscan and Verify", function () {
     it("should fail by exceeding rate limit on etherscan APIs", async () => {
       const address = "0xB753548F6E010e7e680BA186F9Ca1BdAB2E90cf2";
       const nockScope = mockEtherscanApi(
-        testChainId,
+        sourcifyChainsMap[testChainId],
         address,
         RATE_LIMIT_REACHED_RESPONSE,
       );
@@ -594,7 +578,7 @@ describe("Import From Etherscan and Verify", function () {
       assertEtherscanError(
         null,
         response,
-        "Etherscan API rate limit reached, try later",
+        "Etherscan API rate limit reached, try later.",
         StatusCodes.TOO_MANY_REQUESTS,
       );
       chai.expect(nockScope.isDone()).to.equal(true);

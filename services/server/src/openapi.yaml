@@ -11,6 +11,10 @@ servers:
 tags:
   - name: Contract Lookup
     description: API v2 - Tools and endpoints for looking up contract information
+  - name: Verify Contracts
+    description: API v2 - Submit a contract for verification
+  - name: Verification Jobs
+    description: API v2 - Check the status of a verification job
   - name: Stateless Verification 
     description: API v1 - Main verification endpoints
   - name: (Deprecated) Repository
@@ -26,6 +30,8 @@ paths:
     $ref: "apiv2.yaml#/paths/~1v2~1verify~1{chainId}~1{address}"
   /v2/verify/metadata/{chainId}/{address}:
     $ref: "apiv2.yaml#/paths/~1v2~1verify~1metadata~1{chainId}~1{address}"
+  /v2/verify/etherscan/{chainId}/{address}:
+    $ref: "apiv2.yaml#/paths/~1v2~1verify~1etherscan~1{chainId}~1{address}"
   /v2/verify/{verificationId}:
     $ref: "apiv2.yaml#/paths/~1v2~1verify~1{verificationId}"
   /v2/contract/{chainId}/{address}:

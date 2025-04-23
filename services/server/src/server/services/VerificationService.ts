@@ -32,10 +32,12 @@ import os from "os";
 import {
   VerifyError,
   VerifyErrorExport,
+  VerifyFromEtherscanInput,
   type VerifyFromJsonInput,
   type VerifyFromMetadataInput,
   type VerifyOutput,
 } from "./workers/workerTypes";
+import { EtherscanResult } from "./utils/etherscan-util";
 
 export interface VerificationServiceOptions {
   initCompilers?: boolean;
@@ -320,6 +322,36 @@ export class VerificationService {
 
     const task = this.workerPool
       .run(input, { name: "verifyFromMetadata" })
+      .then((output: VerifyOutput) => {
+        return this.handleWorkerResponse(verificationId, output);
+      })
+      .finally(() => {
+        this.runningTasks.delete(task);
+      });
+    this.runningTasks.add(task);
+
+    return verificationId;
+  }
+
+  public async verifyFromEtherscanViaWorker(
+    verificationEndpoint: string,
+    chainId: string,
+    address: string,
+    etherscanResult: EtherscanResult,
+  ): Promise<VerificationJobId> {
+    const verificationId = await this.storageService.performServiceOperation(
+      "storeVerificationJob",
+      [new Date(), chainId, address, verificationEndpoint],
+    );
+
+    const input: VerifyFromEtherscanInput = {
+      chainId,
+      address,
+      etherscanResult,
+    };
+
+    const task = this.workerPool
+      .run(input, { name: "verifyFromEtherscan" })
       .then((output: VerifyOutput) => {
         return this.handleWorkerResponse(verificationId, output);
       })
