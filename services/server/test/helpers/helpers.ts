@@ -198,7 +198,7 @@ export async function callContractMethodWithTx(
   return txReceipt;
 }
 
-export function verifyAndAssertEtherscan(
+export function verifyAndAssertEtherscanViaApiV1(
   serverFixture: ServerFixture,
   chainId: string,
   address: string,

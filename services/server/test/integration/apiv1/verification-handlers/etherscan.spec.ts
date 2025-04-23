@@ -13,7 +13,7 @@ import {
   invalidAddress,
   unsupportedChain,
   verifyAndAssertEtherscanSession,
-  verifyAndAssertEtherscan,
+  verifyAndAssertEtherscanViaApiV1,
 } from "../../../helpers/helpers";
 import type { Response } from "superagent";
 import { ServerFixture } from "../../../helpers/ServerFixture";
@@ -169,7 +169,7 @@ describe("Import From Etherscan and Verify", function () {
         singleContract.address,
         SINGLE_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         singleContract.address,
@@ -187,7 +187,7 @@ describe("Import From Etherscan and Verify", function () {
         multipleContract.address,
         MULTIPLE_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         multipleContract.address,
@@ -205,7 +205,7 @@ describe("Import From Etherscan and Verify", function () {
         standardJsonContract.address,
         STANDARD_JSON_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         standardJsonContract.address,
@@ -223,7 +223,7 @@ describe("Import From Etherscan and Verify", function () {
         "0x7BA33456EC00812C6B6BB6C1C3dfF579c34CC2cc",
         VYPER_SINGLE_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         "0x7BA33456EC00812C6B6BB6C1C3dfF579c34CC2cc",
@@ -241,7 +241,7 @@ describe("Import From Etherscan and Verify", function () {
         "0x2dFd89449faff8a532790667baB21cF733C064f2",
         VYPER_STANDARD_JSON_CONTRACT_RESPONSE,
       );
-      verifyAndAssertEtherscan(
+      verifyAndAssertEtherscanViaApiV1(
         serverFixture,
         testChainId,
         "0x2dFd89449faff8a532790667baB21cF733C064f2",
