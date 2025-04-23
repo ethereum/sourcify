@@ -1,7 +1,7 @@
 openapi: "3.0.0"
 
 paths:
-  /repository/contracts/{full_match | partial_match}/{chain}/{address}/{filePath}:
+  /repository/contracts/{matchType}/{chain}/{address}/{filePath}:
     get:
       deprecated: true
       summary: Get a specific file from the repository with the file path (static serving)
@@ -9,12 +9,13 @@ paths:
       tags:
         - (Deprecated) Repository
       parameters:
-        - name: Match type `full_match` or `partial_match`
+        - name: matchType
           in: path
           required: true
           schema:
             type: string
             format: match-type
+          description: Either `full_match` or `partial_match`
         - name: chain
           in: path
           required: true
