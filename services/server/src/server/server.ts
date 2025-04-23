@@ -79,9 +79,7 @@ export class Server {
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
-    if (options.logLevel !== undefined) {
-      setLogLevel(options.logLevel);
-    }
+    setLogLevel(options.logLevel || "info");
 
     this.port = options.port;
     logger.info("Server port set", { port: this.port });
