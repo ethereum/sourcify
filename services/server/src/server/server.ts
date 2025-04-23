@@ -28,7 +28,6 @@ import {
   getLibSourcifyLoggerLevel,
   ISolidityCompiler,
   IVyperCompiler,
-  setLibSourcifyLoggerLevel,
   SolidityMetadataContract,
   SourcifyChain,
   SourcifyChainMap,
@@ -38,7 +37,6 @@ import { SessionOptions } from "express-session";
 import { makeV1ValidatorFormats } from "./apiv1/validation";
 import { errorHandler as v2ErrorHandler } from "./apiv2/errors";
 import http from "http";
-import { setCompilersLoggerLevel } from "@ethereum-sourcify/compilers";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -66,7 +64,7 @@ export interface ServerOptions {
   sessionOptions: SessionOptions;
   sourcifyPrivateToken?: string;
   libSourcifyConfig?: LibSourcifyConfig;
-  logLevel?: number;
+  logLevel?: string;
 }
 
 export class Server {
@@ -81,14 +79,7 @@ export class Server {
     verificationServiceOptions: VerificationServiceOptions,
     storageServiceOptions: StorageServiceOptions,
   ) {
-    if (options.logLevel !== undefined) {
-      if (!validLogLevels.includes(options.logLevel)) {
-        throw new Error(`Invalid log level: ${options.logLevel}`);
-      }
-      setLogLevel(LogLevels[options.logLevel]);
-      setLibSourcifyLoggerLevel(options.logLevel);
-      setCompilersLoggerLevel(options.logLevel);
-    }
+    setLogLevel(options.logLevel || "info");
 
     this.port = options.port;
     logger.info("Server port set", { port: this.port });

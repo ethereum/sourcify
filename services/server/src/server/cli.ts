@@ -47,10 +47,9 @@ if (process.env.RPC_TIMEOUT) {
 }
 
 // This variable is used to set the log level for the server and lib-sourcify
-const logLevel = parseInt(
+const logLevel =
   process.env.NODE_LOG_LEVEL ||
-    (process.env.NODE_ENV === "production" ? "1" : "5"),
-);
+  (process.env.NODE_ENV === "production" ? "info" : "debug");
 
 // Solidity Compiler
 
