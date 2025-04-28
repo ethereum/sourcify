@@ -1840,6 +1840,22 @@ describe("Test Supported Chains", function () {
     "shared/",
   );
 
+  // Etherlink
+  verifyContract(
+    "0xec5504BcE3BCE4F1c4088a6A150A4A8C840945a7",
+    "42793",
+    "Etherlink",
+    "shared/",
+  );
+
+  // Etherlink Testnet
+  verifyContract(
+    "0x5827317D75D53E7a7901657307209bC684B8EcDc",
+    "128123",
+    "Etherlink Testnet",
+    "shared/",
+  );
+
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
     supportedChains

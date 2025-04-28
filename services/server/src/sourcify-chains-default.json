@@ -2330,5 +2330,23 @@
         "url": "https://maizenet-explorer.usecorn.com"
       }
     }
+  },
+  "42793": {
+    "sourcifyName": "Etherlink",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://explorer.etherlink.com"
+      }
+    }
+  },
+  "128123": {
+    "sourcifyName": "Etherlink Testnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://testnet.explorer.etherlink.com"
+      }
+    }
   }
 }
