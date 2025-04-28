@@ -315,14 +315,3 @@ export class Server {
     );
   }
 }
-
-function hash(data: string) {
-  return crypto.createHash("sha256").update(data).digest("hex");
-}
-
-function getIp(req: Request) {
-  if (req.headers["x-forwarded-for"]) {
-    return req.headers["x-forwarded-for"].toString();
-  }
-  return req.ip;
-}
