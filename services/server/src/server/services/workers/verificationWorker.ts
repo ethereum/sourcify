@@ -67,7 +67,7 @@ const initWorker = () => {
   vyper = new VyperLocal(Piscina.workerData.vyperRepoPath);
 };
 
-async function runWorkerFunction<T extends VerificationWorkerInput>(
+async function runWorkerFunctionWithContext<T extends VerificationWorkerInput>(
   workerFunction: (input: T) => Promise<VerifyOutput>,
   input: T,
 ): Promise<VerifyOutput> {
@@ -79,19 +79,19 @@ async function runWorkerFunction<T extends VerificationWorkerInput>(
 export async function verifyFromJsonInput(
   input: VerifyFromJsonInput,
 ): Promise<VerifyOutput> {
-  return runWorkerFunction(_verifyFromJsonInput, input);
+  return runWorkerFunctionWithContext(_verifyFromJsonInput, input);
 }
 
 export async function verifyFromMetadata(
   input: VerifyFromMetadataInput,
 ): Promise<VerifyOutput> {
-  return runWorkerFunction(_verifyFromMetadata, input);
+  return runWorkerFunctionWithContext(_verifyFromMetadata, input);
 }
 
 export async function verifyFromEtherscan(
   input: VerifyFromEtherscanInput,
 ): Promise<VerifyOutput> {
-  return runWorkerFunction(_verifyFromEtherscan, input);
+  return runWorkerFunctionWithContext(_verifyFromEtherscan, input);
 }
 
 async function _verifyFromJsonInput({
