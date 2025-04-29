@@ -160,15 +160,26 @@ export const getContractPathFromSourcesOrThrow = (
   const startTime = Date.now();
   let contractPath: string | undefined;
   for (const [path, { content }] of Object.entries(sources)) {
-    const ast = SolidityParser.parse(content);
-    SolidityParser.visit(ast, {
-      ContractDefinition: (node) => {
-        if (node.name === contractName) {
-          contractPath = path;
-          return false; // Stop visiting
-        }
-      },
-    });
+    try {
+      const ast = SolidityParser.parse(content);
+      SolidityParser.visit(ast, {
+        ContractDefinition: (node) => {
+          if (node.name === contractName) {
+            contractPath = path;
+            return false; // Stop visiting
+          }
+        },
+      });
+    } catch (error) {
+      // Just continue, because the relevant contract might be in a different source file.
+      logger.warn(
+        "etherscan-util: Error parsing source code. Ignoring this source.",
+        {
+          path,
+          error,
+        },
+      );
+    }
   }
   const endTime = Date.now();
   logger.debug("etherscan-util: Parsing for all sources done", {

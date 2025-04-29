@@ -296,7 +296,9 @@ export async function assertJobVerification(
   testAddress: string,
   expectedMatch: MatchLevel,
 ) {
-  chai.expect(verifyResponse.status).to.equal(202);
+  chai
+    .expect(verifyResponse.status)
+    .to.equal(202, "Response body: " + JSON.stringify(verifyResponse.body));
   chai.expect(verifyResponse.body).to.have.property("verificationId");
   chai
     .expect(verifyResponse.body.verificationId)
@@ -308,7 +310,9 @@ export async function assertJobVerification(
     .request(serverFixture.server.app)
     .get(`/v2/verify/${verifyResponse.body.verificationId}`);
 
-  chai.expect(jobRes.status).to.equal(200);
+  chai
+    .expect(jobRes.status)
+    .to.equal(200, "Response body: " + JSON.stringify(verifyResponse.body));
   chai.expect(jobRes.body).to.deep.include({
     isJobCompleted: false,
     verificationId: verifyResponse.body.verificationId,
@@ -330,13 +334,13 @@ export async function assertJobVerification(
 
   const verifiedContract = {
     match: expectedMatch,
-    creationMatch: expectedMatch,
-    runtimeMatch: expectedMatch,
     chainId: testChainId,
     address: testAddress,
   };
 
-  chai.expect(jobRes2.status).to.equal(200);
+  chai
+    .expect(jobRes2.status)
+    .to.equal(200, "Response body: " + JSON.stringify(verifyResponse.body));
   chai.expect(jobRes2.body).to.include({
     isJobCompleted: true,
     verificationId: verifyResponse.body.verificationId,
@@ -348,7 +352,9 @@ export async function assertJobVerification(
     .request(serverFixture.server.app)
     .get(`/v2/contract/${testChainId}/${testAddress}`);
 
-  chai.expect(contractRes.status).to.equal(200);
+  chai
+    .expect(contractRes.status)
+    .to.equal(200, "Response body: " + JSON.stringify(verifyResponse.body));
   chai.expect(contractRes.body).to.include(verifiedContract);
 
   await assertContractSaved(

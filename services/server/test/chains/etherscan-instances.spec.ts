@@ -10,6 +10,7 @@ import { VerificationStatus } from "@ethereum-sourcify/lib-sourcify";
 import { assertJobVerification } from "../helpers/assertions";
 import { toMatchLevel } from "../../src/server/services/utils/util";
 import sinon from "sinon";
+import { getAddress } from "ethers";
 
 const CUSTOM_PORT = 5679;
 
@@ -59,7 +60,7 @@ describe("Test each Etherscan instance", function () {
             verifyRes,
             resolveWorkers,
             chain,
-            address,
+            getAddress(address),
             expectedMatch,
           );
         });
