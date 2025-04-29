@@ -1,31 +1,4 @@
 openapi: 3.1.0
-info:
-  version: '0.2'
-  title: Sourcify v2 - Draft
-  summary: DRAFT - Sourcify v2
-  description: |-
-    Welcome to the Sourcify's APIv2 Draft. Our new API is currently in the design phase and we are seeking feedback!
-
-    Important differences between the [current API](https://docs.sourcify.dev/docs/api/):
-    - **Ticketing**: The verfication requests resolve into tickets/verification jobs. 
-      - Previously the verification happened during the HTTP request, which resulted in timeouts if compilation took longer
-    - **Standard JSON as default**: In the current design we take the standard JSON format as our main verification endpoint. We still support verification with metadata at `/verify/metadata`.
-    - **Lean API**: We keep the number of endpoints minimal compared to v1. We won't have a session API. 
-    - **Detailed contract response**: Prev. we only returned contract files of a contract. Now we can return details at `/contract/{chainId}/{address}`.
-  contact:
-    name: Sourcify
-    url: 'https://sourcify.dev'
-    email: hello@sourcify.dev
-  license:
-    url: 'https://github.com/ethereum/sourcify/LICENSE.md'
-    name: MIT
-servers:
-  - url: 'http://localhost:3000'
-    description: localhost
-  - url: 'https://staging.sourcify.dev/server'
-    description: Staging
-  - url: 'https://sourcify.dev/server'
-    description: Production
 paths:
   '/v2/verify/{chainId}/{address}':
     post:
@@ -117,13 +90,6 @@ paths:
           $ref: '#/components/responses/EtherscanLimitResponse'
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
   '/v2/verify/{verificationId}':
     get:
       tags:
@@ -141,13 +107,7 @@ paths:
           $ref: '#/components/responses/VerificationJobResponse'
         '404':
           $ref: '#/components/responses/VerificationJobNotFound'
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
+
   '/v2/contract/{chainId}/{address}':
     get:
       tags:
@@ -189,13 +149,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
       security: []
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
   '/v2/contracts/{chainId}':
     get:
       tags:
@@ -240,13 +193,6 @@ paths:
           $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
 tags:
   - name: Contract Lookup
     description: Tools and endpoints for looking up contract information
