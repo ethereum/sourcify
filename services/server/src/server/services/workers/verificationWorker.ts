@@ -72,6 +72,7 @@ async function runWorkerFunctionWithContext<T extends VerificationWorkerInput>(
   input: T,
 ): Promise<VerifyOutput> {
   initWorker();
+  // We need to inject the traceId for the logger here since the worker is running in its own thread.
   const context = { traceId: input.traceId };
   return asyncLocalStorage.run(context, workerFunction, input);
 }
