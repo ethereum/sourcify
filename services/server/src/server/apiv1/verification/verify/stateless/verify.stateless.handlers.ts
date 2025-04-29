@@ -37,7 +37,13 @@ export async function legacyVerifyEndpoint(
     throw new BadRequestError(error.message);
   }
 
-  if (metadataContracts.length !== 1 && !req.body?.chosenContract) {
+  if (metadataContracts.length === 0) {
+    throw new BadRequestError(
+      `No valid Solidity metadata file found in the provided ${inputFiles.length} files. Please make sure you have added a valid metadata.json file.`,
+    );
+  }
+
+  if (metadataContracts.length > 1 && !req.body?.chosenContract) {
     const contractNames = metadataContracts.map((c) => c.name).join(", ");
     const msg = `Detected ${metadataContracts.length} contracts (${contractNames}), but can only verify 1 at a time. Please choose a main contract and click Verify again.`;
     const contractsToChoose = metadataContracts.map((contract) => ({
