@@ -12,11 +12,7 @@ import { v4 as uuidv4 } from "uuid";
 import { asyncLocalStorage } from "../common/async-context";
 
 // local imports
-import logger, {
-  LogLevels,
-  setLogLevel,
-  validLogLevels,
-} from "../common/logger";
+import logger, { setLogLevel } from "../common/logger";
 import routes from "./routes";
 import genericErrorHandler from "../common/errors/GenericErrorHandler";
 import { initDeprecatedRoutes } from "./apiv1/deprecated.routes";
@@ -318,15 +314,4 @@ export class Server {
       },
     );
   }
-}
-
-function hash(data: string) {
-  return crypto.createHash("sha256").update(data).digest("hex");
-}
-
-function getIp(req: Request) {
-  if (req.headers["x-forwarded-for"]) {
-    return req.headers["x-forwarded-for"].toString();
-  }
-  return req.ip;
 }
