@@ -22,6 +22,7 @@ export default function genericErrorHandler(
       res.status(errorCode).json(err.payload);
       return;
     }
+    logger.info(`Error code: ${errorCode}`, { error: err });
     if (err.errors) {
       // This is a validation error
       res.status(errorCode).json({
