@@ -5,7 +5,7 @@ info:
   description: |-
     Welcome to the Sourcify's APIv2.
 
-    Important differences between the deprecated [legacy API](https://docs.sourcify.dev/docs/api/) and the new APIv2:
+    Important differences between the deprecated legacy API and the new APIv2:
     - **Ticketing**: The verfication requests resolve into tickets/verification jobs. 
       - Previously the verification happened during the HTTP request, which resulted in timeouts if compilation took longer
     - **Standard JSON as default**: In the current design we take the standard JSON format as our main verification endpoint. We still support verification with metadata at `/v2/verify/metadata`.
