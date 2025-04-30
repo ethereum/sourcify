@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@2.1.0 - 2025-04-30
+
+- Remove environment variables for enabling lib-sourcify to run in the browser
+- Add configuration functions in replacement of environment variables
+- Add documentation about running lib-sourcify in the browser
+- Update dependencies
+
 ## @ethereum-sourcify/lib-sourcify@2.0.0 - 2025-04-09
 
 - (Breaking change) Complete refactoring of the verification flow (#1845)

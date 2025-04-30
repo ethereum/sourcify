@@ -2,6 +2,27 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@3.1.0 - 2025-04-30
+
+- Add API v2 verification endpoints:
+  - POST `/v2/verify/{chainId}/{address}`
+  - POST `/v2/verify/metadata/{chainId}/{address}`
+  - POST `/v2/verify/etherscan/{chainId}/{address}`
+- Deprecate API v1
+- Add options to configure libSourcify in server
+- Add options to configure the new Piscina worker for v2 verification
+- Add new chains:
+  - Superseed Mainnet (5330)
+  - Corn Mainnet (21000000)
+  - Etherlink (42793)
+  - Etherlink Testnet (128123)
+- Fix SIGTERM handling of server containers
+- Fix missing error handler when no metadata.json found
+- Improve logging
+- Copy fetchContractCreationTxUsing for an unknown chain
+- Add docker compose configuration for running locally
+- Update dependencies
+
 ## sourcify-server@3.0.0 - 2025-04-09
 
 - Integrate new lib-sourcify classes in server (#1960) 

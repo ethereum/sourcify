@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 
 This CHANGELOG will contain monorepo related changes such as CI configs, shared dependencies and the development setup.
 
+## sourcify-monorepo@1.5.2 - 2025-04-30
+
+- Fixes for CI configuration
+- Update dependencies
+
 ## sourcify-monorepo@1.5.1 - 2025-04-09
 
 - Update dependencies
