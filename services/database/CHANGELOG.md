@@ -1,5 +1,11 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.5.0 - 2025-04-30
+
+- Add `error_data` column to `verification_jobs` table
+- Add local-docker migration configuration
+- Update dependencies
+
 ## sourcify-database@2.4.0 - 2025-04-09
 
 - Add `updated_at` to `sourcify_matches`
