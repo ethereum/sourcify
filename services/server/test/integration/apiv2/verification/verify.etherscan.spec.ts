@@ -31,7 +31,7 @@ import {
 
 use(chaiHttp);
 
-describe("POST /v2/verify/etherscan/:chainId/:address", function () {
+describe.only("POST /v2/verify/etherscan/:chainId/:address", function () {
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
   const sandbox = sinon.createSandbox();

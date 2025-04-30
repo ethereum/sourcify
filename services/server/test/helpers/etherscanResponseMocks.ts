@@ -12,9 +12,12 @@ export const mockEtherscanApi = (
       `Etherscan for chain ${sourcifyChain.chainId} not configured`,
     );
   }
+  console.error(
+    `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey || process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""] || ""}`,
+  );
   return nock(sourcifyChain.etherscanApi.apiURL)
     .get(
-      `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey ?? (process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""] || "")}`,
+      `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey || process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""] || ""}`,
     )
     .reply(function () {
       return [200, response];

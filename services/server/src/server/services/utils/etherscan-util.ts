@@ -249,6 +249,7 @@ export const fetchFromEtherscan = async (
     chainId: sourcifyChain.chainId,
     address,
   });
+  console.error("etherscan-util: secretUrl ", secretUrl);
   try {
     response = await fetch(secretUrl);
   } catch (error) {
