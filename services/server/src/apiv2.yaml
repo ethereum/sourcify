@@ -1,31 +1,4 @@
 openapi: 3.1.0
-info:
-  version: '0.2'
-  title: Sourcify v2 - Draft
-  summary: DRAFT - Sourcify v2
-  description: |-
-    Welcome to the Sourcify's APIv2 Draft. Our new API is currently in the design phase and we are seeking feedback!
-
-    Important differences between the [current API](https://docs.sourcify.dev/docs/api/):
-    - **Ticketing**: The verfication requests resolve into tickets/verification jobs. 
-      - Previously the verification happened during the HTTP request, which resulted in timeouts if compilation took longer
-    - **Standard JSON as default**: In the current design we take the standard JSON format as our main verification endpoint. We still support verification with metadata at `/verify/metadata`.
-    - **Lean API**: We keep the number of endpoints minimal compared to v1. We won't have a session API. 
-    - **Detailed contract response**: Prev. we only returned contract files of a contract. Now we can return details at `/contract/{chainId}/{address}`.
-  contact:
-    name: Sourcify
-    url: 'https://sourcify.dev'
-    email: hello@sourcify.dev
-  license:
-    url: 'https://github.com/ethereum/sourcify/LICENSE.md'
-    name: MIT
-servers:
-  - url: 'http://localhost:3000'
-    description: localhost
-  - url: 'https://staging.sourcify.dev/server'
-    description: Staging
-  - url: 'https://sourcify.dev/server'
-    description: Production
 paths:
   '/v2/verify/{chainId}/{address}':
     post:
@@ -117,13 +90,6 @@ paths:
           $ref: '#/components/responses/EtherscanLimitResponse'
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
   '/v2/verify/{verificationId}':
     get:
       tags:
@@ -141,13 +107,7 @@ paths:
           $ref: '#/components/responses/VerificationJobResponse'
         '404':
           $ref: '#/components/responses/VerificationJobNotFound'
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
+
   '/v2/contract/{chainId}/{address}':
     get:
       tags:
@@ -165,16 +125,14 @@ paths:
           allowReserved: true
           schema:
             type: string
-            examples:
-              - 'creationBytecode.onchainBytecode,deployment.blockNumber,compilation,abi,metadata'
+            example: 'abi,metadata,creationBytecode.onchainBytecode,deployment.blockNumber,compilation'
         - name: omit
           in: query
           description: Comma seperated fields to NOT include in the response. All fields except matching ones will be returned. Can't be used simultanously with `fields`.
           allowReserved: true
           schema:
             type: string
-            examples:
-              - 'userdoc,devdoc,storageLayout,compilation.sources'
+            example: 'userdoc,devdoc,storageLayout,compilation.sources'
         - $ref: '#/components/parameters/chainId'
         - $ref: '#/components/parameters/address'
       responses:
@@ -189,13 +147,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
       security: []
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
   '/v2/contracts/{chainId}':
     get:
       tags:
@@ -213,8 +164,7 @@ paths:
               - asc
               - desc
             default: desc
-            examples:
-              - asc
+            example: 'asc'
         - name: limit
           in: query
           description: Number of contracts that should be returned per page. Maximum 200
@@ -223,8 +173,6 @@ paths:
             minimum: 1
             maximum: 200
             default: 200
-            examples:
-              - 50
         - name: afterMatchId
           in: query
           description: The last `matchId` returned to get contracts older or newer than it (depending on `sort`)
@@ -240,13 +188,6 @@ paths:
           $ref: '#/components/responses/TooManyRequestsResponse'
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
-      servers:
-        - url: 'http://localhost:3000'
-          description: localhost
-        - url: 'https://staging.sourcify.dev/server'
-          description: Staging
-        - url: 'https://sourcify.dev/server'
-          description: Production
 tags:
   - name: Contract Lookup
     description: Tools and endpoints for looking up contract information
@@ -266,8 +207,7 @@ components:
         pattern: ^\d+$
         minLength: 1
         maxLength: 20
-        examples:
-          - '11155111'
+        example: '11155111'
     address:
       name: address
       in: path
@@ -278,8 +218,7 @@ components:
         pattern: '(\b0x[a-fA-F0-9]{40}\b)'
         minLength: 42
         maxLength: 42
-        examples:
-          - '0x2738d13E81e30bC615766A0410e7cF199FD59A83'
+        example: '0x2738d13E81e30bC615766A0410e7cF199FD59A83'
     verificationId:
       name: verificationId
       in: path
@@ -291,8 +230,7 @@ components:
         pattern: '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
         minLength: 36
         maxLength: 36
-        examples:
-          - 550e8400-e29b-41d4-a716-446655440000
+        example: '550e8400-e29b-41d4-a716-446655440000'
   requestBodies:
     StdJSONVerificationRequest:
       content:
@@ -311,8 +249,7 @@ components:
               contractIdentifier:
                 type: string
                 description: The fully qualified file path and contract name to indicate which contract to verify.
-                examples:
-                  - 'contracts/Storage.sol:Storage'
+                example: 'contracts/Storage.sol:Storage'
               creationTransactionHash:
                 $ref: '#/components/schemas/Keccak256'
                 description: The hash of the transaction that created this contract. Optional.
@@ -411,8 +348,7 @@ components:
                   compilationTime:
                     type: string
                     description: Time it took to compile the contract on the server in milliseconds.
-                    examples:
-                      - '1333'
+                    example: '1333'
                 required:
                   - isJobCompleted
                   - verificationId
@@ -490,12 +426,10 @@ components:
                         $ref: '#/components/schemas/Keccak256'
                       blockNumber:
                         type: string
-                        examples:
-                          - '21721660'
+                        example: '21721660'
                       transactionIndex:
                         type: string
-                        examples:
-                          - '3'
+                        example: '3'
                       deployer:
                         $ref: '#/components/schemas/Address'
                   sources:
@@ -512,20 +446,17 @@ components:
                         $ref: '#/components/schemas/Language'
                       compiler:
                         type: string
-                        examples:
-                          - solc
+                        example: 'solc'
                       compilerVersion:
                         $ref: '#/components/schemas/SolidityCompilerVersion'
                       compilerSettings:
                         type: object
                       name:
                         type: string
-                        examples:
-                          - MyContract
+                        example: 'MyContract'
                       fullyQualifiedName:
                         type: string
-                        examples:
-                          - 'contracts/MyContract.sol:MyContract'
+                        example: 'contracts/MyContract.sol:MyContract'
                   abi:
                     type: array
                     items:
@@ -1029,13 +960,11 @@ components:
         customCode:
           type: string
           description: A string token to indicate the reason of the error
-          examples:
-            - unsupported_chain
+          example: 'unsupported_chain'
         message:
           type: string
           description: The reasoning of the error
-          examples:
-            - The chain with chainId 3153212 is not supported for verification
+          example: 'The chain with chainId 3153212 is not supported for verification'
         errorId:
           type: string
           format: uuid
@@ -1051,14 +980,12 @@ components:
       type: string
       title: SolidityCompilerVersion
       pattern: '\d+\.\d+\.\d+(-nightly\.\d{4}\.\d+\.\d+)?\+commit\.[a-f0-9]{8}'
-      examples:
-        - 0.8.7+commit.e28d00a7
+      example: '0.8.7+commit.e28d00a7'
     Keccak256:
       type: string
       title: Keccak256
       pattern: '(\b0x[a-f0-9]{64}\b)'
-      examples:
-        - '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+      example: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
     MatchingErrorResponse:
       examples:
         - customCode: non_matching_bytecodes
@@ -1087,8 +1014,7 @@ components:
       type: string
       title: BytecodeString
       pattern: '^0x([0-9|a-f][0-9|a-f])*$'
-      examples:
-        - '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
+      example: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
     VerifiedContractMinimal:
       type: object
       title: VerifiedContractMinimal
@@ -1106,12 +1032,10 @@ components:
         verifiedAt:
           type: string
           format: date-time
-          examples:
-            - '2024-07-24T12:00:00Z'
+          example: '2024-07-24T12:00:00Z'
         matchId:
           type: string
-          examples:
-            - '3266227'
+          example: '3266227'
       required:
         - match
         - creationMatch
@@ -1131,15 +1055,13 @@ components:
       pattern: ^\d+$
       minLength: 1
       maxLength: 20
-      examples:
-        - '11155111'
+      example: '11155111'
     Address:
       type: string
       title: Address
       description: Contract Address in hex string. Can be checksummed or not (i.e. can contain capital letters)
       pattern: '(\b0x[a-fA-F0-9]{40}\b)'
-      examples:
-        - '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+      example: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
     CreationBytecodeResponse:
       type: object
       title: CreationBytecodeResponse
@@ -1199,12 +1121,10 @@ components:
         properties:
           value:
             type: string
-            examples:
-              - '0xa26469706673582212201e80049ede18eadf4ab7f0dea2c32f2375c33b5aef0b1a16cc5223dbc681559364736f6c63430007060033'
+            example: '0xa26469706673582212201e80049ede18eadf4ab7f0dea2c32f2375c33b5aef0b1a16cc5223dbc681559364736f6c63430007060033'
           offset:
             type: integer
-            examples:
-              - 5471
+            example: 5471
       examples:
         - '1':
             value: '0xa2646970667358221220d6808f0352d5e503f1f878b19b1bf46c893bac1e20b3c51884efb58a87435b5564736f6c634300080a0033'
@@ -1241,8 +1161,7 @@ components:
             description: '`insert` when the transformation value is appended to the bytecode e.g. constructor arguments'
           offset:
             type: integer
-            examples:
-              - 1322
+            example: 1322
           reason:
             type: string
             enum:
@@ -1283,14 +1202,12 @@ components:
       title: AddressLowercase
       description: Contract Address in hex string
       pattern: '(\b0x[a-f0-9]{40}\b)'
-      examples:
-        - '0x40b70a4904fad0ff86f8c901b231eac759a0ebb0'
+      example: '0x40b70a4904fad0ff86f8c901b231eac759a0ebb0'
     HexString:
       type: string
       title: HexString
       pattern: '^0x([0-9|a-f][0-9|a-f])*$'
-      examples:
-        - '0x1a2b3c4d'
+      example: '0x1a2b3c4d'
     RuntimeBytecodeResponse:
       type: object
       title: RuntimeBytecodeResponse
@@ -1358,8 +1275,7 @@ components:
             description: 'Runtime bytecode transformations won''t have `insert`, because runtime does not have constructor arguments to be appended.'
           offset:
             type: integer
-            examples:
-              - 1322
+            example: 1322
           reason:
             type: string
             enum:
@@ -1413,8 +1329,7 @@ components:
       type: string
       title: HexStringWithout0x
       pattern: '^([0-9|a-f][0-9|a-f])*$'
-      examples:
-        - 1a2b3c4d
+      example: '1a2b3c4d'
     ProxyResoltion:
       type: object
       title: ProxyResoltion
