@@ -556,7 +556,7 @@
   },
   "570": {
     "sourcifyName": "Rollux Mainnet",
-    "supported": true,
+    "supported": false,
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://explorer.rollux.com/"
