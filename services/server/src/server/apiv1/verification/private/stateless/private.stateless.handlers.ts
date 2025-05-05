@@ -134,6 +134,13 @@ export async function verifyDeprecated(
   }
 }
 
+/**
+ * Upgrades a contract by fetching the sourcify_match from the database and then verifying it again with the new verification parameters.
+ * Mocks both the compilation and the sourcifyChain information so that recompilation and rpc calls are not performed.
+ *
+ * Finally, it updates the creation fields (match, transformations list, transformations values, metadata match) in
+ * the verified_contracts and the sourcify_matches tables with the new verification creation fields results.
+ */
 export async function upgradeContract(
   req: LegacyVerifyRequest,
   res: Response,
