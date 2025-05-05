@@ -575,7 +575,6 @@
   "40": {
     "sourcifyName": "Telos Mainnet",
     "supported": true,
-    "rpc": ["https://mainnet15.telos.net/evm"],
     "fetchContractCreationTxUsing": {
       "telosApi": {
         "url": "https://api.teloscan.io/"
