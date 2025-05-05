@@ -295,6 +295,10 @@ export async function upgradeContract(
       // Override so that it doesn't generate auxdata positions
     };
 
+    Object.defineProperty(compilation, "metadata", {
+      value: verifiedContract.metadata,
+    });
+
     Object.defineProperty(compilation, "creationBytecodeCborAuxdata", {
       value: creationCodeArtifacts.cborAuxdata,
     });
