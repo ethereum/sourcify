@@ -1,5 +1,9 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.5.1 - 2025-05-06
+
+- update dependencies
+
 ## sourcify-database@2.5.0 - 2025-04-30
 
 - Add `error_data` column to `verification_jobs` table
