@@ -27,10 +27,47 @@ increment_version() {
   echo "${parts[0]}.${parts[1]}.${parts[2]}"
 }
 
-## Check which packages need an update and write them to the global variables directories, packageNames, versions
-check_packages_for_update() {
+# Function to select an editor for changelog editing
+select_editor() {
+  # Show current editor if set
+  echo ""
+  if [ -n "${EDITOR}" ]; then
+    echo "Current editor set to: ${EDITOR}"
+  else
+    echo "No editor currently set"
+  fi
+  echo ""
+
+  # Always ask for editor choice
+  echo "Choose an editor for editing changelogs:"
+  PS3="Select editor (1-5): "
+  select editor_choice in "cursor" "nano" "vim" "code" "custom"; do
+    case $editor_choice in
+    "cursor")
+      EDITOR="cursor"
+      break
+      ;;
+    "nano" | "vim" | "code")
+      EDITOR=$editor_choice
+      break
+      ;;
+    "custom")
+      read -p "Enter the command for your preferred editor: " EDITOR
+      break
+      ;;
+    *)
+      echo "Invalid option, please try again."
+      ;;
+    esac
+  done
+  echo "Using $EDITOR as the editor for changelogs"
+}
+
+# For each directory/package to be updated decide on patch, minor, or major, and then ask for changelog input
+update_packages_and_changelog() {
   echo "Checking which packages need a new version"
 
+  # Help by showing the PR URL
   GITHUB_REPO_FULL_NAME=$(gh repo view --json nameWithOwner -q .nameWithOwner)
   GITHUB_REPO_URL="https://github.com/${GITHUB_REPO_FULL_NAME}"
   GITHUB_PR_URL="${GITHUB_REPO_URL}/pull/${OPEN_PR_NUMBER}"
@@ -44,7 +81,14 @@ check_packages_for_update() {
     exit 0
   fi
 
+  # Define arrays to hold package directories, names, and versions.
+  declare -a directories
+  declare -a packageNames
+  declare -a versions
+  declare -A selected_versions
+
   # Use process substitution to avoid creating a subshell with a pipeline
+  # Make ":" the delimiter and read the output into variables
   while IFS=: read -r directory packageName version tag; do
     directories+=("$directory")
     packageNames+=("$packageName")
@@ -55,10 +99,9 @@ check_packages_for_update() {
   for index in "${!directories[@]}"; do
     echo "${packageNames[$index]} at ${directories[$index]} (current version: ${versions[$index]})"
   done
-}
 
-# For each directory/package to be updated decide on patch, minor, or major, and then ask for changelog input
-update_packages_and_changelog() {
+  # Prompt for editor choice
+  select_editor
 
   for index in "${!directories[@]}"; do
     pkg_name="${packageNames[$index]}"
