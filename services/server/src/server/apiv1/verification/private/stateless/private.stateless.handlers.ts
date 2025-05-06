@@ -135,11 +135,11 @@ export async function verifyDeprecated(
 }
 
 /**
- * Upgrades a contract by fetching the sourcify_match from the database and then verifying it again with the new verification parameters.
- * Mocks both the compilation and the sourcifyChain information so that recompilation and rpc calls are not performed.
+ * This function is used to fix the creation information (match, transformations list, transformations values, metadata match) of contract with misaligned creation data.
  *
- * Finally, it updates the creation fields (match, transformations list, transformations values, metadata match) in
- * the verified_contracts and the sourcify_matches tables with the new verification creation fields results.
+ * We beging by mocking both the compilation and the sourcifyChain information with data from the database, so that recompilation and rpc calls are not performed.
+ * Then we verify the contract again with the new mocked compilation and sourcifyChain objects.
+ * Finally we upgrade the misaligned contract by UPDATING the verified_contracts and sourcify_matches creation fields.
  */
 export async function upgradeContract(
   req: LegacyVerifyRequest,
@@ -268,6 +268,7 @@ export async function upgradeContract(
     );
 
     compilation.compilerOutput = {
+      sources: compilationArtifacts.sources,
       contracts: {
         [compilationTarget.path]: {
           [compilationTarget.name]: {
