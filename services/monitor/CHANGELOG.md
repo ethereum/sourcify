@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.3.11 - 2025-05-06
+
+- update dependencies
+
 ## sourcify-monitor@1.3.10 - 2025-04-30
 
 - Add Ethereum Testnet Hoodi (560048) to monitored chains

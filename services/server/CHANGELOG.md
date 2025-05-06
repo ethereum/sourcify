@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@3.1.1 - 2025-05-06
+
+- Fix missing compilation.metadata field in upgrade script (#2135)
+- Fix traceId not logged inside worker when verifying via Etherscan import (#2137)
+- Turn off Rollux Mainnet (570)
+- Use default telos RPCs
+
 ## sourcify-server@3.1.0 - 2025-04-30
 
 - Add API v2 verification endpoints:
