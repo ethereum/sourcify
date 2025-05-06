@@ -11,6 +11,6 @@
       "allowBranch": "master"
     }
   },
-  "packages": [".", "services/*", "packages/*"],
+  "packages": ["services/*", "packages/*"],
   "version": "independent"
 }
