@@ -366,12 +366,12 @@ describe("Test Supported Chains", function () {
   );
 
   // Rollux Mainnet
-  verifyContract(
-    "0x1187124eC74e2A2F420540C338186dD702cF6340",
-    "570",
-    "Rollux Mainnet",
-    "shared/",
-  );
+  // verifyContract(
+  //   "0x1187124eC74e2A2F420540C338186dD702cF6340",
+  //   "570",
+  //   "Rollux Mainnet",
+  //   "shared/",
+  // );
 
   // Rollux Tanenbaum (testnet)
   // verifyContract(

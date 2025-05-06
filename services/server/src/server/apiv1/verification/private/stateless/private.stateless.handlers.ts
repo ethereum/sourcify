@@ -134,6 +134,13 @@ export async function verifyDeprecated(
   }
 }
 
+/**
+ * This function is used to fix the creation information (match, transformations list, transformations values, metadata match) of contract with misaligned creation data.
+ *
+ * We beging by mocking both the compilation and the sourcifyChain information with data from the database, so that recompilation and rpc calls are not performed.
+ * Then we verify the contract again with the new mocked compilation and sourcifyChain objects.
+ * Finally we upgrade the misaligned contract by UPDATING the verified_contracts and sourcify_matches creation fields.
+ */
 export async function upgradeContract(
   req: LegacyVerifyRequest,
   res: Response,
@@ -261,6 +268,7 @@ export async function upgradeContract(
     );
 
     compilation.compilerOutput = {
+      sources: compilationArtifacts.sources,
       contracts: {
         [compilationTarget.path]: {
           [compilationTarget.name]: {
@@ -294,6 +302,10 @@ export async function upgradeContract(
     compilation["generateCborAuxdataPositions"] = async () => {
       // Override so that it doesn't generate auxdata positions
     };
+
+    Object.defineProperty(compilation, "metadata", {
+      value: verifiedContract.metadata,
+    });
 
     Object.defineProperty(compilation, "creationBytecodeCborAuxdata", {
       value: creationCodeArtifacts.cborAuxdata,

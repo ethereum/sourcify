@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@2.1.1 - 2025-05-06
+
+- Update creation information only if `extractConstructorArgumentsTransformation` doesn't throw
+
 ## @ethereum-sourcify/lib-sourcify@2.1.0 - 2025-04-30
 
 - Remove environment variables for enabling lib-sourcify to run in the browser

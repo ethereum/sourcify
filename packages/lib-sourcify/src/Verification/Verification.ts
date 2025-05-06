@@ -473,12 +473,6 @@ export class Verification {
       this.compilation.creationBytecode,
     );
 
-    this.creationMatch = matchBytecodesResult.match;
-    this.creationLibraryMap = matchBytecodesResult.libraryMap;
-    this.creationTransformations = matchBytecodesResult.transformations;
-    this.creationTransformationValues =
-      matchBytecodesResult.transformationValues;
-
     if (
       matchBytecodesResult.match === 'partial' ||
       matchBytecodesResult.match === 'perfect'
@@ -490,13 +484,15 @@ export class Verification {
           this.compilation.metadata,
         );
       this.creationTransformations = [
-        ...this.creationTransformations,
+        ...matchBytecodesResult.transformations,
         ...constructorTransformationResult.transformations,
       ];
       this.creationTransformationValues = {
-        ...this.creationTransformationValues,
+        ...matchBytecodesResult.transformationValues,
         ...constructorTransformationResult.transformationValues,
       };
+      this.creationMatch = matchBytecodesResult.match;
+      this.creationLibraryMap = matchBytecodesResult.libraryMap;
     }
   }
 

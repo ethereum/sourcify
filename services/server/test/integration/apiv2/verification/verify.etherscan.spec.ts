@@ -32,6 +32,11 @@ import {
 use(chaiHttp);
 
 describe("POST /v2/verify/etherscan/:chainId/:address", function () {
+  // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
+  if (process.env.CIRCLE_PR_REPONAME !== undefined) {
+    return;
+  }
+
   const chainFixture = new LocalChainFixture();
   const serverFixture = new ServerFixture();
   const sandbox = sinon.createSandbox();
