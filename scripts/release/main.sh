@@ -16,7 +16,7 @@ source "${SCRIPT_DIR}/release.sh"
 ###
 ### Main
 ###
-prompt_execute_or_skip "checking current branch" check_current_branch
+prompt_execute_or_skip "checking current branch" is_on_staging_branch
 prompt_execute_or_skip "checking if branches are in sync" check_branch_sync
 prompt_execute_or_skip "creating GitHub PR" create_gh_deploy_pr
 
