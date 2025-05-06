@@ -256,7 +256,7 @@ async function _verifyFromEtherscan({
     processedResult = processSolidityResultFromEtherscan(etherscanResult, true);
   }
 
-  return verifyFromJsonInput({
+  return _verifyFromJsonInput({
     chainId,
     address,
     jsonInput: processedResult.jsonInput,
