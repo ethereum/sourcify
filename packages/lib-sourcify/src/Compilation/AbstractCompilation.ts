@@ -114,7 +114,10 @@ export abstract class AbstractCompilation {
         this.compilationTarget.name
       ]
     ) {
-      logWarn('Contract not found in compiler output');
+      logWarn('Contract not found in compiler output', {
+        path: this.compilationTarget.path,
+        name: this.compilationTarget.name,
+      });
       throw new CompilationError({
         code: 'contract_not_found_in_compiler_output',
       });
