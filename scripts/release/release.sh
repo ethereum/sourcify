@@ -4,6 +4,12 @@
 
 source "${SCRIPT_DIR}/logging_utils.sh"
 
+# Global declarations for package data arrays
+declare -a directories
+declare -a packageNames
+declare -a versions          # For current versions read from file
+declare -A selected_versions # For selected new versions (pkgName -> newVersion)
+
 # Function to parse and increment version
 increment_version() {
   local version=$1
@@ -100,7 +106,6 @@ update_packages_and_changelog() {
     echo "${packageNames[$index]} at ${directories[$index]} (current version: ${versions[$index]})"
   done
 
-  # Prompt for editor choice
   select_editor
 
   for index in "${!directories[@]}"; do
@@ -110,6 +115,9 @@ update_packages_and_changelog() {
     prompt_execute_or_skip "selecting a version for $pkg_name" select_new_version "$pkg_name" "$current_version"
     prompt_execute_or_skip "updating the changelog for $pkg_name" update_changelog "$pkg_name" "${directories[$index]}"
   done
+
+  # Write all collected package data to the temporary file
+  write_package_data directories packageNames versions selected_versions
 }
 
 # Selects a new version for the package and writes to global selected_versions variable
@@ -203,6 +211,9 @@ commit_changelogs() {
 ###
 
 function run_lerna_version() {
+  # Load package data from the temporary file
+  load_package_data_into_arrays
+
   ## Print the new versions before the lerna prompt for convenience
   echo "\\nNew versions for packages:"
   for pkg_name in "${!selected_versions[@]}"; do
@@ -227,6 +238,9 @@ push_tag() {
 
 # Main function to handle ordered tag pushing
 push_tags_in_order() {
+  # Load package data from the temporary file
+  load_package_data_into_arrays
+
   # Push priority tags first in the defined order
   for package in "${priority_packages[@]}"; do
     for pkg_index in "${!packageNames[@]}"; do
@@ -254,6 +268,9 @@ push_tags_in_order() {
 ###
 
 create_github_releases() {
+  # Load package data from the temporary file
+  load_package_data_into_arrays
+
   echo "Creating GitHub releases..."
   # Loop through each package to create a GitHub release
   for pkg_index in "${!packageNames[@]}"; do
