@@ -80,7 +80,7 @@ update_packages_and_changelog() {
   GITHUB_PR_URL_FILES="${GITHUB_PR_URL}/files"
 
   # Get the list of changed packages
-  OUTPUT=$(npx lerna changed --all --long --parseable)
+  OUTPUT=$(npx lerna changed --all --long --parseable --include-merged-tags)
 
   if [ -z "$OUTPUT" ]; then
     echo "No packages need to be updated."
@@ -219,7 +219,7 @@ function run_lerna_version() {
   for pkg_name in "${!selected_versions[@]}"; do
     echo "$pkg_name: ${selected_versions[$pkg_name]}"
   done
-  npx lerna version --no-push
+  npx lerna version --no-push --include-merged-tags
 }
 
 ###
