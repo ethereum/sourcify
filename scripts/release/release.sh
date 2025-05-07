@@ -200,6 +200,11 @@ update_changelog() {
     echo ""
   fi
 
+  # Ensure the changelog entry ends with a newline
+  if [ -s "$changelog_entry_filename" ] && [ -n "$(tail -c1 "$changelog_entry_filename")" ]; then
+    echo "" >>"$changelog_entry_filename"
+  fi
+
   new_changelog_heading="## $pkg_name@${selected_versions["$pkg_name"]} - $today"
   changelog_file="${directory}/CHANGELOG.md"
 
