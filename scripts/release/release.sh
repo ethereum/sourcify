@@ -9,6 +9,7 @@ declare -a directories
 declare -a packageNames
 declare -a versions          # For current versions read from file
 declare -A selected_versions # For selected new versions (pkgName -> newVersion)
+declare IS_GUI_EDITOR=true   # Flag to indicate if a GUI editor is selected, true by default
 
 # Function to parse and increment version
 increment_version() {
@@ -47,18 +48,32 @@ select_editor() {
   # Always ask for editor choice
   echo "Choose an editor for editing changelogs:"
   PS3="Select editor (1-5): "
+  # IS_GUI_EDITOR is true by default. Only set to false for terminal editors.
   select editor_choice in "cursor" "nano" "vim" "code" "custom"; do
     case $editor_choice in
     "cursor")
       EDITOR="cursor"
+      # IS_GUI_EDITOR remains true
       break
       ;;
-    "nano" | "vim" | "code")
-      EDITOR=$editor_choice
+    "nano")
+      EDITOR="nano"
+      IS_GUI_EDITOR=false
+      break
+      ;;
+    "vim")
+      EDITOR="vim"
+      IS_GUI_EDITOR=false
+      break
+      ;;
+    "code")
+      EDITOR="code"
+      # IS_GUI_EDITOR remains true
       break
       ;;
     "custom")
       read -p "Enter the command for your preferred editor: " EDITOR
+      # IS_GUI_EDITOR remains true (assuming custom might be GUI)
       break
       ;;
     *)
@@ -67,6 +82,9 @@ select_editor() {
     esac
   done
   echo "Using $EDITOR as the editor for changelogs"
+  if [ "$IS_GUI_EDITOR" = true ]; then
+    echo "Note: $EDITOR might open in a new window. The script will wait for you to save and close it before proceeding with the changelog."
+  fi
 }
 
 # For each directory/package to be updated decide on patch, minor, or major, and then ask for changelog input
@@ -174,6 +192,14 @@ update_changelog() {
 
   # Prompt the user to enter changelog details in their default editor
   ${EDITOR:-nano} "$changelog_entry_filename"
+
+  # If a GUI editor is used, wait for the user to save and close the file
+  if [ "$IS_GUI_EDITOR" = true ]; then
+    echo ""
+    read -n 1 -s -r -p "Changelog editor ($EDITOR) was opened. Please save your changes and close the editor, then press any key to continue..."
+    echo ""
+  fi
+
   new_changelog_heading="## $pkg_name@${selected_versions["$pkg_name"]} - $today"
   changelog_file="${directory}/CHANGELOG.md"
 
