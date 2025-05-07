@@ -18,9 +18,7 @@ Sourcify's server for verifying contracts.
 npm install
 ```
 
-2. Change the server storage backend to a filesystem for easy start. Create a `src/config/local.js`:
-
-See the [Config](#config) section below for details.
+2. Change the server storage backend to a filesystem for easy start (API v2 won't be available). Create a `src/config/local.js`. See the [Config](#config) section below for details.
 
 ```js
 const {
@@ -58,6 +56,8 @@ npm start
 The server config is defined in [`src/config/default.js`](src/config/default.js).
 
 To override the default config, you can create a `local.js` file and override the default config. The parameters are overridden one by one, so you only need to override the parameters you want to change.
+
+Note that you need to set the read storage option to `RWStorageIdentifiers.SourcifyDatabase` and run a PostgreSQL database to make API v2 available. See [Database](#database).
 
 Once you've written your own config, you must build the server again for changes to take effect:
 
@@ -215,7 +215,7 @@ There are two types of storages: `RWStorageIdentifiers` and `WStorageIdentifiers
 - `WStorageIdentifiers.RepositoryV2` - a filesystem for serving source files and metadata on IPFS. Since pinning files on IPFS is done over a file system, Sourcify saves these files here. This repository does not save source file names as given in the metadata file (e.g. `contracts/MyContract.sol`) but saves each file with their keccak256 hash. This is done to avoid file name issues, as source file names can be arbitrary strings.
 
 - `WStorageIdentifiers.AllianceDatabase` - the PostgreSQL for the [Verifier Alliance](https://verifieralliance.org)
-- `RWStorageIdentifiers.SourcifyDatabase` - the PostgreSQL database that is an extension of the Verifier Alliance database.
+- `RWStorageIdentifiers.SourcifyDatabase` - the PostgreSQL database that is an extension of the Verifier Alliance database. Required for API v2. See [Database](#database).
 
 `RWStorageIdentifiers` can both be used as a source of truth (`read`) and store (`writeOr...`) the verified contracts. `WStorageIdentifiers` can only store (write) verified contracts. For instance, Sourcify can write to the [Verifier Alliance](https://verifieralliance.org) whenever it receives a verified contract, but this can't be the source of truth for the Sourcify APIs.
 
