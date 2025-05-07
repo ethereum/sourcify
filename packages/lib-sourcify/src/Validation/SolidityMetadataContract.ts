@@ -30,6 +30,7 @@ import {
   getVariationsByContentHash,
 } from './variationsUtils';
 import { logDebug } from '../logger';
+import { splitFullyQualifiedName } from '../utils';
 
 export class SolidityMetadataContract {
   metadata: Metadata;
@@ -331,7 +332,8 @@ export class SolidityMetadataContract {
         }
 
         // After Solidity v0.7.5: { "ERC20.sol:ERC20": "0x..."}
-        const [contractPath, contractName] = libraryKey.split(':');
+        const { contractPath, contractName } =
+          splitFullyQualifiedName(libraryKey);
         if (!libraries[contractPath]) {
           libraries[contractPath] = {};
         }

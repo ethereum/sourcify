@@ -312,6 +312,28 @@ describe('SolidityMetadataContract', () => {
         ERC20: '0x1234567890123456789012345678901234567890',
       });
     });
+
+    it('should handle ":" inside library paths correctly', () => {
+      const metadata = {
+        ...validMetadata,
+        settings: {
+          ...validMetadata.settings,
+          libraries: {
+            'contracts/path:with:colons.sol:LibraryName':
+              '0x1234567890123456789012345678901234567890',
+          },
+        },
+      };
+      const contract = new SolidityMetadataContract(metadata, validSources);
+      contract.createJsonInputFromMetadata();
+      expect(
+        contract.solcJsonInput?.settings?.libraries?.[
+          'contracts/path:with:colons.sol'
+        ] as any,
+      ).to.deep.equal({
+        LibraryName: '0x1234567890123456789012345678901234567890',
+      });
+    });
   });
 
   describe('createJsonInputFromMetadata', () => {
