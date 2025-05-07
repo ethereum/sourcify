@@ -4,6 +4,7 @@ import type {
   CompilationTarget,
   Metadata,
 } from "@ethereum-sourcify/lib-sourcify";
+import { splitFullyQualifiedName } from "@ethereum-sourcify/lib-sourcify";
 import { TypedResponse } from "../../types";
 import logger from "../../../common/logger";
 import { Request } from "express";
@@ -44,9 +45,9 @@ export async function verifyFromJsonInputEndpoint(
 
   // The contract path can include a colon itself. Therefore,
   // we need to take the last element as the contract name.
-  const splitIdentifier = req.body.contractIdentifier.split(":");
-  const contractName = splitIdentifier[splitIdentifier.length - 1];
-  const contractPath = splitIdentifier.slice(0, -1).join(":");
+  const { contractName, contractPath } = splitFullyQualifiedName(
+    req.body.contractIdentifier,
+  );
   const compilationTarget: CompilationTarget = {
     name: contractName,
     path: contractPath,
