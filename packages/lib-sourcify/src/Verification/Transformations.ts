@@ -269,10 +269,15 @@ export function extractLibrariesTransformation(
         const trimmedFQN = fqn.slice(0, 36); // in case the fqn is too long
         const calculatedPreV050Placeholder = '__' + trimmedFQN.padEnd(38, '_');
 
+        // We support the placeholder to be zeroed out to accept bytecodes coming from the DB
+        // (In our database we store bytecodes with the placeholder zeroed out)
+        const calculatedZeroedPlaceholder = '0'.repeat(40);
+
         if (
           !(
             placeholder === calculatedPlaceholder ||
-            placeholder === calculatedPreV050Placeholder
+            placeholder === calculatedPreV050Placeholder ||
+            placeholder === calculatedZeroedPlaceholder
           )
         )
           throw new Error(
