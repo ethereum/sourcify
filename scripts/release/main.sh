@@ -11,6 +11,7 @@ SCRIPT_DIR=$(dirname "$0")
 
 source "${SCRIPT_DIR}/logging_utils.sh"
 source "${SCRIPT_DIR}/git_utils.sh"
+source "${SCRIPT_DIR}/release_data_utils.sh"
 source "${SCRIPT_DIR}/release.sh"
 
 ###
@@ -41,3 +42,6 @@ prompt_execute_or_skip "switching to staging and pulling latest" switch_to_stagi
 prompt_execute_or_skip "switching to master" switch_to_master
 prompt_execute_or_skip "merging staging to master locally" merge_locally
 prompt_execute_or_skip "pushing the commits to master" push_to_master
+
+# Clean up the temporary package data file
+prompt_execute_or_skip "cleaning up temporary release data" cleanup_package_data_file

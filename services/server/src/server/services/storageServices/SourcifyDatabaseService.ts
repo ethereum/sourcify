@@ -2,6 +2,7 @@ import {
   VerificationStatus,
   StringMap,
   VerificationExport,
+  splitFullyQualifiedName,
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
@@ -350,7 +351,7 @@ export class SourcifyDatabaseService
             "__$" + keccak256Str(key).slice(2).slice(0, 34) + "$__";
         } else {
           // Solidity < 0.5.0 is __MyLib__________ (total 40 characters)
-          const libName = key.split(":")[1];
+          const { contractName: libName } = splitFullyQualifiedName(key);
           const trimmedLibName = libName.slice(0, 36); // in case it's longer
           formattedKey = "__" + trimmedLibName.padEnd(38, "_");
         }

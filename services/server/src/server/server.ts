@@ -32,6 +32,7 @@ import { SessionOptions } from "express-session";
 import { makeV1ValidatorFormats } from "./apiv1/validation";
 import { errorHandler as v2ErrorHandler } from "./apiv2/errors";
 import http from "http";
+import { RWStorageIdentifiers } from "./services/storageServices/identifiers";
 
 declare module "express-serve-static-core" {
   interface Request {
@@ -111,6 +112,14 @@ export class Server {
       verificationServiceOptions,
       storageServiceOptions,
     );
+
+    if (
+      !this.services.storage.rwServices[RWStorageIdentifiers.SourcifyDatabase]
+    ) {
+      logger.warn(
+        "No database configured. The database is recommended as storage service. API v2 is disabled without database.",
+      );
+    }
 
     const handleShutdownSignal = async () => {
       await this.shutdown();
