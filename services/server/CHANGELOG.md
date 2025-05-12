@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@3.1.2 - 2025-05-12
+
+- Add warning log if no database is configured (#2147)
+- Clarify that a Postgres database is required for API v2 (#2144)
+- Update dependencies
+
 ## sourcify-server@3.1.1 - 2025-05-06
 
 - Fix missing compilation.metadata field in upgrade script (#2135)

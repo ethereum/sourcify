@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@2.1.2 - 2025-05-12
+
+- Add support for zeroed-out placeholders to accept bytecodes from the database (#2150)
+- Handle : characters in contract paths correctly (#2143)
+
+
 ## @ethereum-sourcify/lib-sourcify@2.1.1 - 2025-05-06
 
 - Update creation information only if `extractConstructorArgumentsTransformation` doesn't throw
