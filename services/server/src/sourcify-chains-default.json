@@ -1557,14 +1557,7 @@
   },
   "1116": {
     "sourcifyName": "Core Blockchain Mainnet",
-    "supported": true,
-    "etherscanApi": {
-      "supported": true,
-      "apiKeyEnvName": "COREDAO_API_KEY"
-    },
-    "fetchContractCreationTxUsing": {
-      "etherscanApi": true
-    }
+    "supported": true
   },
   "35441": {
     "sourcifyName": "Q Mainnet",
@@ -1604,25 +1597,11 @@
   },
   "1114": {
     "sourcifyName": "Core Blockchain Testnet2",
-    "supported": true,
-    "etherscanApi": {
-      "supported": true,
-      "apiKeyEnvName": "COREDAO_TESTNET2_API_KEY"
-    },
-    "fetchContractCreationTxUsing": {
-      "etherscanApi": true
-    }
+    "supported": true
   },
   "1115": {
     "sourcifyName": "Core Blockchain Testnet",
-    "supported": true,
-    "etherscanApi": {
-      "supported": true,
-      "apiKeyEnvName": "COREDAO_TESTNET_API_KEY"
-    },
-    "fetchContractCreationTxUsing": {
-      "etherscanApi": true
-    }
+    "supported": true
   },
   "30": {
     "sourcifyName": "Rootstock",
