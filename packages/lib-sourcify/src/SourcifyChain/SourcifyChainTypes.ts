@@ -13,7 +13,6 @@ export type SourcifyChainExtension = {
   supported: boolean;
   etherscanApi?: {
     supported: boolean;
-    apiURL: string;
     apiKeyEnvName?: string;
   };
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;

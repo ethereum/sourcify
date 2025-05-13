@@ -48,7 +48,6 @@ export class SourcifyChain {
   readonly fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   readonly etherscanApi?: {
     supported: boolean;
-    apiURL: string;
     apiKeyEnvName?: string;
   };
 

@@ -138,7 +138,7 @@ A full example of a chain entry is as follows:
     "supported": true, // required
     // optional
     "etherscanApi": {
-      "apiURL": "https://api.etherscan.io",
+      "supported": true, // required
       "apiKeyEnvName": "ETHERSCAN_API_KEY" // the name of the environment variable holding the api key
     },
     // optional
