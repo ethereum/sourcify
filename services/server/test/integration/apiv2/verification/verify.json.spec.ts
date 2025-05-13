@@ -400,4 +400,46 @@ describe("POST /v2/verify/:chainId/:address", function () {
     chai.expect(verifyRes.body).to.have.property("errorId");
     chai.expect(verifyRes.body).to.have.property("message");
   });
+
+  it("should fail matching with creation tx if the provided creationTransactionHash does not match the contract address", async () => {
+    // Deploy contract A
+    const deploymentA = await deployFromAbiAndBytecodeForCreatorTxHash(
+      chainFixture.localSigner,
+      chainFixture.defaultContractArtifact.abi,
+      chainFixture.defaultContractArtifact.bytecode,
+    );
+
+    // Deploy contract B
+    const deploymentB = await deployFromAbiAndBytecodeForCreatorTxHash(
+      chainFixture.localSigner,
+      chainFixture.defaultContractArtifact.abi,
+      chainFixture.defaultContractArtifact.bytecode,
+    );
+
+    const { resolveWorkers } = makeWorkersWait();
+
+    // Try to verify contract A, but provide B's creatorTxHash
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(`/v2/verify/${chainFixture.chainId}/${deploymentA.contractAddress}`)
+      .send({
+        stdJsonInput: chainFixture.defaultContractJsonInput,
+        compilerVersion:
+          chainFixture.defaultContractMetadataObject.compiler.version,
+        contractIdentifier: Object.entries(
+          chainFixture.defaultContractMetadataObject.settings.compilationTarget,
+        )[0].join(":"),
+        creationTransactionHash: deploymentB.txHash,
+      });
+
+    await resolveWorkers();
+
+    // Fetch the job result
+    const jobRes = await chai
+      .request(serverFixture.server.app)
+      .get(`/v2/verify/${verifyRes.body.verificationId}`);
+
+    chai.expect(jobRes.status).to.be.oneOf([200]);
+    chai.expect(jobRes.body.contract.creationMatch).to.be.null;
+  });
 });
