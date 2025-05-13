@@ -181,15 +181,10 @@ export class Verification {
       }
     }
 
-    // Try to match onchain creation bytecode with compiled creation bytecode
+    // Check if the creation transaction hash is available and corrisponds to the creation transaction of this contract
+    // If it is, we fetch the onchain creation bytecode and other creation information
     if (this.creatorTxHash) {
       try {
-        logDebug('Matching with creation tx', {
-          chain: this.sourcifyChain.chainId,
-          address: this.address,
-          creatorTxHash: this.creatorTxHash,
-        });
-
         // Get creation transaction data
         const creatorTx = await this.sourcifyChain.getTx(this.creatorTxHash);
         this.blockNumber = creatorTx.blockNumber || undefined;
@@ -203,7 +198,25 @@ export class Verification {
           );
         this._onchainCreationBytecode = creationBytecode;
         this.txIndex = txReceipt.index;
+      } catch (e: any) {
+        logWarn('Error extracting creation tx data', {
+          chain: this.sourcifyChain.chainId,
+          address: this.address,
+          creatorTxHash: this.creatorTxHash,
+          error: e.message,
+        });
+        this.creatorTxHash = undefined;
+      }
+    }
 
+    // If we found the onchain creation bytecode, we try to match it with the compiled creation bytecode
+    if (this._onchainCreationBytecode) {
+      logDebug('Matching with creation tx', {
+        chain: this.sourcifyChain.chainId,
+        address: this.address,
+        creatorTxHash: this.creatorTxHash,
+      });
+      try {
         await this.matchWithCreationTx();
       } catch (e: any) {
         logWarn('Error matching with creation tx', {
