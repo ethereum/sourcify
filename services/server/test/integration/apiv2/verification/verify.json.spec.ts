@@ -443,6 +443,8 @@ describe("POST /v2/verify/:chainId/:address", function () {
     chai.expect(jobRes.body).to.include({
       isJobCompleted: true,
     });
+    chai.expect(jobRes.body.error).to.not.exist;
     chai.expect(jobRes.body.contract.creationMatch).to.be.null;
+    chai.expect(jobRes.body.contract.runtimeMatch).to.equal("exact_match");
   });
 });
