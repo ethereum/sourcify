@@ -11,7 +11,8 @@ const BLOCKSCOUT_REGEX_OLD =
   'transaction_hash_link" href="${BLOCKSCOUT_PREFIX}/tx/(.*?)"';
 const BLOCKSCOUT_REGEX_NEW = "at txn.*href.*/tx/(0x.{64}?)";
 const BLOCKSCOUT_SUFFIX = "address/${ADDRESS}/transactions";
-const ETHERSCAN_API_SUFFIX = `/api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=`;
+const ETHERSCAN_API =
+  "https://api.etherscan.io/v2/api?chainid=${CHAIN_ID}&module=contract&action=getcontractcreation&contractaddresses=${ADDRESS}&apikey=";
 const BLOCKSSCAN_SUFFIX = "api/accounts/${ADDRESS}";
 const BLOCKSCOUT_API_SUFFIX = "/api/v2/addresses/${ADDRESS}";
 const TELOS_SUFFIX = "v1/contract/${ADDRESS}";
@@ -71,14 +72,12 @@ function getBlockscoutScrapeContractCreatorFetcher(
   );
 }
 
-// api?module=contract&action=getcontractcreation&contractaddresses=\${ADDRESS}&apikey=
-// For chains with the new Etherscan api that has contract creator tx hash endpoint
 function getEtherscanApiContractCreatorFetcher(
-  apiURL: string,
   apiKey: string,
+  chainId: number,
 ): ContractCreationFetcher {
   return getApiContractCreationFetcher(
-    apiURL + ETHERSCAN_API_SUFFIX + apiKey,
+    ETHERSCAN_API.replace("${CHAIN_ID}", chainId.toString()) + apiKey,
     (response: any) => {
       if (response?.result?.[0]?.txHash)
         return response?.result?.[0]?.txHash as string;
@@ -275,12 +274,15 @@ export const getCreatorTx = async (
   // Try etherscan if routescan fails
   if (
     sourcifyChain.fetchContractCreationTxUsing?.etherscanApi &&
-    sourcifyChain?.etherscanApi?.apiURL
+    sourcifyChain?.etherscanApi?.supported
   ) {
-    const apiKey = process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
+    const apiKey =
+      process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""] ||
+      process.env.ETHERSCAN_API_KEY ||
+      "";
     const fetcher = getEtherscanApiContractCreatorFetcher(
-      sourcifyChain.etherscanApi.apiURL,
-      apiKey || "",
+      apiKey,
+      sourcifyChain.chainId,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {
