@@ -38,10 +38,7 @@ prompt_execute_or_skip "asking if release PR is merged" ask_if_release_pr_merged
 prompt_execute_or_skip "pushing the tags to GitHub" push_tags_in_order
 prompt_execute_or_skip "creating GitHub releases" create_github_releases
 
-prompt_execute_or_skip "switching to staging and pulling latest" switch_to_staging_and_pull
-prompt_execute_or_skip "switching to master" switch_to_master
-prompt_execute_or_skip "merging staging to master locally" merge_locally
-prompt_execute_or_skip "pushing the commits to master" push_to_master
+prompt_execute_or_skip "asking if 'Deploy latest to production' PR is merged" ask_if_master_pr_merged
 
 # Clean up the temporary package data file
 prompt_execute_or_skip "cleaning up temporary release data" cleanup_package_data_file

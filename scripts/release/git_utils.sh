@@ -76,38 +76,17 @@ create_gh_deploy_pr() {
   fi
 }
 
-merge_locally() {
-  echo "Locally merging staging into master"
-  git merge staging
-  echo "Merged staging into master"
-}
-
-switch_to_staging() {
-  echo "Switching to staging..."
-  git checkout staging
-  echo "Checked out staging"
-}
-
-push_to_master() {
-  # Push to master
-  echo "Pushing to master..."
-  git push origin master
-  echo "Pushed to master"
-}
-
 ask_if_release_pr_merged() {
   echo "Now please review and approve the release new versions PR to staging."
+}
+
+ask_if_master_pr_merged() {
+  echo "Now please review and approve the 'Deploy latest to production' PR to master."
 }
 
 push_to_staging() {
   echo "Pushing to staging..."
   git push origin staging
-}
-
-switch_to_master() {
-  echo "Switching to master..."
-  git checkout master
-  echo "Checked out master"
 }
 
 create_new_branch() {
@@ -175,12 +154,4 @@ open_pr_to_staging() {
   echo "Opening PR to staging..."
   gh pr create --title "$title" --body "" --head "$branch_name" --base staging
   echo "Opened PR to staging"
-}
-
-switch_to_staging_and_pull() {
-  echo "Switching to staging..."
-  git checkout staging
-  echo "Checked out staging"
-  git pull
-  echo "Pulled latest staging"
 }
