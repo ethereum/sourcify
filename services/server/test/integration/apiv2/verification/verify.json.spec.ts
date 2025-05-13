@@ -440,6 +440,9 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .get(`/v2/verify/${verifyRes.body.verificationId}`);
 
     chai.expect(jobRes.status).to.be.oneOf([200]);
+    chai.expect(jobRes.body).to.include({
+      isJobCompleted: true,
+    });
     chai.expect(jobRes.body.contract.creationMatch).to.be.null;
   });
 });
