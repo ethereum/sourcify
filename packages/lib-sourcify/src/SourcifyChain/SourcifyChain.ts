@@ -47,6 +47,7 @@ export class SourcifyChain {
   readonly providers: JsonRpcProviderWithUrl[];
   readonly fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
   readonly etherscanApi?: {
+    supported: boolean;
     apiURL: string;
     apiKeyEnvName?: string;
   };
