@@ -229,21 +229,24 @@ export interface ProcessedEtherscanResult {
 export const fetchFromEtherscan = async (
   sourcifyChain: SourcifyChain,
   address: string,
-  apiKey?: string,
+  userApiKey?: string,
   throwV2Errors: boolean = false,
 ): Promise<EtherscanResult> => {
-  if (!sourcifyChain.etherscanApi) {
+  if (!sourcifyChain.etherscanApi?.supported) {
     const errorMessage = `Requested chain ${sourcifyChain.chainId} is not supported for importing from Etherscan.`;
     throw throwV2Errors
       ? new ChainNotFoundError(errorMessage)
       : new BadRequestError(errorMessage);
   }
 
-  const url = `${sourcifyChain.etherscanApi.apiURL}/api?module=contract&action=getsourcecode&address=${address}`;
-  const usedApiKey =
-    apiKey || process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""];
+  const url = `https://api.etherscan.io/v2/api?chainid=${sourcifyChain.chainId}&module=contract&action=getsourcecode&address=${address}&apikey=`;
+  const apiKey =
+    userApiKey ||
+    process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""] ||
+    process.env.ETHERSCAN_API_KEY ||
+    "";
+  const secretUrl = url + apiKey;
   let response;
-  const secretUrl = `${url}&apikey=${usedApiKey || ""}`;
   logger.debug("Fetching from Etherscan", {
     url,
     chainId: sourcifyChain.chainId,
@@ -252,7 +255,7 @@ export const fetchFromEtherscan = async (
   try {
     response = await fetch(secretUrl);
   } catch (error) {
-    const errorMessage = `Request to ${url}&apiKey=XXX failed.`;
+    const errorMessage = `Request to ${url}[hidden] failed.`;
     throw throwV2Errors
       ? new EtherscanRequestFailedError(errorMessage)
       : new BadGatewayError(errorMessage);
