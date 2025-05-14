@@ -46,7 +46,7 @@ router.get("/chains", (_req, res) => {
         rpc: rpcWithoutApiKeys,
         traceSupportedRPCs,
         supported,
-        etherscanAPI: etherscanApi?.apiURL, // Needed in the UI
+        etherscanAPI: etherscanApi?.supported ?? false, // Needed in the UI
       };
     },
   );

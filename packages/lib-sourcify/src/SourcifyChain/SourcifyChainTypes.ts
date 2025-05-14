@@ -12,7 +12,7 @@ export type SourcifyChainExtension = {
   sourcifyName: string; // Keep it required to not forget name in sourcify-chains.json
   supported: boolean;
   etherscanApi?: {
-    apiURL: string;
+    supported: boolean;
     apiKeyEnvName?: string;
   };
   fetchContractCreationTxUsing?: FetchContractCreationTxMethods;
