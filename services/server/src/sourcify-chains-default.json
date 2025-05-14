@@ -196,7 +196,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "BSCSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_BSC"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -259,7 +259,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "BSCSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_BSC"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -295,7 +295,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "GNOSISSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_GNOSIS"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -341,7 +341,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "POLYGONSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_POLYGON"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -377,7 +377,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "CELOSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_CELO"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true,
@@ -402,7 +402,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "CELOSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_CELO"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true,
@@ -429,7 +429,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "ARBISCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_ARBITRUM"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -461,7 +461,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "ARBISCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_ARBITRUM"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -489,7 +489,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "SNOWSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_AVALANCHE"
     },
     "fetchContractCreationTxUsing": {
       "avalancheApi": true,
@@ -515,7 +515,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "SNOWSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_AVALANCHE"
     },
     "fetchContractCreationTxUsing": {
       "avalancheApi": true,
@@ -613,7 +613,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "OPTIMISMSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_OPTIMISM"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -648,7 +648,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "OPTIMISMSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_OPTIMISM"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -746,7 +746,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "MOONSCAN_MOONBEAM_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_MOONBEAM"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -757,7 +757,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "MOONSCAN_MOONRIVER_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_MOONRIVER"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -768,7 +768,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "MOONSCAN_MOONBEAM_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_MOONBEAM"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -1199,7 +1199,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "BASESCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_BASE"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -1228,7 +1228,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "FRAXSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_FRAXTAL"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true,
@@ -1242,7 +1242,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "FRAXSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_FRAXTAL"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true,
@@ -1320,7 +1320,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "CRONOSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_CRONOS"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -1467,7 +1467,7 @@
     },
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "ARBISCAN_NOVA_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_ARBITRUM_NOVA"
     },
     "rpc": [
       "https://nova.arbitrum.io/rpc",
@@ -1647,7 +1647,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "MANTLESCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_MANTLE"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true,
@@ -1675,7 +1675,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "MANTLESCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_MANTLE"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true,
@@ -1733,7 +1733,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "ZKEVM_POLYGONSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_ZKEVM_POLYGON"
     },
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
@@ -1758,7 +1758,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "SCROLLSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_SCROLL"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -1781,7 +1781,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "SCROLLSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_SCROLL"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -1933,7 +1933,8 @@
     "sourcifyName": "Polygon Amoy Testnet",
     "supported": true,
     "etherscanApi": {
-      "supported": true
+      "supported": true,
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_POLYGON"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -2073,7 +2074,7 @@
     },
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "BASESCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_BASE"
     },
     "rpc": [
       "https://sepolia.base.org",
@@ -2092,7 +2093,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "LINEASCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_LINEA"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -2103,7 +2104,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "LINEASCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_LINEA"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
@@ -2167,7 +2168,7 @@
     "supported": true,
     "etherscanApi": {
       "supported": true,
-      "apiKeyEnvName": "ZKEVM_POLYGONSCAN_API_KEY"
+      "apiKeyEnvName": "ETHERSCAN_API_KEY_ZKEVM_POLYGON"
     },
     "fetchContractCreationTxUsing": {
       "etherscanApi": true
