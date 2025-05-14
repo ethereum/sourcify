@@ -602,6 +602,87 @@ describe('Verification Class Tests', () => {
         .to.eventually.be.rejectedWith()
         .and.have.property('code', 'cannot_fetch_bytecode');
     });
+
+    it('should verify a contract with multiple equal auxdatas', async () => {
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'MultipleEqualAuxdatas',
+      );
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: 'partial',
+        },
+        transformations: {
+          creation: {
+            list: [
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 10314,
+                id: '1',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 21088,
+                id: '2',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 28342,
+                id: '3',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 34802,
+                id: '4',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 41262,
+                id: '5',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 48516,
+                id: '6',
+              },
+            ],
+            values: {
+              cborAuxdata: {
+                '1': '0xa2646970667358221220490ef44aec87e88a7eb0c397b57d8dc1e9bf0bb0cfd90606f1e5895ec6b7985664736f6c63430008110033',
+                '2': '0xa264697066735822122022e52c61b11b7c9141086dac1d81a484ae42bdd45269df5eff2bc04709dbd2ce64736f6c63430008110033',
+                '3': '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+                '4': '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+                '5': '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+                '6': '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+              },
+            },
+          },
+        },
+      });
+    });
   });
 
   describe('Library Contract Verification', () => {

@@ -133,6 +133,7 @@ export function findAuxdataPositions(
             2,
           value: `0x${auxdataDiffObjects[auxdataDiffIndex].real}`,
         };
+        break;
       }
     }
     prevDiffPosition = diffPosition;
