@@ -603,7 +603,12 @@ describe('Verification Class Tests', () => {
         .and.have.property('code', 'cannot_fetch_bytecode');
     });
 
+    // This test was introduced to test if lib-sourcify can handle multiple equal auxdatas in the creation bytecode
+    // The function `findAuxdataPositions` used to fail to assign the proper offset values resulting in a null creation match
+    // Read more here: https://github.com/ethereum/sourcify/issues/1980
+    // Fixed by PR: https://github.com/ethereum/sourcify/pull/2159
     it('should verify a contract with multiple equal auxdatas', async () => {
+      // The files in this directory were modified to cause a partial match (see ./sources/src/PetersMain.sol:1)
       const contractFolderPath = path.join(
         __dirname,
         '..',
