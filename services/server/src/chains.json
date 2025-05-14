@@ -4943,17 +4943,21 @@
     "name": "Blast Mainnet",
     "chain": "ETH",
     "icon": "blastIcon",
-    "rpc": ["https://rpc.blastblockchain.com"],
+    "rpc": ["https://zkevmrpc.blastchain.org"],
     "faucets": [],
-    "nativeCurrency": { "name": "Ether", "symbol": "ETH", "decimals": 18 },
-    "infoURL": "https://docs.blastblockchain.com",
+    "nativeCurrency": {
+      "name": "One World Chain",
+      "symbol": "OWCT",
+      "decimals": 18
+    },
+    "infoURL": "https://docs.blastchain.org",
     "shortName": "blast",
     "chainId": 238,
     "networkId": 238,
     "explorers": [
       {
         "name": "Blast Mainnet",
-        "url": "https://scan.blastblockchain.com",
+        "url": "https://blastchain.org",
         "standard": "EIP3091"
       }
     ]
@@ -5038,6 +5042,30 @@
         "name": "blockscout",
         "url": "https://explorer.energyweb.org",
         "standard": "none"
+      }
+    ]
+  },
+  {
+    "name": "ChooChain",
+    "title": "ChooChain Mainnet",
+    "chain": "CHOO",
+    "rpc": ["https://rpc.choochain.io"],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "ChooChain Token",
+      "symbol": "CHOO",
+      "decimals": 18
+    },
+    "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
+    "infoURL": "https://github.com/Trinketz/ChooChain",
+    "shortName": "choo",
+    "chainId": 247,
+    "networkId": 247,
+    "explorers": [
+      {
+        "name": "ChooChain Explorer",
+        "url": "https://blocks.choochain.io",
+        "standard": "EIP3091"
       }
     ]
   },
@@ -6327,6 +6355,25 @@
     ]
   },
   {
+    "name": "R5 Network",
+    "chain": "r5",
+    "rpc": ["https://rpc.r5.network"],
+    "faucets": [],
+    "nativeCurrency": { "name": "R5", "symbol": "R5", "decimals": 18 },
+    "infoURL": "https://r5.network",
+    "shortName": "r5",
+    "chainId": 337,
+    "networkId": 337,
+    "icon": "r5",
+    "explorers": [
+      {
+        "name": "R5 Explorer",
+        "url": "https://explorer.r5.network",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
     "name": "Cronos Testnet",
     "chain": "CRO",
     "rpc": [
@@ -6518,6 +6565,7 @@
       "https://rpc-pulsechain.g4mm4.io",
       "wss://rpc-pulsechain.g4mm4.io"
     ],
+    "icon": "pulsechain",
     "slip44": 60,
     "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
     "faucets": [],
@@ -6526,9 +6574,9 @@
     "nativeCurrency": { "name": "Pulse", "symbol": "PLS", "decimals": 18 },
     "explorers": [
       {
-        "name": "blockscout",
-        "url": "https://scan.pulsechain.com",
-        "icon": "blockscout",
+        "name": "pulsechain",
+        "url": "https://ipfs.scan.pulsechain.com",
+        "icon": "pulsechain",
         "standard": "EIP3091"
       },
       {
@@ -12342,7 +12390,7 @@
   },
   {
     "name": "Swisstronik Testnet",
-    "chain": "SWTR",
+    "chain": "SWTR Testnet",
     "rpc": ["https://json-rpc.testnet.swisstronik.com"],
     "faucets": ["https://faucet.testnet.swisstronik.com"],
     "nativeCurrency": {
@@ -12352,7 +12400,7 @@
     },
     "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
     "infoURL": "https://www.swisstronik.com",
-    "shortName": "swtr",
+    "shortName": "swtr-testnet",
     "chainId": 1291,
     "networkId": 1291,
     "slip44": 1,
@@ -14324,6 +14372,41 @@
         { "url": "https://bridge.gelato.network/bridge/verify-testnet" }
       ]
     }
+  },
+  {
+    "name": "Swisstronik Mainnet",
+    "chain": "SWTR",
+    "rpc": [
+      "https://json-rpc.mainnet.swisstronik.com/unencrypted/",
+      "https://json-rpc.mainnet.swisstronik.com",
+      "wss://ws-rpc.mainnet.swisstronik.com"
+    ],
+    "faucets": [],
+    "nativeCurrency": {
+      "name": "Swisstronik",
+      "symbol": "SWTR",
+      "decimals": 18
+    },
+    "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
+    "infoURL": "https://www.swisstronik.com",
+    "shortName": "swtr",
+    "chainId": 1848,
+    "networkId": 1848,
+    "slip44": 1,
+    "icon": "swisstronik",
+    "explorers": [
+      {
+        "name": "Swisstronik EVM Explorer",
+        "url": "https://explorer-evm.mainnet.swisstronik.com",
+        "standard": "EIP3091",
+        "icon": "ethernal"
+      },
+      {
+        "name": "Swisstronik Cosmos Explorer",
+        "url": "https://explorer-cosmos.mainnet.swisstronik.com/swisstronik",
+        "standard": "none"
+      }
+    ]
   },
   {
     "name": "HighOctane Subnet",
@@ -21902,7 +21985,7 @@
     "explorers": [
       {
         "name": "Syscoin Testnet Block Explorer",
-        "url": "https://tanenbaum.io",
+        "url": "https://explorer.tanenbaum.io",
         "standard": "EIP3091"
       }
     ]
@@ -27178,8 +27261,16 @@
   {
     "name": "Tea Sepolia Testnet",
     "chain": "ETH",
-    "rpc": [],
-    "faucets": [],
+    "rpc": ["https://tea-sepolia.g.alchemy.com/public"],
+    "faucets": ["https://faucet-sepolia.tea.xyz"],
+    "explorers": [
+      {
+        "name": "blockscout",
+        "url": "https://sepolia.tea.xyz",
+        "icon": "blockscout",
+        "standard": "EIP3091"
+      }
+    ],
     "nativeCurrency": {
       "name": "Sepolia Tea",
       "symbol": "TEA",
@@ -27190,7 +27281,7 @@
     "chainId": 10218,
     "networkId": 10218,
     "parent": { "type": "L2", "chain": "eip155-11155111" },
-    "status": "incubating"
+    "status": "active"
   },
   {
     "name": "GLScan",
@@ -31251,7 +31342,7 @@
     "explorers": [
       {
         "name": "XferChain Mainnet Explorer",
-        "url": "https://xferchain.org",
+        "url": "https://network.xferchain.org",
         "standard": "EIP3091"
       }
     ]
@@ -32176,6 +32267,25 @@
     ]
   },
   {
+    "name": "R5 Network Testnet",
+    "chain": "r5testnet",
+    "rpc": ["https://rpc-testnet.r5.network"],
+    "faucets": [],
+    "nativeCurrency": { "name": "Test R5", "symbol": "TR5", "decimals": 18 },
+    "infoURL": "https://r5.network",
+    "shortName": "tr5",
+    "chainId": 33710,
+    "networkId": 33710,
+    "icon": "r5",
+    "explorers": [
+      {
+        "name": "R5 Explorer",
+        "url": "https://explorer-testnet.r5.network",
+        "standard": "EIP3091"
+      }
+    ]
+  },
+  {
     "name": "Funki",
     "chain": "ETH",
     "icon": "funki",
@@ -32533,6 +32643,28 @@
         "standard": "none"
       }
     ]
+  },
+  {
+    "name": "Helios Chain Testnet",
+    "chain": "Helios Chain",
+    "rpc": ["https://testnet1.helioschainlabs.org"],
+    "faucets": ["https://testnet.helioschain.network"],
+    "nativeCurrency": { "name": "Helios", "symbol": "HLS", "decimals": 18 },
+    "icon": "helioschain",
+    "features": [{ "name": "EIP155" }, { "name": "EIP1559" }],
+    "infoURL": "https://hub.helioschain.network",
+    "shortName": "HLS",
+    "chainId": 42000,
+    "networkId": 42000,
+    "explorers": [
+      {
+        "name": "Helios Chain Explorer",
+        "url": "https://explorer.helioschainlabs.org",
+        "icon": "helioschain",
+        "standard": "EIP3091"
+      }
+    ],
+    "status": "active"
   },
   {
     "name": "PMON Chain",
@@ -42759,7 +42891,8 @@
     ]
   },
   {
-    "name": "Hoodi testnet",
+    "name": "Ethereum Hoodi",
+    "title": "Ethereum Testnet Hoodi",
     "chain": "ETH",
     "icon": "ethereum",
     "rpc": ["https://rpc.hoodi.ethpandaops.io"],
