@@ -20,7 +20,7 @@ export interface StringMap {
   [key: string]: string;
 }
 
-export interface AuxdataDiff {
+export interface CompilerAuxdataDiff {
   real: string;
   diffStart: number;
   diff: string;
