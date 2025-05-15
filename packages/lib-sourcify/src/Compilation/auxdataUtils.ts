@@ -88,10 +88,17 @@ function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
 }
 
 /**
- * Finds the positions of the auxdata in the bytecode.
- * The compiler outputs the auxdata values in the `legacyAssembly` field. However we can't use these values to do a simple string search on the compiled bytecode because an attacker can embed these values in the compiled contract code and cause the correspoding field in the onchain bytecode to be ignored falsely during verification.
- * A way to find the *metadata hashes* in the bytecode is to recompile the contract with a slightly edited source code and compare the differences in the raw bytecodes. However, this will only give us the positions of the metadata hashes in the bytecode. We need to find the positions of the whole *auxdata* in the bytecode.
- * So we go through each of the differences in the raw bytecode and check if an auxdata diff value from the legacyAssembly is included in that difference. If it is, we have found the position of the auxdata in the bytecode.
+ * Maps every legacy-assembly auxdata block to its `{ offset, value }`
+ * inside the recompiled bytecode.
+ *
+ * @param originalBytecode – bytecode produced from the **original** sources
+ * @param editedBytecode   – bytecode produced from the *slightly different* sources
+ * @param originalAuxdatas – auxdata strings coming from the original compile
+ * @param editedAuxdatas   – auxdata strings coming from the edited compile
+ *
+ * @returns an object whose keys are the indexes of the auxdata items
+ *          (as they appear in `legacyAssembly`) and whose values are
+ *          their position and value in the originalBytecode.
  */
 export function findAuxdataPositions(
   originalBytecode: string,
@@ -99,45 +106,57 @@ export function findAuxdataPositions(
   originalAuxdatas: string[],
   editedAuxdatas: string[],
 ): CompiledContractCborAuxdata {
-  const auxdataDiffObjects = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
+  // 1. Build auxdataDiffs that explain how each auxdata is changing after recompilation with slightly different sources
 
-  const diffPositionsBytecodes = getDiffPositions(
+  // A single AuxdataDiff has 3 keys: real, diffStart (int offset of diff), diff
+  // original: a2646970667358221220123af2412fd4b1b89740f76c6ab76a6412bbde98fab732fb97eb012abe7123ff64736f6c63430007000033
+  //           └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+  //               REAL
+  // edited:   a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c63430007000033
+  //           └──────────────────┘└──────────────────────────────────────────────────────────────┘
+  //               DIFFSTART           DIFF
+  const auxdataDiffs = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
+
+  // 2. All bytecode character positions that differ after recompilation with slightly different sources
+  const bytecodeDiffPositions = getDiffPositions(
     originalBytecode,
     editedBytecode,
   );
-  const auxdataPositions: CompiledContractCborAuxdata = {};
 
-  let prevDiffPosition = -99;
-  for (const diffPosition of diffPositionsBytecodes) {
-    // Don't check consecutive diffs like 55, 56, 57... , only if there's a gap like 55, 57, 58, then 78, 79, 80...
-    if (prevDiffPosition + 1 === diffPosition) {
-      prevDiffPosition = diffPosition;
+  // 3.  For every bytecodeDiffPosition, see if it hosts an auxdataDiff
+  const result: CompiledContractCborAuxdata = {};
+  let prevPos = -Infinity;
+  for (const pos of bytecodeDiffPositions) {
+    // Skip positions that are immediately consecutive to the previous one,
+    // two auxdataDiffs can't be adjacent to each other
+    if (pos === prevPos + 1) {
+      prevPos = pos;
       continue;
     }
-    // New diff position
-    for (const auxdataDiffIndex in auxdataDiffObjects) {
-      const auxdataPositionsIndex = parseInt(auxdataDiffIndex) + 1;
-      if (
-        auxdataPositions[auxdataPositionsIndex] === undefined &&
-        bytecodeIncludesAuxdataDiffAt(
-          originalBytecode,
-          auxdataDiffObjects[auxdataDiffIndex],
-          diffPosition,
-        )
-      ) {
-        auxdataPositions[auxdataPositionsIndex] = {
-          offset:
-            (diffPosition -
-              auxdataDiffObjects[auxdataDiffIndex].diffStart -
-              2) /
-            2,
-          value: `0x${auxdataDiffObjects[auxdataDiffIndex].real}`,
+
+    // For each bytecodeDiffPosition, test every auxdataDiff that we haven't already mapped
+    for (let idx = 0; idx < auxdataDiffs.length; idx++) {
+      // The first CompiledContractCborAuxdata element key is '1'
+      const resultIndex = idx + 1;
+
+      // If we already mapped this auxdata, skip
+      if (result[resultIndex] !== undefined) continue;
+
+      const diff = auxdataDiffs[idx];
+      // If in position `pos` of the originalBytecode we find the `auxdataDiff.real` value
+      if (bytecodeIncludesAuxdataDiffAt(originalBytecode, diff, pos)) {
+        // Store the CompiledContractCborAuxdata element
+        result[resultIndex] = {
+          offset: (pos - diff.diffStart - 2) / 2,
+          value: `0x${diff.real}`,
         };
+        // One auxdata for each bytecodeDiffPosition. See https://github.com/ethereum/sourcify/issues/1980
         break;
       }
     }
-    prevDiffPosition = diffPosition;
+
+    prevPos = pos;
   }
 
-  return auxdataPositions;
+  return result;
 }
