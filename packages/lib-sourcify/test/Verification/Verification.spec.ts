@@ -630,6 +630,40 @@ describe('Verification Class Tests', () => {
       await verification.verify();
 
       expectVerification(verification, {
+        cborAuxdata: {
+          creation: {
+            '1': {
+              offset: 10314,
+              value:
+                '0xa26469706673582212204417a8927dce438741a0ee03a8a39592a8149d0264b9829ce2a1367eda64155764736f6c63430008110033',
+            },
+            '2': {
+              offset: 21088,
+              value:
+                '0xa264697066735822122022e52c61b11b7c9141086dac1d81a484ae42bdd45269df5eff2bc04709dbd2ce64736f6c63430008110033',
+            },
+            '3': {
+              offset: 28342,
+              value:
+                '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+            },
+            '4': {
+              offset: 34802,
+              value:
+                '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+            },
+            '5': {
+              offset: 41262,
+              value:
+                '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+            },
+            '6': {
+              offset: 48516,
+              value:
+                '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+            },
+          },
+        },
         status: {
           runtimeMatch: 'partial',
           creationMatch: 'partial',

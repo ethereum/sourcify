@@ -1,4 +1,7 @@
-import { AuxdataDiff, CompiledContractCborAuxdata } from './CompilationTypes';
+import {
+  CompilerAuxdataDiff,
+  CompiledContractCborAuxdata,
+} from './CompilationTypes';
 
 function getAuxdataInLegacyAssemblyBranch(
   legacyAssemblyBranch: any,
@@ -54,90 +57,128 @@ function getDiffPositions(original: string, modified: string): number[] {
 /**
  *   Checks the raw bytecode indeed includes the auxdata diff at the given position
  */
-function bytecodeIncludesAuxdataDiffAt(
-  bytecode: string,
-  auxdataDiff: AuxdataDiff,
+function bytecodeIncludesCompilerAuxdataDiffAt(
+  originalBytecode: string,
+  compilerAuxdataDiff: CompilerAuxdataDiff,
   position: number,
 ): boolean {
-  const { real, diffStart } = auxdataDiff;
+  const { real, diffStart } = compilerAuxdataDiff;
   // the difference (i.e metadata hash) starts from "position". To get the whole auxdata instead of metadata go back "diffStart" and until + "real.length" of the auxdata.
-  const extracted = bytecode.slice(
+  const extracted = originalBytecode.slice(
     position - diffStart,
     position - diffStart + real.length,
   );
   return extracted === real;
 }
 
-function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
-  const auxdataDiffs: AuxdataDiff[] = [];
-  for (let i = 0; i < originalAuxdatas.length; i++) {
+function getCompilerAuxdatasDiffs(
+  auxdatasFromCompiler: string[],
+  editedAuxdatasFromCompiler: string[],
+) {
+  const compilerAuxdataDiffs: CompilerAuxdataDiff[] = [];
+  for (let i = 0; i < auxdatasFromCompiler.length; i++) {
     const diffPositions = getDiffPositions(
-      originalAuxdatas[i],
-      editedAuxdatas[i],
+      auxdatasFromCompiler[i],
+      editedAuxdatasFromCompiler[i],
     );
-    auxdataDiffs.push({
-      real: originalAuxdatas[i],
+    compilerAuxdataDiffs.push({
+      real: auxdatasFromCompiler[i],
       diffStart: diffPositions[0],
-      diff: originalAuxdatas[i].substring(
-        diffPositions[0],
-        diffPositions[diffPositions.length - 1] + 1,
-      ),
     });
   }
-  return auxdataDiffs;
+  return compilerAuxdataDiffs;
 }
 
 /**
- * Finds the positions of the auxdata in the bytecode.
- * The compiler outputs the auxdata values in the `legacyAssembly` field. However we can't use these values to do a simple string search on the compiled bytecode because an attacker can embed these values in the compiled contract code and cause the correspoding field in the onchain bytecode to be ignored falsely during verification.
- * A way to find the *metadata hashes* in the bytecode is to recompile the contract with a slightly edited source code and compare the differences in the raw bytecodes. However, this will only give us the positions of the metadata hashes in the bytecode. We need to find the positions of the whole *auxdata* in the bytecode.
- * So we go through each of the differences in the raw bytecode and check if an auxdata diff value from the legacyAssembly is included in that difference. If it is, we have found the position of the auxdata in the bytecode.
+ * The compiler outputs the auxdata values in the `legacyAssembly` field. However we can't use these values to do a simple
+ * string search on the compiled bytecode because an attacker can embed these values in the compiled contract code and cause
+ * the correspoding field in the onchain bytecode to be ignored falsely during verification.
+ * A way to find the *metadata hashes* in the bytecode is to recompile the contract with a slightly edited source code and
+ * compare the differences in the raw bytecodes. However, this will only give us the positions of the metadata hashes in the
+ * bytecode. We need to find the positions of the whole *auxdata* in the bytecode.
+ * So we go through each of the differences in the raw bytecode and check if an auxdata diff value from the legacyAssembly
+ * is included in that difference. If it is, we have found the position of the auxdata in the bytecode.
+ *
+ * @param originalBytecode – bytecode produced from the **original** sources
+ * @param editedBytecode   – bytecode produced from the *slightly different* sources
+ * @param auxdatasFromCompiler – auxdata strings coming from the original compile
+ * @param editedAuxdatasFromCompiler   – auxdata strings coming from the edited compile
+ *
+ * @returns an object whose keys are the indexes of the auxdata items
+ *          (as they appear in `legacyAssembly`) and whose values are
+ *          their position and value in the originalBytecode.
  */
 export function findAuxdataPositions(
   originalBytecode: string,
   editedBytecode: string,
-  originalAuxdatas: string[],
-  editedAuxdatas: string[],
+  auxdatasFromCompiler: string[],
+  editedAuxdatasFromCompiler: string[],
 ): CompiledContractCborAuxdata {
-  const auxdataDiffObjects = getAuxdatasDiff(originalAuxdatas, editedAuxdatas);
+  // 1. Build compilerAuxdataDiffs that explain how each auxdata is changing after recompilation with slightly different sources
 
-  const diffPositionsBytecodes = getDiffPositions(
+  // A single CompilerAuxdataDiff has 2 keys: real, diffStart
+  // In this example: { real: "a264....0033", diffStart: 10 }
+  // original: a2646970667358221220123af2412fd4b1b89740f76c6ab76a6412bbde98fab732fb97eb012abe7123ff64736f6c63430007000033
+  //           └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
+  //               REAL
+  // edited:   a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c63430007000033
+  //           └──────────────────┘
+  //             DIFFSTART(length)
+  const compilerAuxdataDiffs = getCompilerAuxdatasDiffs(
+    auxdatasFromCompiler,
+    editedAuxdatasFromCompiler,
+  );
+
+  // 2. All bytecode character positions that differ after recompilation with slightly different sources
+  const bytecodeDiffPositions = getDiffPositions(
     originalBytecode,
     editedBytecode,
   );
-  const auxdataPositions: CompiledContractCborAuxdata = {};
 
-  let prevDiffPosition = -99;
-  for (const diffPosition of diffPositionsBytecodes) {
-    // Don't check consecutive diffs like 55, 56, 57... , only if there's a gap like 55, 57, 58, then 78, 79, 80...
-    if (prevDiffPosition + 1 === diffPosition) {
-      prevDiffPosition = diffPosition;
+  // 3.  For every bytecodeDiffPosition, see if it hosts an compilerAuxdataDiff
+  const resultAuxdatas: CompiledContractCborAuxdata = {};
+  let prevPos = -Infinity;
+  for (const pos of bytecodeDiffPositions) {
+    // Skip positions that are immediately consecutive to the previous one,
+    // two compilerAuxdataDiffs can't be adjacent to each other
+    if (pos === prevPos + 1) {
+      prevPos = pos;
       continue;
     }
-    // New diff position
-    for (const auxdataDiffIndex in auxdataDiffObjects) {
-      const auxdataPositionsIndex = parseInt(auxdataDiffIndex) + 1;
+
+    // For each bytecodeDiffPosition, test every compilerAuxdataDiff that we haven't already mapped
+    for (let i = 0; i < compilerAuxdataDiffs.length; i++) {
+      // Get the current compilerAuxdataDiff
+      const compilerAuxdataDiff = compilerAuxdataDiffs[i];
+      // The CompiledContractCborAuxdata element keys start from '1'.
+      // So key is effectively i + 1
+      const auxdataKey = i + 1;
+
+      // If we already mapped this compilerAuxdataDiff, skip
+      if (resultAuxdatas[auxdataKey] !== undefined) continue;
+
+      // If in position `pos` of the originalBytecode we find the `compilerAuxdataDiff.real` value
       if (
-        auxdataPositions[auxdataPositionsIndex] === undefined &&
-        bytecodeIncludesAuxdataDiffAt(
+        bytecodeIncludesCompilerAuxdataDiffAt(
           originalBytecode,
-          auxdataDiffObjects[auxdataDiffIndex],
-          diffPosition,
+          compilerAuxdataDiff,
+          pos,
         )
       ) {
-        auxdataPositions[auxdataPositionsIndex] = {
-          offset:
-            (diffPosition -
-              auxdataDiffObjects[auxdataDiffIndex].diffStart -
-              2) /
-            2,
-          value: `0x${auxdataDiffObjects[auxdataDiffIndex].real}`,
+        // Store the CompiledContractCborAuxdata element
+        resultAuxdatas[auxdataKey] = {
+          offset: (pos - compilerAuxdataDiff.diffStart - 2) / 2,
+          value: `0x${compilerAuxdataDiff.real}`,
         };
+        // Match the first auxdata for each bytecodeDiffPosition. If there are multiple identical cborAuxdata,
+        // without the break it will always match the last one. With first, it will be "mapped" in the `result[resultIndex]`
+        // See https://github.com/ethereum/sourcify/issues/1980
         break;
       }
     }
-    prevDiffPosition = diffPosition;
+
+    prevPos = pos;
   }
 
-  return auxdataPositions;
+  return resultAuxdatas;
 }
