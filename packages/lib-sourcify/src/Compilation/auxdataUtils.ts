@@ -84,10 +84,6 @@ function getCompilerAuxdatasDiffs(
     compilerAuxdataDiffs.push({
       real: auxdatasFromCompiler[i],
       diffStart: diffPositions[0],
-      diff: auxdatasFromCompiler[i].substring(
-        diffPositions[0],
-        diffPositions[diffPositions.length - 1] + 1,
-      ),
     });
   }
   return compilerAuxdataDiffs;
@@ -120,14 +116,14 @@ export function findAuxdataPositions(
 ): CompiledContractCborAuxdata {
   // 1. Build compilerAuxdataDiffs that explain how each auxdata is changing after recompilation with slightly different sources
 
-  // A single CompilerAuxdataDiff has 3 keys: real, diffStart (int offset of diff), diff
-  // In this example: { real: "a264....0033", diffStart: 10, diff: "dcec...52b6" }
+  // A single CompilerAuxdataDiff has 2 keys: real, diffStart
+  // In this example: { real: "a264....0033", diffStart: 10 }
   // original: a2646970667358221220123af2412fd4b1b89740f76c6ab76a6412bbde98fab732fb97eb012abe7123ff64736f6c63430007000033
   //           └────────────────────────────────────────────────────────────────────────────────────────────────────────┘
   //               REAL
   // edited:   a2646970667358221220dceca8706b29e917dacf25fceef95acac8d90d765ac926663ce4096195952b6164736f6c63430007000033
-  //           └──────────────────┘└──────────────────────────────────────────────────────────────┘
-  //               DIFFSTART           DIFF
+  //           └──────────────────┘
+  //             DIFFSTART(length)
   const compilerAuxdataDiffs = getCompilerAuxdatasDiffs(
     auxdatasFromCompiler,
     editedAuxdatasFromCompiler,
@@ -140,7 +136,7 @@ export function findAuxdataPositions(
   );
 
   // 3.  For every bytecodeDiffPosition, see if it hosts an compilerAuxdataDiff
-  const result: CompiledContractCborAuxdata = {};
+  const resultAuxdatas: CompiledContractCborAuxdata = {};
   let prevPos = -Infinity;
   for (const pos of bytecodeDiffPositions) {
     // Skip positions that are immediately consecutive to the previous one,
@@ -151,20 +147,28 @@ export function findAuxdataPositions(
     }
 
     // For each bytecodeDiffPosition, test every compilerAuxdataDiff that we haven't already mapped
-    for (let idx = 0; idx < compilerAuxdataDiffs.length; idx++) {
-      // The first CompiledContractCborAuxdata element key is '1'
-      const resultIndex = idx + 1;
+    for (let i = 0; i < compilerAuxdataDiffs.length; i++) {
+      // Get the current compilerAuxdataDiff
+      const compilerAuxdataDiff = compilerAuxdataDiffs[i];
+      // The CompiledContractCborAuxdata element keys start from '1'.
+      // So key is effectively i + 1
+      const auxdataKey = i + 1;
 
-      // If we already mapped this auxdata, skip
-      if (result[resultIndex] !== undefined) continue;
+      // If we already mapped this compilerAuxdataDiff, skip
+      if (resultAuxdatas[auxdataKey] !== undefined) continue;
 
-      const diff = compilerAuxdataDiffs[idx];
       // If in position `pos` of the originalBytecode we find the `compilerAuxdataDiff.real` value
-      if (bytecodeIncludesCompilerAuxdataDiffAt(originalBytecode, diff, pos)) {
+      if (
+        bytecodeIncludesCompilerAuxdataDiffAt(
+          originalBytecode,
+          compilerAuxdataDiff,
+          pos,
+        )
+      ) {
         // Store the CompiledContractCborAuxdata element
-        result[resultIndex] = {
-          offset: (pos - diff.diffStart - 2) / 2,
-          value: `0x${diff.real}`,
+        resultAuxdatas[auxdataKey] = {
+          offset: (pos - compilerAuxdataDiff.diffStart - 2) / 2,
+          value: `0x${compilerAuxdataDiff.real}`,
         };
         // Match the first auxdata for each bytecodeDiffPosition. If there are multiple identical cborAuxdata,
         // without the break it will always match the last one. With first, it will be "mapped" in the `result[resultIndex]`
@@ -176,5 +180,5 @@ export function findAuxdataPositions(
     prevPos = pos;
   }
 
-  return result;
+  return resultAuxdatas;
 }
