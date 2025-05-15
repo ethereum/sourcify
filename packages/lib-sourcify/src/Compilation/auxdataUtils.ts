@@ -88,8 +88,14 @@ function getAuxdatasDiff(originalAuxdatas: string[], editedAuxdatas: string[]) {
 }
 
 /**
- * Maps every legacy-assembly auxdata block to its `{ offset, value }`
- * inside the recompiled bytecode.
+ * The compiler outputs the auxdata values in the `legacyAssembly` field. However we can't use these values to do a simple
+ * string search on the compiled bytecode because an attacker can embed these values in the compiled contract code and cause
+ * the correspoding field in the onchain bytecode to be ignored falsely during verification.
+ * A way to find the *metadata hashes* in the bytecode is to recompile the contract with a slightly edited source code and
+ * compare the differences in the raw bytecodes. However, this will only give us the positions of the metadata hashes in the
+ * bytecode. We need to find the positions of the whole *auxdata* in the bytecode.
+ * So we go through each of the differences in the raw bytecode and check if an auxdata diff value from the legacyAssembly
+ * is included in that difference. If it is, we have found the position of the auxdata in the bytecode.
  *
  * @param originalBytecode – bytecode produced from the **original** sources
  * @param editedBytecode   – bytecode produced from the *slightly different* sources
