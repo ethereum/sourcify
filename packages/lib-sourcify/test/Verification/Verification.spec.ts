@@ -602,6 +602,126 @@ describe('Verification Class Tests', () => {
         .to.eventually.be.rejectedWith()
         .and.have.property('code', 'cannot_fetch_bytecode');
     });
+
+    // This test was introduced to test if lib-sourcify can handle multiple equal auxdatas in the creation bytecode
+    // The function `findAuxdataPositions` used to fail to assign the proper offset values resulting in a null creation match
+    // Read more here: https://github.com/ethereum/sourcify/issues/1980
+    // Fixed by PR: https://github.com/ethereum/sourcify/pull/2159
+    it('should verify a contract with multiple equal auxdatas', async () => {
+      // The files in this directory were modified to cause a partial match (see ./sources/src/PetersMain.sol:1)
+      const contractFolderPath = path.join(
+        __dirname,
+        '..',
+        'sources',
+        'MultipleEqualAuxdatas',
+      );
+      const { contractAddress, txHash } = await deployFromAbiAndBytecode(
+        signer,
+        contractFolderPath,
+      );
+
+      const compilation = await getCompilationFromMetadata(contractFolderPath);
+      const verification = new Verification(
+        compilation,
+        sourcifyChainHardhat,
+        contractAddress,
+        txHash,
+      );
+      await verification.verify();
+
+      expectVerification(verification, {
+        cborAuxdata: {
+          creation: {
+            '1': {
+              offset: 10314,
+              value:
+                '0xa26469706673582212204417a8927dce438741a0ee03a8a39592a8149d0264b9829ce2a1367eda64155764736f6c63430008110033',
+            },
+            '2': {
+              offset: 21088,
+              value:
+                '0xa264697066735822122022e52c61b11b7c9141086dac1d81a484ae42bdd45269df5eff2bc04709dbd2ce64736f6c63430008110033',
+            },
+            '3': {
+              offset: 28342,
+              value:
+                '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+            },
+            '4': {
+              offset: 34802,
+              value:
+                '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+            },
+            '5': {
+              offset: 41262,
+              value:
+                '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+            },
+            '6': {
+              offset: 48516,
+              value:
+                '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+            },
+          },
+        },
+        status: {
+          runtimeMatch: 'partial',
+          creationMatch: 'partial',
+        },
+        transformations: {
+          creation: {
+            list: [
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 10314,
+                id: '1',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 21088,
+                id: '2',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 28342,
+                id: '3',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 34802,
+                id: '4',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 41262,
+                id: '5',
+              },
+              {
+                type: 'replace',
+                reason: 'cborAuxdata',
+                offset: 48516,
+                id: '6',
+              },
+            ],
+            values: {
+              cborAuxdata: {
+                '1': '0xa2646970667358221220490ef44aec87e88a7eb0c397b57d8dc1e9bf0bb0cfd90606f1e5895ec6b7985664736f6c63430008110033',
+                '2': '0xa264697066735822122022e52c61b11b7c9141086dac1d81a484ae42bdd45269df5eff2bc04709dbd2ce64736f6c63430008110033',
+                '3': '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+                '4': '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+                '5': '0xa264697066735822122046cef13e939973f461d6d5184a2f95f92518d099f366ea7e22f7777f92a0c25164736f6c63430008110033',
+                '6': '0xa2646970667358221220900c911a52dbfc724dd2c3f1f6325974708ada8ac1048f422e27bd2eff3312b564736f6c63430008110033',
+              },
+            },
+          },
+        },
+      });
+    });
   });
 
   describe('Library Contract Verification', () => {
