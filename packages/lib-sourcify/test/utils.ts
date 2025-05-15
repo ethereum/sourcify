@@ -14,6 +14,7 @@ import {
 } from '@ethereum-sourcify/compilers-types';
 import { Verification } from '../src/Verification/Verification';
 import {
+  CompiledContractCborAuxdata,
   ISolidityCompiler,
   IVyperCompiler,
 } from '../src/Compilation/CompilationTypes';
@@ -116,6 +117,10 @@ export function expectVerification(
       };
     };
     abiEncodedConstructorArguments?: string;
+    cborAuxdata?: {
+      runtime?: CompiledContractCborAuxdata;
+      creation?: CompiledContractCborAuxdata;
+    };
   },
 ) {
   try {
@@ -191,6 +196,18 @@ export function expectVerification(
             expected.transformations.creation.values,
           );
         }
+      }
+    }
+    if (expected.cborAuxdata) {
+      if (expected.cborAuxdata.creation) {
+        expect(
+          verification.compilation.creationBytecodeCborAuxdata,
+        ).to.deep.equal(expected.cborAuxdata.creation);
+      }
+      if (expected.cborAuxdata.runtime) {
+        expect(
+          verification.compilation.runtimeBytecodeCborAuxdata,
+        ).to.deep.equal(expected.cborAuxdata.runtime);
       }
     }
   } catch (e) {
