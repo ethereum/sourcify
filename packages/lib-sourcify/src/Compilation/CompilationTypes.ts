@@ -10,7 +10,7 @@ import {
 } from '../SourcifyLibError';
 
 export interface CompiledContractCborAuxdata {
-  [index: string]: {
+  [key: string]: {
     offset: number;
     value: string;
   };
@@ -20,10 +20,9 @@ export interface StringMap {
   [key: string]: string;
 }
 
-export interface AuxdataDiff {
+export interface CompilerAuxdataDiff {
   real: string;
   diffStart: number;
-  diff: string;
 }
 
 export interface CompilationTarget {
