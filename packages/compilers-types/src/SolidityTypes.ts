@@ -109,6 +109,7 @@ export interface SolidityOutputError {
   severity: "error" | "warning";
   message: string;
   formattedMessage?: string;
+  errorCode?: string;
 }
 
 interface SolidityOutputEvmBytecode {

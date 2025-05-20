@@ -13,6 +13,7 @@ import {
   type SourcifyChainInstance,
   type SoliditySettings,
   SourcifyLibErrorCode,
+  OutputError,
 } from "@ethereum-sourcify/lib-sourcify";
 import { getAddress } from "ethers";
 import { VerifyOutput } from "../../src/server/services/workers/workerTypes";
@@ -266,7 +267,7 @@ describe("verificationWorker", function () {
             },
             type: "ParserError",
           },
-        ],
+        ] as OutputError[],
         compilerErrorMessage: undefined,
       });
     });
