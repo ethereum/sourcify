@@ -213,6 +213,8 @@ setLibSourcifyLogger({
 
 The `lib-sourcify` library does not come with compilers as dependencies. Instead, you need to provide a class that implements either the `ISolidityCompiler` or `IVyperCompiler` interface and pass it to any function that requires a compiler. We suggest you to use the official [`@ethereum-sourcify/compilers`](https://github.com/ethereum/sourcify/tree/staging/packages/compilers) package.
 
+In the case of an error in the `compile` function, Sourcify's server expect the throwned error to have a public `errors` property containing the compilation output's `errors` property.
+
 ### Solidity Compiler Example
 
 ```typescript

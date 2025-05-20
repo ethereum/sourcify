@@ -14,8 +14,8 @@ interface SourcifyLibErrorDataRequired {
   missingSources: string[];
   invalidSources: string[];
   compilationTargets: string[];
-  compilerErrorMessage: string;
-  compilerErrors: OutputError[];
+  compilerErrorMessage?: string;
+  compilerErrors?: OutputError[];
 }
 
 export type SourcifyLibErrorData = Partial<SourcifyLibErrorDataRequired>;

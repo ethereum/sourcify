@@ -86,7 +86,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Vyper",
         stdJsonInput: {
           language: "Vyper",
           sources: {
@@ -231,7 +230,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Vyper",
         stdJsonInput: {
           language: "Vyper",
           sources: {

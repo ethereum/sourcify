@@ -996,7 +996,7 @@ components:
       example: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
     MatchingErrorResponse:
       examples:
-        - customCode: non_matching_bytecodes
+        - customCode: no_match
           message: The onchain and recompiled bytecodes don't match.
           errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
           recompiledCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'

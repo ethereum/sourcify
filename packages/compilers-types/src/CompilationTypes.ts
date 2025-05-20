@@ -1,5 +1,6 @@
 import { Abi } from "abitype";
-import { SoliditySettings } from "./SolidityTypes";
+import { SolidityOutputError, SoliditySettings } from "./SolidityTypes";
+import { VyperOutputError } from "./VyperTypes";
 
 export interface LinkReferences {
   [filePath: string]: {
@@ -71,15 +72,7 @@ export interface Userdoc {
 }
 
 // Shared OutputError type between Solidity and Vyper
-export interface OutputError {
-  component: string;
-  formattedMessage: string;
-  message: string;
-  severity: string;
-  sourceLocation: { file: string; start?: number; end?: number };
-  type: string;
-  errorCode?: string;
-}
+export type OutputError = SolidityOutputError | VyperOutputError;
 
 export interface MetadataOutput {
   abi: Abi;

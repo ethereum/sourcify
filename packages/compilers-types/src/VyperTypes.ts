@@ -1,5 +1,5 @@
 import { Abi } from "abitype";
-import { Devdoc, OutputError } from "./CompilationTypes";
+import { Devdoc } from "./CompilationTypes";
 import { Userdoc } from "./CompilationTypes";
 
 export interface VyperSettings {
@@ -40,6 +40,19 @@ export interface VyperJsonInput {
   settings: VyperSettings;
 }
 
+export interface VyperOutputError {
+  sourceLocation?: {
+    file: string;
+    lineno: number;
+    col_offset: number;
+  };
+  type: string;
+  component: string;
+  severity: "error" | "warning";
+  message: string;
+  formattedMessage?: string;
+}
+
 export interface VyperOutputSource {
   id: number;
   ast: any;
@@ -78,7 +91,7 @@ interface VyperOutputContracts {
 
 export interface VyperOutput {
   compiler: string;
-  errors?: OutputError[];
+  errors?: VyperOutputError[];
   sources: VyperOutputSources;
   contracts: VyperOutputContracts;
 }
