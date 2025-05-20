@@ -15,6 +15,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { TooManyRequests } from "../../common/errors/TooManyRequests";
 import { BadGatewayError } from "../../common/errors/BadGatewayError";
+import { JobErrorData } from "../services/utils/database-util";
 
 export type ErrorCode =
   | VerificationErrorCode
@@ -43,6 +44,7 @@ export interface MatchingErrorResponse extends GenericErrorResponse {
   onchainCreationCode?: string;
   onchainRuntimeCode?: string;
   creationTransactionHash?: string;
+  errorData?: JobErrorData;
 }
 
 export class InternalError extends InternalServerError {

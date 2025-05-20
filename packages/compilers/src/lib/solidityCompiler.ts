@@ -5,7 +5,7 @@ import { spawnSync } from 'child_process';
 import semver from 'semver';
 import { Worker, WorkerOptions } from 'worker_threads';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
-import { asyncExec, fetchWithBackoff } from './common';
+import { asyncExec, CompilerError, fetchWithBackoff } from './common';
 import {
   SolidityJsonInput,
   SolidityOutput,
@@ -111,16 +111,15 @@ export async function useSolidityCompiler(
   if (!compiled) {
     throw new Error('Compilation failed. No output from the compiler.');
   }
-  const compiledJSON = JSON.parse(compiled);
+  const compiledJSON = JSON.parse(compiled) as SolidityOutput;
   const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === 'error',
+    (e) => e.severity === 'error',
   );
   if (errorMessages && errorMessages.length > 0) {
-    const error = new Error(
-      'Compiler error:\n ' + JSON.stringify(errorMessages),
-    );
-    logError(error.message);
-    throw error;
+    logError('Compiler error', {
+      errorMessages,
+    });
+    throw new CompilerError('Compiler error', errorMessages);
   }
   return compiledJSON;
 }

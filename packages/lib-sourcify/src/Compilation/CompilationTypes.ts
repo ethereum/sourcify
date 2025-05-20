@@ -45,7 +45,10 @@ export type CompilationErrorCode =
 export class CompilationError extends SourcifyLibError {
   declare code: CompilationErrorCode;
   constructor(
-    params: SourcifyLibErrorParameters & { code: CompilationErrorCode },
+    params: SourcifyLibErrorParameters & {
+      code: CompilationErrorCode;
+      errors?: any;
+    },
   ) {
     super(params);
   }

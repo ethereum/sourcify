@@ -1,3 +1,4 @@
+import { OutputError } from '@ethereum-sourcify/compilers-types';
 import { CompilationErrorCode } from './Compilation/CompilationTypes';
 import { ValidationErrorCode } from './Validation/ValidationTypes';
 import { VerificationErrorCode } from './Verification/VerificationTypes';
@@ -13,6 +14,8 @@ interface SourcifyLibErrorDataRequired {
   missingSources: string[];
   invalidSources: string[];
   compilationTargets: string[];
+  compilerErrorMessage: string;
+  compilerErrors: OutputError[];
 }
 
 export type SourcifyLibErrorData = Partial<SourcifyLibErrorDataRequired>;
@@ -27,6 +30,7 @@ export type SourcifyLibErrorParameters =
         | 'invalid_compilation_target'
         | 'cannot_fetch_bytecode'
         | 'contract_not_deployed'
+        | 'compiler_error'
       >;
     }
   | ({
@@ -40,7 +44,13 @@ export type SourcifyLibErrorParameters =
     } & Pick<SourcifyLibErrorDataRequired, 'compilationTargets'>)
   | ({
       code: 'cannot_fetch_bytecode' | 'contract_not_deployed';
-    } & Pick<SourcifyLibErrorDataRequired, 'address' | 'chainId'>);
+    } & Pick<SourcifyLibErrorDataRequired, 'address' | 'chainId'>)
+  | ({
+      code: 'compiler_error';
+    } & Pick<
+      SourcifyLibErrorDataRequired,
+      'compilerErrorMessage' | 'compilerErrors'
+    >);
 
 export class SourcifyLibError extends Error {
   public code: SourcifyLibErrorCode;
@@ -64,7 +74,7 @@ export function getErrorMessageFromCode(params: SourcifyLibErrorParameters) {
       return `More than one compilationTarget in the metadata, or the compilationTarget is invalid. compilationTarget: ${params.compilationTargets.join(', ')}`;
     // Compilation errors
     case 'compiler_error':
-      return 'Compiler error.';
+      return `Compiler error. ${params.compilerErrors ? JSON.stringify(params.compilerErrors) : params.compilerErrorMessage}`;
     case 'no_compiler_output':
       return 'Compiler output is undefined.';
     case 'contract_not_found_in_compiler_output':

@@ -1,5 +1,10 @@
 import { Abi } from "abitype";
-import { Devdoc, Userdoc, LinkReferences } from "./CompilationTypes";
+import {
+  Devdoc,
+  Userdoc,
+  LinkReferences,
+  OutputError,
+} from "./CompilationTypes";
 
 interface File {
   keccak256?: string;
@@ -98,18 +103,6 @@ export interface SolidityJsonInput {
   settings: SoliditySettings;
 }
 
-interface SolidityOutputError {
-  sourceLocation?: {
-    file: string;
-    start: number;
-    end: number;
-  };
-  type: "TypeError" | "InternalCompilerError" | "Exception";
-  component: "general" | "ewasm";
-  severity: "error" | "warning";
-  message: string;
-  formattedMessage?: string;
-}
 interface SolidityOutputEvmBytecode {
   object: string;
   opcodes?: string;
@@ -193,7 +186,7 @@ export interface SolidityOutputContract {
   };
 }
 export interface SolidityOutput {
-  errors?: SolidityOutputError[];
+  errors?: OutputError[];
   sources?: SolidityOutputSources;
   contracts: {
     [globalName: string]: {
