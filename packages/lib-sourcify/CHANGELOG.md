@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@2.1.3 - 2025-05-20
+
+- Remove creatorTxHash's undefined assignment when creation match fails (#2154)
+- Fix findAuxdataPositions handling the case of multiple equal auxdata (#2159)
+
 ## @ethereum-sourcify/lib-sourcify@2.1.2 - 2025-05-12
 
 - Add support for zeroed-out placeholders to accept bytecodes from the database (#2150)

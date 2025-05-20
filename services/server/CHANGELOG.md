@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@3.1.3 - 2025-05-20
+
+- Use Etherscan API v2 (#2158) 
+
 ## sourcify-server@3.1.2 - 2025-05-12
 
 - Add warning log if no database is configured (#2147)
