@@ -250,7 +250,25 @@ describe("verificationWorker", function () {
         creationTransactionHash: chainFixture.defaultContractCreatorTx,
       });
 
-      assertErrorResponse(result, "compiler_error");
+      assertErrorResponse(result, "compiler_error", {
+        compilerErrors: [
+          {
+            component: "general",
+            errorCode: "2314",
+            formattedMessage:
+              "ParserError: Expected ';' but got '{'\n --> project:/contracts/Storage.sol:9:17:\n  |\n9 | contrat Storage {\n  |                 ^\n\n",
+            message: "Expected ';' but got '{'",
+            severity: "error",
+            sourceLocation: {
+              end: 158,
+              file: "project:/contracts/Storage.sol",
+              start: 157,
+            },
+            type: "ParserError",
+          },
+        ],
+        compilerErrorMessage: undefined,
+      });
     });
   });
 

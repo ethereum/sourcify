@@ -1,4 +1,5 @@
 import {
+  OutputError,
   SolidityJsonInput,
   SolidityOutput,
   VyperJsonInput,
@@ -47,7 +48,8 @@ export class CompilationError extends SourcifyLibError {
   constructor(
     params: SourcifyLibErrorParameters & {
       code: CompilationErrorCode;
-      errors?: any;
+      compilerErrors?: OutputError[];
+      compilerErrorMessage?: string;
     },
   ) {
     super(params);
