@@ -5,16 +5,21 @@ export const mockEtherscanApi = (
   sourcifyChain: SourcifyChain,
   contractAddress: string,
   response: any,
-  apiKey?: string,
+  userApiKey?: string,
 ): nock.Scope => {
-  if (!sourcifyChain.etherscanApi) {
+  if (!sourcifyChain.etherscanApi?.supported) {
     chai.assert.fail(
       `Etherscan for chain ${sourcifyChain.chainId} not configured`,
     );
   }
-  return nock(sourcifyChain.etherscanApi.apiURL)
+  const apiKey =
+    userApiKey ||
+    process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""] ||
+    process.env.ETHERSCAN_API_KEY ||
+    "";
+  return nock("https://api.etherscan.io/v2")
     .get(
-      `/api?module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey ?? (process.env[sourcifyChain.etherscanApi.apiKeyEnvName || ""] || "")}`,
+      `/api?chainid=${sourcifyChain.chainId}&module=contract&action=getsourcecode&address=${contractAddress}&apikey=${apiKey}`,
     )
     .reply(function () {
       return [200, response];

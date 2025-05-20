@@ -48,7 +48,7 @@ describe("Test each Etherscan instance", function () {
         const type = contract.type;
         const chain = chainId;
 
-        it(`Non-Session: Should import a ${type} contract from ${sourcifyChainsMap[chain].etherscanApi?.apiURL} and verify the contract, finding a ${expectedMatch}`, async () => {
+        it(`Should import a ${type} contract from Etherscan for chain ${sourcifyChainsMap[chain].name} (${chain}) and verify the contract, finding a ${expectedMatch}`, async () => {
           const { resolveWorkers } = makeWorkersWait();
 
           const verifyRes = await request(serverFixture.server.app)
@@ -70,7 +70,7 @@ describe("Test each Etherscan instance", function () {
 
   describe("Double check that all supported chains are tested", () => {
     const supportedEtherscanChains = sourcifyChainsArray.filter(
-      (chain) => chain.etherscanApi && chain.supported,
+      (chain) => chain.etherscanApi?.supported && chain.supported,
     );
 
     it("should have tested all supported chains", function (done) {

@@ -17,7 +17,7 @@ config["session"].storeType = "memory";
 type ChainApiResponse = Pick<
   SourcifyChain,
   "name" | "title" | "chainId" | "rpc" | "supported"
-> & { etherscanAPI: string };
+> & { etherscanAPI: boolean };
 
 const TEST_TIME = process.env.TEST_TIME || "60000"; // 30 seconds
 const CUSTOM_PORT = 5556;
