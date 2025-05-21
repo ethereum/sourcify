@@ -386,25 +386,33 @@ components:
             Error:
               value:
                 isJobCompleted: true
-                verificationId: 72d12273-0723-448e-a9f6-f7957128efa5
-                jobStartTime: '2024-07-24T11:00:00Z'
-                jobFinishTime: '2024-07-24T12:00:00Z'
-                compilationTime: '1333'
-                error:
-                  customCode: non_matching_bytecodes
-                  message: The onchain and recompiled bytecodes don't match.
-                  errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
-                  recompiledCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
-                  recompiledRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
-                  onchainCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
-                  onchainRuntimeCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070034'
-                  creationTransactionHash: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
+                verificationId: "249c2f4b-af6c-46a7-a72e-d079da70ac0e"
+                jobStartTime: "2025-05-20T07:24:00Z"
+                jobFinishTime: "2025-05-20T07:24:08Z"
                 contract:
                   match: null
                   creationMatch: null
                   runtimeMatch: null
-                  chainId: '11155111'
-                  address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
+                  chainId: "31337"
+                  address: "0x5FbDB2315678afecb367f032d93F642f64180aa3"
+                error:
+                  customCode: "compiler_error"
+                  message: "Compile error. [{\"component\":\"general\",\"errorCode\":\"2314\",\"formattedMessage\":\"ParserError: Expected ';' but got '{'\\n --> project:/contracts/Storage.sol:9:17:\\n  |\\n9 | contrat Storage {\\n  |                 ^\\n\\n\",\"message\":\"Expected ';' but got '{'\",\"severity\":\"error\",\"sourceLocation\":{\"end\":158,\"file\":\"project:/contracts/Storage.sol\",\"start\":157},\"type\":\"ParserError\"}]"
+                  errorId: "f319b7fc-0286-4c23-bf1f-75996419a2ce"
+                  onchainRuntimeCode: "0x6080604052348015600f57600080fd5b506004361060325760003560e01c80632e64cec11460375780636057361d146051575b600080fd5b603d6069565b6040516048919060c2565b60405180910390f35b6067600480360381019060639190608f565b6072565b005b60008054905090565b8060008190555050565b60008135905060898160e5565b92915050565b60006020828403121560a057600080fd5b600060ac84828501607c565b91505092915050565b60bc8160db565b82525050565b600060208201905060d5600083018460b5565b92915050565b6000819050919050565b60ec8160db565b811460f657600080fd5b5056fea264697066735822122005183dd5df276b396683ae62d0c96c3a406d6f9dad1ad0923daf492c531124b164736f6c63430008040033"
+                  creationTransactionHash: "0xdd419b049534d2ead35de292ce73f3a9d9ecad33cdc1da1cae1d9fa3a86c74e1"
+                  errorData:
+                    compilerErrors:
+                      - component: "general"
+                        errorCode: "2314"
+                        formattedMessage: "ParserError: Expected ';' but got '{'\n --> project:/contracts/Storage.sol:9:17:\n  |\n9 | contrat Storage {\n  |                 ^\n\n"
+                        message: "Expected ';' but got '{'"
+                        severity: "error"
+                        sourceLocation:
+                          end: 158
+                          file: "project:/contracts/Storage.sol"
+                          start: 157
+                        type: "ParserError"
     VerifiedContract:
       description: Example response
       content:
@@ -988,7 +996,7 @@ components:
       example: '0xb6ee9d528b336942dd70d3b41e2811be10a473776352009fd73f85604f5ed206'
     MatchingErrorResponse:
       examples:
-        - customCode: non_matching_bytecodes
+        - customCode: no_match
           message: The onchain and recompiled bytecodes don't match.
           errorId: 1ac6b91a-0605-4459-93dc-18f210a70192
           recompiledCreationCode: '0x608060405234801561001057600080fd5b5060043610610036570565b6000819050919050565b600080fd5b61010c816100f4565b811461011757600080fd5b5056fea264697066735821220404e37f487a89a932dca5e77faaf6ca2de3b991f93d230604b1b8daaef64766264736f6c63430008070033'
@@ -1010,6 +1018,8 @@ components:
               $ref: '#/components/schemas/BytecodeString'
             creationTransactionHash:
               $ref: '#/components/schemas/Keccak256'
+            errorData:
+              type: object
     BytecodeString:
       type: string
       title: BytecodeString

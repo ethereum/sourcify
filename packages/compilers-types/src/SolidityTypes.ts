@@ -98,7 +98,7 @@ export interface SolidityJsonInput {
   settings: SoliditySettings;
 }
 
-interface SolidityOutputError {
+export interface SolidityOutputError {
   sourceLocation?: {
     file: string;
     start: number;
@@ -109,7 +109,9 @@ interface SolidityOutputError {
   severity: "error" | "warning";
   message: string;
   formattedMessage?: string;
+  errorCode?: string;
 }
+
 interface SolidityOutputEvmBytecode {
   object: string;
   opcodes?: string;

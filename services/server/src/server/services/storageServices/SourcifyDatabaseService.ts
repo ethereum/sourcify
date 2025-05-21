@@ -797,6 +797,7 @@ export class SourcifyDatabaseService
         onchainCreationCode: row.onchain_creation_code || undefined,
         onchainRuntimeCode: row.onchain_runtime_code || undefined,
         creationTransactionHash: row.creation_transaction_hash || undefined,
+        errorData: row.error_data || undefined,
       };
     }
 

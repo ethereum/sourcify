@@ -2,7 +2,7 @@
 import path from 'path';
 import fs from 'fs';
 import { spawnSync } from 'child_process';
-import { asyncExec, fetchWithBackoff } from './common';
+import { asyncExec, CompilerError, fetchWithBackoff } from './common';
 import { logDebug, logError, logInfo, logWarn } from '../logger';
 import {
   VyperJsonInput,
@@ -83,16 +83,15 @@ export async function useVyperCompiler(
   if (!compiled) {
     throw new Error('Compilation failed. No output from the compiler.');
   }
-  const compiledJSON = JSON.parse(compiled);
+  const compiledJSON = JSON.parse(compiled) as VyperOutput;
   const errorMessages = compiledJSON?.errors?.filter(
-    (e: any) => e.severity === 'error',
+    (e) => e.severity === 'error',
   );
   if (errorMessages && errorMessages.length > 0) {
-    const error = new Error(
-      'Compiler error:\n ' + JSON.stringify(errorMessages),
-    );
-    logError(error.message);
-    throw error;
+    logError('Compiler error', {
+      errorMessages,
+    });
+    throw new CompilerError('Compiler error', errorMessages);
   }
   return compiledJSON;
 }

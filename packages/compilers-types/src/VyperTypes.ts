@@ -40,7 +40,7 @@ export interface VyperJsonInput {
   settings: VyperSettings;
 }
 
-export interface VyperError {
+export interface VyperOutputError {
   sourceLocation?: {
     file: string;
     lineno: number;
@@ -91,7 +91,7 @@ interface VyperOutputContracts {
 
 export interface VyperOutput {
   compiler: string;
-  errors?: VyperError[];
+  errors?: VyperOutputError[];
   sources: VyperOutputSources;
   contracts: VyperOutputContracts;
 }

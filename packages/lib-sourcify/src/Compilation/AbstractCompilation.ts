@@ -77,7 +77,14 @@ export abstract class AbstractCompilation {
       logWarn('Compiler error', {
         error: e.message,
       });
-      throw new CompilationError({ code: 'compiler_error' });
+      // Depending on the compiler implementation, the errors object could be undefined
+      // In this case, we use the error message as a fallback
+      // e.g. @ethreum-sourcify/compilers supports the errors object but web-solc does not
+      throw new CompilationError({
+        code: 'compiler_error',
+        compilerErrors: e.errors,
+        compilerErrorMessage: e.errors ? undefined : e.message,
+      });
     }
 
     if (this.compilerOutput === undefined) {
