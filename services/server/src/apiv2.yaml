@@ -1018,6 +1018,8 @@ components:
               $ref: '#/components/schemas/BytecodeString'
             creationTransactionHash:
               $ref: '#/components/schemas/Keccak256'
+            errorData:
+              type: object
     BytecodeString:
       type: string
       title: BytecodeString
