@@ -17,7 +17,7 @@
     "db-migrate": "0.11.14",
     "db-migrate-pg": "1.5.2",
     "dotenv": "16.5.0",
-    "ethers": "6.14.0",
+    "ethers": "6.14.1",
     "pg": "8.16.0",
     "readdirp": "3.6.0"
   }
