@@ -6,6 +6,15 @@ Sourcify's database is an extension of the [Verifier Alliance](https://verifiera
 
 The migrations can be run to set up the Sourcify database.
 
+## Running the database
+
+### Run with Docker
+
+For convenience, you can run the Postgres container in `docker-compose.yml` with
+```bash
+docker-compose up
+```
+
 ## Database migrations
 
 ### Prerequisites
@@ -20,8 +29,6 @@ git submodule update --init
 
 - Copy paste `.env.template` in `.env` and set the variables.
 - Run `npm run migrate:up` to update the database to the latest version. This will run the `dev` config in [database.json](./database.json) with `localhost`. To run the migrations in production with `POSTGRES_HOST` use `npm run migrate:up -- --env production`
-
-For convenience, you can run the Postgres container in `docker-compose.yml` with `docker-compose up`.
 
 ### Reset the database
 
