@@ -6,7 +6,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
-import { RWStorageService, StorageService } from "../StorageService";
+import { RWStorageService } from "../StorageService";
 import {
   bytesFromString,
   Field,
@@ -53,17 +53,11 @@ export class SourcifyDatabaseService
   extends AbstractDatabaseService
   implements RWStorageService
 {
-  storageService: StorageService;
   serverUrl: string;
   IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
 
-  constructor(
-    storageService_: StorageService,
-    options: DatabaseOptions,
-    serverUrl: string,
-  ) {
+  constructor(options: DatabaseOptions, serverUrl: string) {
     super(options);
-    this.storageService = storageService_;
     this.serverUrl = serverUrl;
   }
 

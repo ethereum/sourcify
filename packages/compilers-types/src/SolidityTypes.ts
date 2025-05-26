@@ -141,14 +141,14 @@ export interface SolidityOutputSources {
 }
 
 export interface StorageLayout {
-  storage: {
+  storage: Array<{
     astId: number;
     contract: string;
     label: string;
     offset: number;
     slot: string;
     type: string;
-  };
+  }>;
   types: {
     [index: string]: {
       encoding: string;

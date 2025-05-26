@@ -188,7 +188,6 @@ export class StorageService {
         options.sourcifyDatabaseServiceOptions?.postgres?.password
       ) {
         const sourcifyDatabase = new SourcifyDatabaseService(
-          this,
           options.sourcifyDatabaseServiceOptions,
           options.serverUrl,
         );
