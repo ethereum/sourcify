@@ -75,7 +75,7 @@ export abstract class AbstractCompilation {
       );
     } catch (e: any) {
       logWarn('Compiler error', {
-        error: e.message,
+        error: e.errors ? e.errors : e.message,
       });
       // Depending on the compiler implementation, the errors object could be undefined
       // In this case, we use the error message as a fallback
