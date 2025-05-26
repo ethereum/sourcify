@@ -107,10 +107,15 @@ module.exports = {
   solJsonRepo: "/tmp/solc-bin/soljson", // The path to the solJson binaries on the filesystem
   vyperRepo: "/tmp/vyper-bin/linux-amd64", // The path to the vyper binaries on the filesystem
   session: {
-    secret: process.env.SESSION * SECRET || "CHANGE_ME", // The secret used to sign the session cookie
+    secret: process.env.SESSION_SECRET || "CHANGE_ME", // The secret used to sign the session cookie
     maxAge: 12 * 60 * 60 * 1000, // The maximum age of the session in milliseconds
-    secure: false, //
-    storeType: "memory", // Where to save the session info. "memory" is only good for testing and local development. Don't use it in production!
+    secure: false,
+    // Where to save session data. Options: "memory" | "database"
+    // - "memory": Sessions stored in server memory. Only use for testing/local development.
+    //   Sessions are lost when server restarts.
+    // - "database": Sessions stored in PostgreSQL. Recommended for production.
+    //   Requires database setup (see Database section) and uses the `session` table.
+    storeType: "memory",
   },
   // If true, downloads all production version compilers and saves them.
   initCompilers: false,
