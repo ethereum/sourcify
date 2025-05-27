@@ -23,6 +23,7 @@ export type ErrorCode =
   | "route_not_found"
   | "unsupported_chain"
   | "invalid_parameter"
+  | "invalid_json"
   | "proxy_resolution_error"
   | "job_not_found"
   | "duplicate_verification_request"
@@ -190,6 +191,19 @@ export class MalformedEtherscanResponseError extends BadRequestError {
   }
 }
 
+export class InvalidJsonError extends BadRequestError {
+  payload: GenericErrorResponse;
+
+  constructor(message: string) {
+    super(message);
+    this.payload = {
+      customCode: "invalid_json",
+      message,
+      errorId: uuidv4(),
+    };
+  }
+}
+
 // Maps OpenApiValidator errors to our custom error format
 export function errorHandler(
   err: any,
@@ -200,6 +214,11 @@ export function errorHandler(
   // Let errors pass that already match the v2 error format
   if (err.payload) {
     next(err);
+    return;
+  }
+
+  if (err instanceof SyntaxError) {
+    next(new InvalidJsonError(err.message));
     return;
   }
 
