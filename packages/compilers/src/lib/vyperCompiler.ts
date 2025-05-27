@@ -192,8 +192,14 @@ async function fetchAndSaveVyper(
 
     return true;
   } else {
-    logWarn('Failed fetching vyper', { version, platform, vyperPath });
+    logError('Failed fetching vyper', {
+      version,
+      platform,
+      vyperPath,
+      githubVyperURI,
+    });
+    throw new Error(
+      `Failed fetching vyper ${version} for platform ${platform}. Please check if the version is valid.`,
+    );
   }
-
-  return false;
 }

@@ -205,15 +205,16 @@ async function fetchAndSaveSolc(
 
     return true;
   } else {
-    logWarn('Failed fetching solc', {
+    logError('Failed fetching solc', {
       version,
       platform,
       githubSolcURI,
       solcPath,
     });
+    throw new Error(
+      `Failed fetching solc ${version} for platform ${platform}. Please check if the version is valid.`,
+    );
   }
-
-  return false;
 }
 
 /**
