@@ -27,6 +27,21 @@ describe("POST /v2/verify/:chainId/:address", function () {
     sandbox.restore();
   });
 
+  it("should return an invalid_json error if the body JSON is invalid", async () => {
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
+      .set("Content-Type", "application/json")
+      .send("{ invalid-json }");
+
+    chai.expect(verifyRes.status).to.equal(400);
+    chai.expect(verifyRes.body.customCode).to.equal("invalid_json");
+    chai.expect(verifyRes.body).to.have.property("errorId");
+    chai.expect(verifyRes.body).to.have.property("message");
+  });
+
   it("should verify a contract with Solidity standard input JSON", async () => {
     const { resolveWorkers } = makeWorkersWait();
 
