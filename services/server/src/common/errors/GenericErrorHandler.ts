@@ -37,7 +37,7 @@ export default function genericErrorHandler(
       message: err.message || getReasonPhrase(errorCode),
     });
   } catch (error) {
-    logger.error("Error in genericErrorHandler", { error });
+    logger.error("Error in genericErrorHandler's catch block", { error });
     const errorCode = StatusCodes.INTERNAL_SERVER_ERROR;
     res.status(errorCode).json({
       error: err.message || getReasonPhrase(errorCode),
