@@ -55,7 +55,18 @@ export async function useSolidityCompiler(
   const solcPlatform = findSolcPlatform();
   let solcPath;
   if (solcPlatform && !forceEmscripten) {
-    solcPath = await getSolcExecutable(solcRepoPath, solcPlatform, version);
+    // Catch, if this fails we'll fall back to solc-js e.g. very early solc 0.1.4
+    try {
+      solcPath = await getSolcExecutable(solcRepoPath, solcPlatform, version);
+    } catch (error) {
+      logError('Error getting solc executable', {
+        error,
+        solcPlatform,
+        version,
+        solcRepoPath,
+        solJsonRepoPath,
+      });
+    }
   }
   let startCompilation: number;
   if (solcPath && !forceEmscripten) {
