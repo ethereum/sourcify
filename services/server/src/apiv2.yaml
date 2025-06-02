@@ -172,6 +172,7 @@ paths:
                   results:
                     type: array
                     items:
+                      # Not using ref:ListVerifiedContracts because its example has different addresses in results. Here we want to have the same address in results. The definitions are the same.
                       $ref: '#/components/schemas/VerifiedContractMinimal'
               examples:
                 Example 1:
@@ -183,12 +184,14 @@ paths:
                         chainId: '1'
                         address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                         verifiedAt: '2024-07-24T12:00:00Z'
+                        matchId: '421'
                       - match: match
                         creationMatch: match
                         runtimeMatch: match
                         chainId: '11155111'
                         address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                         verifiedAt: '2025-02-10T14:45:00Z'
+                        matchId: '5531'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '404':
@@ -969,12 +972,14 @@ components:
                     chainId: '11155111'
                     address: '0xDFEBAd708F803af22e81044aD228Ff77C83C935c'
                     verifiedAt: '2024-07-24T12:00:00Z'
+                    matchId: '421'
                   - match: match
                     creationMatch: match
                     runtimeMatch: match
                     chainId: '11155111'
                     address: '0x2738d13E81e30bC615766A0410e7cF199FD59A83'
                     verifiedAt: '2024-07-24T12:00:00Z'
+                    matchId: '5531'
     InternalServerErrorResponse:
       description: ''
       content:
