@@ -147,12 +147,13 @@ export async function getSolcExecutable(
     return solcPath;
   }
 
-  const success = await fetchAndSaveSolc(platform, solcPath, version, fileName);
-  if (success && !validateSolcPath(solcPath)) {
-    logError(`Cannot validate solc ${version}.`);
-    return null;
+  await fetchAndSaveSolc(platform, solcPath, version, fileName);
+  if (!validateSolcPath(solcPath)) {
+    throw new Error(
+      `Solc not found. Maybe an incorrect version was provided. ${solcPath} - ${version} - ${platform}`,
+    );
   }
-  return success ? solcPath : null;
+  return solcPath;
 }
 
 function validateSolcPath(solcPath: string): boolean {
@@ -181,7 +182,7 @@ async function fetchAndSaveSolc(
   solcPath: string,
   version: string,
   fileName: string,
-): Promise<boolean> {
+): Promise<void> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const githubSolcURI = `${HOST_SOLC_REPO}${platform}/${encodedURIFilename}`;
   logInfo('Fetching solc', { version, platform, githubSolcURI, solcPath });
@@ -213,8 +214,6 @@ async function fetchAndSaveSolc(
     }
     fs.writeFileSync(solcPath, new DataView(buffer), { mode: 0o755 });
     logInfo('Saved solc', { version, platform, githubSolcURI, solcPath });
-
-    return true;
   } else {
     logError('Failed fetching solc', {
       version,
@@ -262,9 +261,7 @@ export async function getSolcJs(
       version,
       solJsonPath,
     });
-    if (!(await fetchAndSaveSolc('bin', solJsonPath, version, fileName))) {
-      return false;
-    }
+    await fetchAndSaveSolc('bin', solJsonPath, version, fileName);
   }
 
   const solcjsImports = await import(solJsonPath);
