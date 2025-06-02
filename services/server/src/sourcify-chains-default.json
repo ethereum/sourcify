@@ -2057,7 +2057,10 @@
   },
   "100009": {
     "sourcifyName": "VeChain Mainnet",
-    "supported": true
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "veChainApi": true
+    }
   },
   "100010": {
     "sourcifyName": "VeChain Testnet",
