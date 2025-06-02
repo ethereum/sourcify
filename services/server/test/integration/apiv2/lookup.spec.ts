@@ -1,4 +1,4 @@
-import chai from "chai";
+import chai, { expect } from "chai";
 import chaiHttp from "chai-http";
 import {
   deployAndVerifyContract,
@@ -14,8 +14,92 @@ import fs from "fs";
 import { getAddress } from "ethers";
 import Sinon from "sinon";
 import * as proxyContractUtil from "../../../src/server/services/utils/proxy-contract-util";
+import {
+  SourcifyChain,
+  SourcifyChainMap,
+} from "@ethereum-sourcify/lib-sourcify";
 
 chai.use(chaiHttp);
+
+describe("GET /v2/contract/allChains/:address", function () {
+  const TEST_CHAIN_IDs = [11111, 22222, 33333];
+  const TEST_CHAIN_PORTS = [8546, 8547, 8548];
+  const chainFixtures = TEST_CHAIN_IDs.map(
+    (chainId, index) =>
+      new LocalChainFixture({
+        chainId: chainId.toString(),
+        port: TEST_CHAIN_PORTS[index],
+      }),
+  );
+  const serverFixture = new ServerFixture({
+    chains: TEST_CHAIN_IDs.reduce((acc, chainId, index) => {
+      acc[chainId.toString()] = new SourcifyChain({
+        name: `Test Chain ${chainId}`,
+        title: `Test Chain ${chainId}`,
+        supported: true,
+        chainId: chainId,
+        rpc: [`http://localhost:${TEST_CHAIN_PORTS[index]}`],
+        rpcWithoutApiKeys: [`http://localhost:${TEST_CHAIN_PORTS[index]}`],
+      });
+      return acc;
+    }, {} as SourcifyChainMap),
+  });
+  const sandbox = Sinon.createSandbox();
+
+  afterEach(() => {
+    sandbox.restore();
+  });
+
+  it("should return a 404 and empty results when the contract is not found", async function () {
+    const randomAddress =
+      chainFixtures[0].defaultContractAddress.slice(0, -8) + "aaaaaaaa";
+    const validAddress = getAddress(randomAddress.toLowerCase());
+
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(`/v2/contract/allChains/${validAddress}`);
+    chai.expect(res.status).to.equal(404);
+    chai.expect(res.body.results).to.be.an.instanceOf(Array);
+    chai.expect(res.body.results.length).to.equal(0);
+  });
+
+  it("should list the default deployed contract", async function () {
+    // Deploy the contract on all chains in parallel
+    const addresses = await Promise.all(
+      chainFixtures.map((chainFixture) =>
+        deployAndVerifyContract(chainFixture, serverFixture, false),
+      ),
+    );
+
+    // Check all addresses are the same
+    const firstAddress = addresses[0];
+    addresses.forEach((address) => {
+      expect(address).to.equal(firstAddress);
+    });
+
+    // Check the contract is listed on all chains
+    const res = await chai
+      .request(serverFixture.server.app)
+      .get(`/v2/contract/allChains/${addresses[0]}`);
+    chai.expect(res.status).to.equal(200);
+    chai.expect(res.body.results).to.be.an.instanceOf(Array);
+    chai.expect(res.body.results.length).to.equal(chainFixtures.length);
+
+    // Check all chain IDs are present in the response
+    const responseChainIds = res.body.results.map(
+      (result: any) => result.chainId,
+    );
+    const responseMatches = res.body.results.map((result: any) => result.match);
+    const responseAddresses = res.body.results.map(
+      (result: any) => result.address,
+    );
+    TEST_CHAIN_IDs.forEach((chainId, index) => {
+      chai.expect(responseChainIds).to.include(chainId.toString());
+      chai.expect(responseMatches[index]).to.equal("exact_match");
+      chai.expect(responseAddresses[index]).to.equal(addresses[0]);
+    });
+  });
+});
 
 describe("GET /v2/contracts/:chainId", function () {
   const chainFixture = new LocalChainFixture();
