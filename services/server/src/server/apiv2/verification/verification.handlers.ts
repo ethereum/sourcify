@@ -37,7 +37,6 @@ export async function verifyFromJsonInputEndpoint(
   logger.debug("verifyFromJsonInputEndpoint", {
     chainId: req.params.chainId,
     address: req.params.address,
-    stdJsonInput: req.body.stdJsonInput,
     compilerVersion: req.body.compilerVersion,
     contractIdentifier: req.body.contractIdentifier,
     creationTransactionHash: req.body.creationTransactionHash,

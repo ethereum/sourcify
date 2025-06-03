@@ -52,12 +52,6 @@ export async function useVyperCompiler(
     version,
   );
 
-  if (!vyperPath) {
-    throw new Error(
-      'Vyper path not found. Maybe an incorrect version was provided.',
-    );
-  }
-
   let compiled: string | undefined;
   const inputStringified = JSON.stringify(vyperJsonInput);
   const startCompilation = Date.now();
@@ -100,51 +94,36 @@ export async function getVyperExecutable(
   vyperRepoPath: string,
   platform: string,
   version: string,
-): Promise<string | null> {
+): Promise<string> {
   const fileName = `vyper.${version}.${platform}`;
   const vyperPath = path.join(vyperRepoPath, fileName);
-  if (fs.existsSync(vyperPath) && validateVyperPath(vyperPath)) {
-    logDebug('Found vyper binary', {
-      version,
-      vyperPath,
-      platform,
-    });
+  if (validateVyperPath(vyperPath)) {
     return vyperPath;
   }
+  await fetchAndSaveVyper(platform, vyperPath, version, fileName);
 
-  logDebug('Downloading vyper', {
-    version,
-    vyperPath,
-    platform,
-  });
-  const success = await fetchAndSaveVyper(
-    platform,
-    vyperPath,
-    version,
-    fileName,
-  );
-  if (success) {
-    logDebug('Downloaded vyper', {
-      version,
-      vyperPath,
-      platform,
-    });
+  // Validate the vyper path
+  if (!validateVyperPath(vyperPath)) {
+    throw new Error(
+      `Vyper not found. Maybe an incorrect version was provided. ${vyperPath} - ${version} - ${platform}`,
+    );
   }
-  if (success && !validateVyperPath(vyperPath)) {
-    logError('Cannot validate vyper', {
-      version,
-      vyperPath,
-      platform,
-    });
-    return null;
-  }
-  return success ? vyperPath : null;
+  return vyperPath;
 }
 
 function validateVyperPath(vyperPath: string): boolean {
+  if (!fs.existsSync(vyperPath)) {
+    logDebug('Vyper binary not found', {
+      vyperPath,
+    });
+    return false;
+  }
   // TODO: Handle nodejs only dependencies
   const spawned = spawnSync(vyperPath, ['--version']);
   if (spawned.status === 0) {
+    logDebug('Found vyper binary', {
+      vyperPath,
+    });
     return true;
   }
 
@@ -165,7 +144,7 @@ async function fetchAndSaveVyper(
   vyperPath: string,
   version: string,
   fileName: string,
-): Promise<boolean> {
+): Promise<void> {
   const encodedURIFilename = encodeURIComponent(fileName);
   const versionWithoutCommit = version.split('+')[0];
   const githubVyperURI = `${HOST_VYPER_REPO}v${versionWithoutCommit}/${encodedURIFilename}`;
@@ -189,11 +168,16 @@ async function fetchAndSaveVyper(
       undefined;
     }
     fs.writeFileSync(vyperPath, new DataView(buffer), { mode: 0o755 });
-
-    return true;
+    return;
   } else {
-    logWarn('Failed fetching vyper', { version, platform, vyperPath });
+    logError('Failed fetching vyper', {
+      version,
+      platform,
+      vyperPath,
+      githubVyperURI,
+    });
+    throw new Error(
+      `Failed fetching vyper ${version} for platform ${platform}. Please check if the version is valid.`,
+    );
   }
-
-  return false;
 }

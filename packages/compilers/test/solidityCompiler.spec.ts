@@ -25,6 +25,14 @@ describe('Verify Solidity Compiler', () => {
       false,
     );
   });
+  it('Should throw an error if the compiler is not found', async () => {
+    try {
+      await getSolcExecutable(compilersPath, 'linux-amd64', 'invalid-version');
+      expect.fail('Expected error was not thrown');
+    } catch (error) {
+      expect(error).to.be.instanceOf(Error);
+    }
+  });
   if (process.platform === 'linux') {
     it('Should fetch latest solc from github', async () => {
       expect(
