@@ -1857,7 +1857,7 @@ describe("Test Supported Chains", function () {
   );
   // peaq
   verifyContract(
-    "0x21b7c40849aE2A715B76795d6a7772D085d0a4d0",
+    "0x3ef7f3E38704eD3702D105094Bbb8562BE51b569",
     "3338",
     "peaq Mainnet",
     "shared/",
