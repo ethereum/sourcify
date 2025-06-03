@@ -1855,6 +1855,13 @@ describe("Test Supported Chains", function () {
     "Etherlink Testnet",
     "shared/",
   );
+  // peaq
+  verifyContract(
+    "0x21b7c40849aE2A715B76795d6a7772D085d0a4d0",
+    "3338",
+    "peaq Mainnet",
+    "shared/",
+  );
 
   it("should have included Etherscan contracts for all testedChains having etherscanAPI", function (done) {
     const missingEtherscanTests: ChainApiResponse[] = [];
