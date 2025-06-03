@@ -22,6 +22,8 @@ const AVALANCHE_SUBNET_SUFFIX =
 const NEXUS_SUFFIX = "v1/${RUNTIME}/accounts/${ADDRESS}";
 const ROUTESCAN_API_URL =
   "https://api.routescan.io/v2/network/${CHAIN_TYPE}/evm/${CHAIN_ID}/etherscan?module=contract&action=getcontractcreation&contractaddresses=${ADDRESS}";
+const VECHAIN_API_URL =
+  "https://api.vechainstats.com/v2/contract/info?address=${ADDRESS}&expanded=true&VCS_API_KEY=";
 
 function getApiContractCreationFetcher(
   url: string,
@@ -165,6 +167,18 @@ function getNexusApiContractCreatorFetcher(
     (response: any) => {
       if (response.evm_contract?.eth_creation_tx)
         return `0x${response.evm_contract.eth_creation_tx}`;
+    },
+  );
+}
+
+function getVeChainApiContractCreatorFetcher(
+  apiKey: string,
+): ContractCreationFetcher {
+  return getApiContractCreationFetcher(
+    VECHAIN_API_URL + apiKey,
+    (response: any) => {
+      if (response?.data?.creation_txid)
+        return response.data.creation_txid as string;
     },
   );
 }
@@ -348,6 +362,19 @@ export const getCreatorTx = async (
     const fetcher = getNexusApiContractCreatorFetcher(
       sourcifyChain.fetchContractCreationTxUsing?.nexusApi.url,
       sourcifyChain.fetchContractCreationTxUsing?.nexusApi.runtime,
+    );
+    const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
+    if (result) {
+      return result;
+    }
+  }
+
+  if (
+    sourcifyChain.fetchContractCreationTxUsing?.veChainApi &&
+    process.env.VECHAIN_STATS_API_KEY
+  ) {
+    const fetcher = getVeChainApiContractCreatorFetcher(
+      process.env.VECHAIN_STATS_API_KEY,
     );
     const result = await getCreatorTxUsingFetcher(fetcher, contractAddress);
     if (result) {

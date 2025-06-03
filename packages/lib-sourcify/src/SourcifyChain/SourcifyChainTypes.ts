@@ -90,6 +90,7 @@ export interface FetchContractCreationTxMethods {
     url: string;
     runtime: string;
   };
+  veChainApi?: boolean;
 }
 
 export type Chain = {
