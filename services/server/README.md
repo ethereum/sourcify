@@ -47,7 +47,7 @@ Run Postgres with docker compose:
 docker compose up -d
 ```
 
-4. Pull the database schema from the [Verifier Alliance](https://github.com/verifier-alliance/database-specs) repository.
+4. Pull the database schema from the [Verifier Alliance](https://github.com/verifier-alliance/database-specs) repository. It's the base for the Sourcify database.
 
 ```bash
 git submodule update --init --recursive
@@ -60,6 +60,8 @@ Migrations will write the database schema for your instance using the credential
 ```bash
 npm run migrate:up -- --env dev
 ```
+
+If you get a DB authentication error, double check you don't have an existing Postgres instance. If so either stop or change the values in the `.env` file. If you were using docker, make sure the container and the container's volume is deleted for a fresh new instance.
 
 6. Go to the `services/server` directory to run the server.
 
@@ -80,6 +82,14 @@ You can run without filling the optional values but to connect to some RPCs you 
 ```bash
 npm start
 ```
+
+8. Test the server
+
+```bash
+curl http://localhost:5555/health
+```
+
+You should see `Alive and kicking!` in the response.
 
 ## Config
 
@@ -190,14 +200,14 @@ A full example of a chain entry is as follows:
         "url": "https://gnosis.blockscout.com/"
       },
       "blockscoutScrape": {
-        // scraping from old (server-side rendered) blockscour ui
+        // scraping from old (server-side rendered) blockscout ui
         "url": "https://scan.pulsechain.com/"
       },
       "avalancheApi": true // avalanche subnets at glacier-api.avax.network have an api endpoint for this
     },
-    // optional. If not provided, the default rpc will be the ones from chains.json i.e. chainid.network/chains.json
+    // optional. If not provided, the default rpc will be the ones from src/chains.json. This file is manually synced from chainid.network/chains.json.
     "rpc": [
-      "https://rpc.sepolia.io", // can be a simple url
+      "https://rpc.sepolia.io", // can be a simple url string
       {
         "type": "FetchRequest", // ethers.js FetchRequest for header authenticated RPCs
         "url": "https://rpc.mainnet.ethpandaops.io",
@@ -213,14 +223,9 @@ A full example of a chain entry is as follows:
         ]
       },
       {
-        "type": "APIKeyRPC", // Alchemy RPCs
+        "type": "APIKeyRPC", // Alchemy RPCs, or any other RPC that requires an API key. ${API_KEY} will be replaced with the value of the env var.
         "url": "https://eth-mainnet.alchemyapi.io/v2/{API_KEY}",
         "apiKeyEnvName": "ALCHEMY_API_KEY"
-      },
-      {
-        "type": "APIKeyRPC", // Infura RPCs
-        "url": "https://palm-mainnet.infura.io/v3/{API_KEY}",
-        "apiKeyEnvName": "INFURA_API_KEY"
       }
     ]
   }
@@ -229,10 +234,10 @@ A full example of a chain entry is as follows:
 
 ### Choosing the storage backend
 
-There are two types of storages: `RWStorageIdentifiers` and `WStorageIdentifiers`. These are the possible options:
+There are two types of storages: `RWStorageIdentifiers` (Read and Write) and `WStorageIdentifiers` (Write only). These are the possible options:
 
 - `RWStorageIdentifiers.RepositoryV1` (deprecated) - the legacy repository that saves the source files and metadata as is inside a filesystem. A file system has many limitations and newer versions of the sourcify-server keeps it for backwards compatibility. If used as the `read` option, the `/v2` API endpoints won't be available. We don't recommend using this option.
-- `WStorageIdentifiers.RepositoryV2` - a filesystem for serving source files and metadata on IPFS. Since pinning files on IPFS is done over a file system, Sourcify saves these files here. This repository does not save source file names as given in the metadata file (e.g. `contracts/MyContract.sol`) but saves each file with their keccak256 hash. This is done to avoid file name issues, as source file names can be arbitrary strings.
+- `WStorageIdentifiers.RepositoryV2` - a filesystem for serving source files and metadata.json files on IPFS. Since pinning files on IPFS is done over a file system, Sourcify saves these files here. This repository does not save source file names as given in the metadata file (e.g. `contracts/MyContract.sol`) but saves each file with their keccak256 hash. This is done to avoid file name issues, as source file names can be arbitrary strings.
 
 - `WStorageIdentifiers.AllianceDatabase` - the PostgreSQL for the [Verifier Alliance](https://verifieralliance.org) (optional)
 - `RWStorageIdentifiers.SourcifyDatabase` - the PostgreSQL database that is an extension of the Verifier Alliance database. Required for API v2. See [Database](#database).
@@ -262,7 +267,9 @@ The following is an example of the storage config:
 
 ### Database
 
-Sourcify's database schema is defined in the [services/database](../database/) and available as database migrations. To use the database, you need to run a PostgreSQL database and run the migrations to define its schema. See the [Database docs](https://docs.sourcify.dev/docs/repository/sourcify-database/) for more information.
+Sourcify's database schema is defined in the [services/database](../database/) and available as database migrations. To use the database, you need to run a PostgreSQL database and run the migrations to define its schema.
+
+See the [Database docs](https://docs.sourcify.dev/docs/repository/sourcify-database/) for more information.
 
 ## Docker
 
@@ -270,14 +277,14 @@ The images are published in the [Github Container Registry](https://github.com/e
 
 ### Running the server with docker compose
 
-There is a docker compose file which makes running the server locally easy:
+There is a docker compose file which makes building and running the server locally easy:
 
 ```bash
-cd ../..
+cd ../.. ## Run from the project root
 docker compose -f ./services/server/docker-compose.local.yml up
 ```
 
-The setup starts a postgres database, runs the needed database migrations, and starts the Sourcify server with port 5555 exposed to your local machine.
+The setup starts a postgres database, runs the needed database migrations, builds and starts the Sourcify server with port 5555 exposed to your local machine.
 
 The server will use your local config (`./src/config/local.js`) and env file (`.env`). You can modify the docker compose file to also add a custom `sourcify-chains.json` for example.
 
@@ -301,9 +308,11 @@ $ docker run \
   -p 5555:5555 \
   -v path/to/custom/sourcify-chains.json:/home/app/services/server/dist/sourcify-chains.json \
   -v path/to/custom/config.js:/home/app/services/server/dist/config/local.js \
-  --env-file .env \
+  --env-file path/to/your-server/.env \
   ghcr.io/ethereum/sourcify/server:latest
 ```
+
+Keep in mind the default host for DB in the .env is "localhost" and the default port is 5432. If you're running your server and Docker, you need to establish a network connection between the two over a [Docker network](https://docs.docker.com/network/).
 
 ### Connecting to a node on the host
 
