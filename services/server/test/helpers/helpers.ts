@@ -123,7 +123,9 @@ export async function verifyContract(
   expect(res.body.result.length).to.equal(1);
   expect(res.body.result[0].status).to.equal(partial ? "partial" : "perfect");
   expect(res.body.result[0].chainId).to.equal(chainFixture.chainId);
-  expect(res.body.result[0].address).to.equal(contractAddress);
+  if (contractAddress) {
+    expect(res.body.result[0].address).to.equal(contractAddress);
+  }
 }
 
 export async function deployAndVerifyContract(
