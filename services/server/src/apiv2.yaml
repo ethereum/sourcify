@@ -195,7 +195,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '404':
-          description: Not Found
+          description: No verified contract found on any chain for the provided address
           content:
             application/json:
               schema:
