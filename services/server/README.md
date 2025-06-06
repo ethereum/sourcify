@@ -41,7 +41,7 @@ Copy the `.env.template` file into a file named `.env`. Change values if they ar
 cp .env.template .env
 ```
 
-Run Postgres with docker compose:
+Run Postgres with docker compose (not that this will not have a `postgres` root user. For production, you should run a Postgres instance and then add your own user).
 
 ```bash
 docker compose up -d
@@ -95,7 +95,7 @@ You should see `Alive and kicking!` in the response.
 
 There is a docker compose file which makes running the server locally easy.
 
-Keep in mind this is not recommended for production use.
+Keep in mind this is not recommended for production use. You should run a production instance of a Postgres database, add your user, run the migrations, and then run the server.
 
 You should change the chains you want to support in the `sourcify-chains-example.json` file (see [Chains Config](#chains-config)) and the server's `.env.docker` file with the required and optional values (see `.env.dev` file).
 
