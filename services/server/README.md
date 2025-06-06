@@ -69,7 +69,7 @@ If you get a DB authentication error, double check you don't have an existing Po
 cd ../server
 ```
 
-Copy the `.env.dev` file into a file named `.env` and fill in the required values.
+Copy the `.env.dev` file into a file named `.env`.
 
 ```bash
 cp .env.dev .env
@@ -77,13 +77,25 @@ cp .env.dev .env
 
 You can run without filling the optional values but to connect to some RPCs you need to add API keys as env vars. Check the `sourcify-chains-default.json` file if the chain you are interested in has an authenticated RPC or create your own `sourcify-chains.json` file. See [Chains Config](#chains-config) for more details.
 
-7. Start the server
+7. Copy the example chains config file as the main chains config file
+
+```bash
+cp src/sourcify-chains-example.json src/sourcify-chains.json
+```
+
+8. Build the server to generate the chains config file in `dist/sourcify-chains.json`
+
+```bash
+npm run build
+```
+
+9. Start the server
 
 ```bash
 npm start
 ```
 
-8. Test the server
+9. Test the server
 
 ```bash
 curl http://localhost:5555/health
