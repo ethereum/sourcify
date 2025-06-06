@@ -1,259 +1,20 @@
-import chai, { expect } from "chai";
+import chai from "chai";
 import chaiHttp from "chai-http";
 import {
-  deployAndVerifyContract,
   deployFromAbiAndBytecode,
   DeploymentInfo,
   verifyContract,
-} from "../../helpers/helpers";
-import { LocalChainFixture } from "../../helpers/LocalChainFixture";
-import { ServerFixture } from "../../helpers/ServerFixture";
+} from "../../../helpers/helpers";
+import { LocalChainFixture } from "../../../helpers/LocalChainFixture";
+import { ServerFixture } from "../../../helpers/ServerFixture";
 import type { Response } from "superagent";
 import path from "path";
 import fs from "fs";
 import { getAddress } from "ethers";
 import Sinon from "sinon";
-import * as proxyContractUtil from "../../../src/server/services/utils/proxy-contract-util";
-import {
-  SourcifyChain,
-  SourcifyChainMap,
-} from "@ethereum-sourcify/lib-sourcify";
+import * as proxyContractUtil from "../../../../src/server/services/utils/proxy-contract-util";
 
 chai.use(chaiHttp);
-
-describe("GET /v2/contract/all-chains/:address", function () {
-  const TEST_CHAIN_IDs = [11111, 22222, 33333];
-  const TEST_CHAIN_PORTS = [8546, 8547, 8548];
-  const chainFixtures = TEST_CHAIN_IDs.map(
-    (chainId, index) =>
-      new LocalChainFixture({
-        chainId: chainId.toString(),
-        port: TEST_CHAIN_PORTS[index],
-      }),
-  );
-  const serverFixture = new ServerFixture({
-    chains: TEST_CHAIN_IDs.reduce((acc, chainId, index) => {
-      acc[chainId.toString()] = new SourcifyChain({
-        name: `Test Chain ${chainId}`,
-        title: `Test Chain ${chainId}`,
-        supported: true,
-        chainId: chainId,
-        rpc: [`http://localhost:${TEST_CHAIN_PORTS[index]}`],
-        rpcWithoutApiKeys: [`http://localhost:${TEST_CHAIN_PORTS[index]}`],
-      });
-      return acc;
-    }, {} as SourcifyChainMap),
-  });
-
-  it("should return a 404 and empty results when the contract is not found", async function () {
-    const randomAddress =
-      chainFixtures[0].defaultContractAddress.slice(0, -8) + "aaaaaaaa";
-    const validAddress = getAddress(randomAddress.toLowerCase());
-
-    const res = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contract/all-chains/${validAddress}`);
-    chai.expect(res.status).to.equal(404);
-    chai.expect(res.body.results).to.be.an.instanceOf(Array);
-    chai.expect(res.body.results.length).to.equal(0);
-  });
-
-  it("should return the deployed and verified contract on the same address on all chains", async function () {
-    // Deploy the contract on all chains in parallel
-    const addresses = await Promise.all(
-      chainFixtures.map((chainFixture) =>
-        deployAndVerifyContract(chainFixture, serverFixture, false),
-      ),
-    );
-    expect(addresses.length).to.equal(TEST_CHAIN_IDs.length); // Make sure all are deployed
-
-    // Check all addresses are the same
-    const firstAddress = addresses[0];
-    addresses.forEach((address) => {
-      expect(address).to.equal(firstAddress);
-    });
-
-    // Check the contract is listed on all chains
-    const res = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contract/all-chains/${addresses[0]}`);
-    chai.expect(res.status).to.equal(200);
-
-    chai
-      .expect(res.body.results.length, "Not all chains are verified")
-      .to.equal(TEST_CHAIN_IDs.length);
-    TEST_CHAIN_IDs.forEach((chainId) => {
-      const matchingResult = res.body.results.find(
-        (result: any) => result.chainId === chainId.toString(),
-      );
-
-      chai.expect(matchingResult).to.include({
-        match: "exact_match",
-        creationMatch: "exact_match",
-        runtimeMatch: "exact_match",
-        address: addresses[0],
-        chainId: chainId.toString(),
-      });
-    });
-  });
-});
-
-describe("GET /v2/contracts/:chainId", function () {
-  const chainFixture = new LocalChainFixture();
-  const serverFixture = new ServerFixture();
-  const sandbox = Sinon.createSandbox();
-
-  afterEach(() => {
-    sandbox.restore();
-  });
-
-  it("should list verified contracts per chain", async function () {
-    const address = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-      true, // partial match
-    );
-
-    const res = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}`);
-
-    chai.expect(res.status).to.equal(200);
-    chai.expect(res.body.results).to.be.an.instanceOf(Array);
-    chai.expect(res.body.results.length).to.equal(1);
-    chai.expect(res.body.results[0]).to.include({
-      match: "match",
-      creationMatch: "match",
-      runtimeMatch: "match",
-      chainId: chainFixture.chainId,
-      address,
-      matchId: "1",
-    });
-    chai.expect(res.body.results[0]).to.have.property("verifiedAt");
-  });
-
-  it("should list exact matches", async function () {
-    const address = await deployAndVerifyContract(
-      chainFixture,
-      serverFixture,
-      false, // exact match
-    );
-
-    const res = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}`);
-
-    chai.expect(res.status).to.equal(200);
-    chai.expect(res.body.results).to.be.an.instanceOf(Array);
-    chai.expect(res.body.results.length).to.equal(1);
-    chai.expect(res.body.results[0]).to.include({
-      match: "exact_match",
-      creationMatch: "exact_match",
-      runtimeMatch: "exact_match",
-      chainId: chainFixture.chainId,
-      address,
-      matchId: "1",
-    });
-    chai.expect(res.body.results[0]).to.have.property("verifiedAt");
-  });
-
-  it(`should handle pagination when listing contracts`, async function () {
-    const contractAddresses: string[] = [];
-
-    // Deploy 5 contracts
-    for (let i = 0; i < 5; i++) {
-      const address = await deployAndVerifyContract(
-        chainFixture,
-        serverFixture,
-        true,
-      );
-      contractAddresses.push(address);
-    }
-
-    // Test limit
-    const res0 = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}?limit=3`);
-    chai.expect(res0.body.results).to.be.an.instanceOf(Array);
-    chai.expect(res0.body.results.length).to.equal(3);
-    chai.expect(res0.body.results[0].matchId).to.equal("5");
-    chai.expect(res0.body.results[1].matchId).to.equal("4");
-    chai.expect(res0.body.results[2].matchId).to.equal("3");
-
-    // Test afterMatchId with desc
-    const res1 = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}?limit=2&afterMatchId=4`);
-    chai.expect(res1.body.results[0].matchId).to.equal("3");
-    chai.expect(res1.body.results[1].matchId).to.equal("2");
-
-    // Test afterMatchId with asc
-    const res2 = await chai
-      .request(serverFixture.server.app)
-      .get(
-        `/v2/contracts/${chainFixture.chainId}?limit=2&afterMatchId=1&sort=asc`,
-      );
-    chai.expect(res2.body.results[0].matchId).to.equal("2");
-    chai.expect(res2.body.results[1].matchId).to.equal("3");
-
-    // Test ascending order
-    const oldestContractsFirst = contractAddresses;
-    const resAsc = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}?sort=asc`);
-
-    chai.expect(resAsc.body.results).to.be.an.instanceOf(Array);
-    chai
-      .expect(resAsc.body.results.length)
-      .to.equal(oldestContractsFirst.length);
-    for (let i = 0; i < oldestContractsFirst.length; i++) {
-      chai.expect(resAsc.body.results[i]).to.include({
-        match: "match",
-        creationMatch: "match",
-        runtimeMatch: "match",
-        chainId: chainFixture.chainId,
-        address: oldestContractsFirst[i],
-        matchId: (i + 1).toString(),
-      });
-    }
-
-    // Test descending order
-    const resDesc = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contracts/${chainFixture.chainId}?sort=desc`);
-
-    const newestContractsFirst = Array.from(contractAddresses).reverse();
-    chai.expect(resDesc.body.results).to.be.an.instanceOf(Array);
-    chai
-      .expect(resDesc.body.results.length)
-      .to.equal(newestContractsFirst.length);
-    for (let i = 0; i < newestContractsFirst.length; i++) {
-      chai.expect(resDesc.body.results[i]).to.include({
-        match: "match",
-        creationMatch: "match",
-        runtimeMatch: "match",
-        chainId: chainFixture.chainId,
-        address: newestContractsFirst[i],
-        matchId: (newestContractsFirst.length - i).toString(),
-      });
-    }
-  });
-
-  it("should return a 404 when the chain is not found", async function () {
-    const unknownChainId = "5";
-    const chainMap = serverFixture.server.chainRepository.sourcifyChainMap;
-    sandbox.stub(chainMap, unknownChainId).value(undefined);
-
-    const res = await chai
-      .request(serverFixture.server.app)
-      .get(`/v2/contracts/${unknownChainId}`);
-
-    chai.expect(res.status).to.equal(404);
-    chai.expect(res.body.customCode).to.equal("unsupported_chain");
-    chai.expect(res.body).to.have.property("errorId");
-    chai.expect(res.body).to.have.property("message");
-  });
-});
 
 describe("GET /v2/contract/:chainId/:address", function () {
   const chainFixture = new LocalChainFixture();
@@ -725,14 +486,15 @@ describe("GET /v2/contract/:chainId/:address", function () {
 
   it("should correctly detect proxy contracts", async function () {
     const proxyArtifact = (
-      await import("../../testcontracts/Proxy/Proxy_flattened.json")
+      await import("../../../testcontracts/Proxy/Proxy_flattened.json")
     ).default;
     const proxyMetadata = (
-      await import("../../testcontracts/Proxy/metadata.json")
+      await import("../../../testcontracts/Proxy/metadata.json")
     ).default;
     const proxySource = fs.readFileSync(
       path.join(
         __dirname,
+        "..",
         "..",
         "..",
         "testcontracts",
@@ -781,14 +543,15 @@ describe("GET /v2/contract/:chainId/:address", function () {
       .throws(new Error("Proxy resolution failed"));
 
     const proxyArtifact = (
-      await import("../../testcontracts/Proxy/Proxy_flattened.json")
+      await import("../../../testcontracts/Proxy/Proxy_flattened.json")
     ).default;
     const proxyMetadata = (
-      await import("../../testcontracts/Proxy/metadata.json")
+      await import("../../../testcontracts/Proxy/metadata.json")
     ).default;
     const proxySource = fs.readFileSync(
       path.join(
         __dirname,
+        "..",
         "..",
         "..",
         "testcontracts",
