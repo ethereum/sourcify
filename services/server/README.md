@@ -91,6 +91,21 @@ curl http://localhost:5555/health
 
 You should see `Alive and kicking!` in the response.
 
+### Instant Run with Docker Compose
+
+There is a docker compose file which makes running the server locally easy.
+
+Keep in mind this is not recommended for production use.
+
+You should change the chains you want to support in the `sourcify-chains-example.json` file (see [Chains Config](#chains-config)) and the server's `.env.docker` file with the required and optional values (see `.env.dev` file).
+
+```bash
+cd ../.. ## Run from the project root
+docker compose -f ./services/server/docker-compose.yml up
+```
+
+The setup starts a postgres database, runs the needed database migrations, builds and starts the Sourcify server with port 5555 exposed to your local machine.
+
 ## Config
 
 ### Server Config
@@ -275,19 +290,6 @@ See the [Database docs](https://docs.sourcify.dev/docs/repository/sourcify-datab
 
 The images are published in the [Github Container Registry](https://github.com/ethereum/sourcify/pkgs/container/sourcify%2Fserver)
 
-### Running the server with docker compose
-
-There is a docker compose file which makes building and running the server locally easy:
-
-```bash
-cd ../.. ## Run from the project root
-docker compose -f ./services/server/docker-compose.local.yml up
-```
-
-The setup starts a postgres database, runs the needed database migrations, builds and starts the Sourcify server with port 5555 exposed to your local machine.
-
-The server will use your local config (`./src/config/local.js`) and env file (`.env`). You can modify the docker compose file to also add a custom `sourcify-chains.json` for example.
-
 ### Building the image
 
 If you want to build the image yourself, the builds need to be run from the project root context, e.g.:
@@ -312,7 +314,7 @@ $ docker run \
   ghcr.io/ethereum/sourcify/server:latest
 ```
 
-Keep in mind the default host for DB in the .env is "localhost" and the default port is 5432. If you're running your server and Docker, you need to establish a network connection between the two over a [Docker network](https://docs.docker.com/network/).
+Keep in mind the default host for DB in the .env is "localhost" and the default port is 5432. If you're running your server and the database in Docker, you need to establish a network connection between the two over a [Docker network](https://docs.docker.com/network/).
 
 ### Connecting to a node on the host
 
