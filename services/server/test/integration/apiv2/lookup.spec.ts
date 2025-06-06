@@ -21,7 +21,7 @@ import {
 
 chai.use(chaiHttp);
 
-describe("GET /v2/contract/allChains/:address", function () {
+describe("GET /v2/contract/all-chains/:address", function () {
   const TEST_CHAIN_IDs = [11111, 22222, 33333];
   const TEST_CHAIN_PORTS = [8546, 8547, 8548];
   const chainFixtures = TEST_CHAIN_IDs.map(
@@ -57,7 +57,7 @@ describe("GET /v2/contract/allChains/:address", function () {
 
     const res = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contract/allChains/${validAddress}`);
+      .get(`/v2/contract/all-chains/${validAddress}`);
     chai.expect(res.status).to.equal(404);
     chai.expect(res.body.results).to.be.an.instanceOf(Array);
     chai.expect(res.body.results.length).to.equal(0);
@@ -80,7 +80,7 @@ describe("GET /v2/contract/allChains/:address", function () {
     // Check the contract is listed on all chains
     const res = await chai
       .request(serverFixture.server.app)
-      .get(`/v2/contract/allChains/${addresses[0]}`);
+      .get(`/v2/contract/all-chains/${addresses[0]}`);
     chai.expect(res.status).to.equal(200);
     chai.expect(res.body.results).to.be.an.instanceOf(Array);
     chai.expect(res.body.results.length).to.equal(chainFixtures.length);

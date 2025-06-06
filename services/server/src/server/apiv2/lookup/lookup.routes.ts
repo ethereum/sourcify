@@ -14,7 +14,7 @@ import { Router } from "express";
 const router = Router();
 
 router
-  .route("/contract/allChains/:address")
+  .route("/contract/all-chains/:address")
   .get(validateAddress, getContractAllChainsEndpoint);
 
 router.route("/contracts/:chainId").get(validateChainId, listContractsEndpoint);
