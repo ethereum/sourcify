@@ -13,21 +13,25 @@ The server uses [lib-sourcify](https://github.com/ethereum/sourcify/tree/main/pa
 
 ## Quick Start
 
-First head to the project root directory then
+First head to the project root directory and run the following commands:
 
-1. Install
+```bash
+cd ../..
+```
+
+### 1. Install dependencies
 
 ```bash
 npm install
 ```
 
-2. Build the monorepo's packages
+### 2. Build the monorepo's packages
 
 ```bash
 npx lerna run build
 ```
 
-3. Spin up a PostgreSQL database
+### 3. Spin up a PostgreSQL database
 
 Go to the `services/database`
 
@@ -41,19 +45,21 @@ Copy the `.env.template` file into a file named `.env`. Change values if they ar
 cp .env.template .env
 ```
 
-Run Postgres with docker compose (not that this will not have a `postgres` root user. For production, you should run a Postgres instance and then add your own user).
+Run Postgres with docker compose (note that this will not have a `postgres` root user. For production, you should run a Postgres instance and then add your own user).
 
 ```bash
 docker compose up -d
 ```
 
-4. Pull the database schema from the [Verifier Alliance](https://github.com/verifier-alliance/database-specs) repository. It's the base for the Sourcify database.
+### 4. Pull the database schema
+
+Pull the database schema from the [Verifier Alliance](https://github.com/verifier-alliance/database-specs) repository. It's the base for the Sourcify database.
 
 ```bash
 git submodule update --init --recursive
 ```
 
-5. Run the migrations
+### 5. Run the migrations
 
 Migrations will write the database schema for your instance using the credentials from the `.env` file.
 
@@ -63,7 +69,9 @@ npm run migrate:up -- --env dev
 
 If you get a DB authentication error, double check you don't have an existing Postgres instance. If so either stop or change the values in the `.env` file. If you were using docker, make sure the container and the container's volume is deleted for a fresh new instance.
 
-6. Go to the `services/server` directory to run the server.
+### 6. Set env vars
+
+Go to the `services/server` directory to set env vars.
 
 ```bash
 cd ../server
@@ -75,27 +83,31 @@ Copy the `.env.dev` file into a file named `.env`.
 cp .env.dev .env
 ```
 
-You can run without filling the optional values but to connect to some RPCs you need to add API keys as env vars. Check the `sourcify-chains-default.json` file if the chain you are interested in has an authenticated RPC or create your own `sourcify-chains.json` file. See [Chains Config](#chains-config) for more details.
+You can run without filling the optional values in `.env` but to connect to some RPCs you need to add API keys as env vars. Check the `sourcify-chains-default.json` file if the chain you are interested in has an authenticated RPC or create your own `sourcify-chains.json` file. See [Chains Config](#chains-config) for more details.
 
-7. Copy the example chains config file as the main chains config file
+### 7. Set supported chains
+
+Copy the example chains config file as the main chains config file
 
 ```bash
 cp src/sourcify-chains-example.json src/sourcify-chains.json
 ```
 
-8. Build the server to generate the chains config file in `dist/sourcify-chains.json`
+### 8. Build the server
+
+Build the server to generate the chains config file in `dist/sourcify-chains.json`
 
 ```bash
 npm run build
 ```
 
-9. Start the server
+### 9. Start the server
 
 ```bash
 npm start
 ```
 
-9. Test the server
+### 10. Test the server
 
 ```bash
 curl http://localhost:5555/health
@@ -137,7 +149,7 @@ npx lerna run build
 Alternatively, if you are running in a deployment you can pass the `NODE_CONFIG_ENV` name as the config file name and it will take precedence. For example, if you are running in a `NODE_CONFIG_ENV=staging` environment, you can create a [`config/staging.js`](src/config/staging.js) file and it will be used instead of the default config. Local takes precedence over `NODE_CONFIG_ENV`. The file precedence is defined in [node-config package](https://github.com/node-config/node-config/wiki/Configuration-Files#multi-instance-deployments).
 
 <details>
-  <summary>**Full list of config options**</summary>
+  <summary><b>Full list of config options</b></summary>
 
 <!-- prettier-ignore-start -->
 ```js
@@ -263,10 +275,10 @@ A full example of a chain entry is as follows:
 
 There are two types of storages: `RWStorageIdentifiers` (Read and Write) and `WStorageIdentifiers` (Write only). These are the possible options:
 
-- `RWStorageIdentifiers.RepositoryV1` (deprecated) - the legacy repository that saves the source files and metadata as is inside a filesystem. A file system has many limitations and newer versions of the sourcify-server keeps it for backwards compatibility. If used as the `read` option, the `/v2` API endpoints won't be available. We don't recommend using this option.
+- ~~`RWStorageIdentifiers.RepositoryV1`~~ (deprecated) - the legacy repository that saves the source files and metadata as is inside a filesystem. A file system has many limitations and newer versions of the sourcify-server keeps it for backwards compatibility. If used as the `read` option, the `/v2` API endpoints won't be available. We don't recommend using this option.
 - `WStorageIdentifiers.RepositoryV2` - a filesystem for serving source files and metadata.json files on IPFS. Since pinning files on IPFS is done over a file system, Sourcify saves these files here. This repository does not save source file names as given in the metadata file (e.g. `contracts/MyContract.sol`) but saves each file with their keccak256 hash. This is done to avoid file name issues, as source file names can be arbitrary strings.
 
-- `WStorageIdentifiers.AllianceDatabase` - the PostgreSQL for the [Verifier Alliance](https://verifieralliance.org) (optional)
+- `WStorageIdentifiers.AllianceDatabase` - To write the verified contracts to the [Verifier Alliance](https://verifieralliance.org) database (optional)
 - `RWStorageIdentifiers.SourcifyDatabase` - the PostgreSQL database that is an extension of the Verifier Alliance database. Required for API v2. See [Database](#database).
 
 `RWStorageIdentifiers` can both be used as a source of truth (`read`) and store (`writeOr...`) the verified contracts. `WStorageIdentifiers` can only store (write) verified contracts. For instance, Sourcify can write to the [Verifier Alliance](https://verifieralliance.org) whenever it receives a verified contract, but this can't be the source of truth for the Sourcify APIs.
@@ -280,11 +292,11 @@ The following is an example of the storage config:
   storage: {
     // read option will be the "source of truth" where the contracts read from for the API requests.
     read: RWStorageIdentifiers.SourcifyDatabase,
-    // User request will NOT fail if saving to these fail, but only log a warning
+    // The verificationjob will NOT fail if saving to these fail, but only log a warning
     writeOrWarn: [
       WStorageIdentifiers.AllianceDatabase,
     ],
-    // The user request will fail if saving to these fail
+    // The verification job will fail if saving to these fail
     writeOrErr: [
       WStorageIdentifiers.RepositoryV2,
       RWStorageIdentifiers.SourcifyDatabase,
@@ -292,7 +304,7 @@ The following is an example of the storage config:
   },
 ```
 
-### Database
+## Database
 
 Sourcify's database schema is defined in the [services/database](../database/) and available as database migrations. To use the database, you need to run a PostgreSQL database and run the migrations to define its schema.
 
