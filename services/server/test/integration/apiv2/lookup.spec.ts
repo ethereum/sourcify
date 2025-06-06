@@ -44,11 +44,6 @@ describe("GET /v2/contract/all-chains/:address", function () {
       return acc;
     }, {} as SourcifyChainMap),
   });
-  const sandbox = Sinon.createSandbox();
-
-  afterEach(() => {
-    sandbox.restore();
-  });
 
   it("should return a 404 and empty results when the contract is not found", async function () {
     const randomAddress =
@@ -63,13 +58,14 @@ describe("GET /v2/contract/all-chains/:address", function () {
     chai.expect(res.body.results.length).to.equal(0);
   });
 
-  it("should list the default deployed contract", async function () {
+  it("should return the deployed and verified contract on the same address on all chains", async function () {
     // Deploy the contract on all chains in parallel
     const addresses = await Promise.all(
       chainFixtures.map((chainFixture) =>
         deployAndVerifyContract(chainFixture, serverFixture, false),
       ),
     );
+    expect(addresses.length).to.equal(TEST_CHAIN_IDs.length); // Make sure all are deployed
 
     // Check all addresses are the same
     const firstAddress = addresses[0];
@@ -82,21 +78,22 @@ describe("GET /v2/contract/all-chains/:address", function () {
       .request(serverFixture.server.app)
       .get(`/v2/contract/all-chains/${addresses[0]}`);
     chai.expect(res.status).to.equal(200);
-    chai.expect(res.body.results).to.be.an.instanceOf(Array);
-    chai.expect(res.body.results.length).to.equal(chainFixtures.length);
 
-    // Check all chain IDs are present in the response
-    const responseChainIds = res.body.results.map(
-      (result: any) => result.chainId,
-    );
-    const responseMatches = res.body.results.map((result: any) => result.match);
-    const responseAddresses = res.body.results.map(
-      (result: any) => result.address,
-    );
-    TEST_CHAIN_IDs.forEach((chainId, index) => {
-      chai.expect(responseChainIds).to.include(chainId.toString());
-      chai.expect(responseMatches[index]).to.equal("exact_match");
-      chai.expect(responseAddresses[index]).to.equal(addresses[0]);
+    chai
+      .expect(res.body.results.length, "Not all chains are verified")
+      .to.equal(TEST_CHAIN_IDs.length);
+    TEST_CHAIN_IDs.forEach((chainId) => {
+      const matchingResult = res.body.results.find(
+        (result: any) => result.chainId === chainId.toString(),
+      );
+
+      chai.expect(matchingResult).to.include({
+        match: "exact_match",
+        creationMatch: "exact_match",
+        runtimeMatch: "exact_match",
+        address: addresses[0],
+        chainId: chainId.toString(),
+      });
     });
   });
 });

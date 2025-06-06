@@ -747,7 +747,7 @@ export class SourcifyDatabaseService
       creationMatch: toMatchLevel(row.creation_match),
       runtimeMatch: toMatchLevel(row.runtime_match),
       matchId: row.id,
-      chainId: row.chain_id.toString(),
+      chainId: row.chain_id,
       address: getAddress(row.address),
       verifiedAt: row.verified_at,
     }));
