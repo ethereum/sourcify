@@ -306,9 +306,30 @@ The following is an example of the storage config:
 
 ## Database
 
-Sourcify's database schema is defined in the [services/database](../database/) and available as database migrations. To use the database, you need to run a PostgreSQL database and run the migrations to define its schema.
+Sourcify runs on a PostgreSQL database. The database schema is defined in the [services/database](../database/) and available as database migrations. To use the database, you need to run a PostgreSQL database and run the migrations to define its schema.
 
-See the [Database docs](https://docs.sourcify.dev/docs/repository/sourcify-database/) for more information.
+See the [Database docs](https://docs.sourcify.dev/docs/repository/sourcify-database/) for more information about the schema.
+
+### Setup
+
+First, run a PostgreSQL database. You can use a local instance or a cloud instance. You can use the docker compose file in the [services/database](../database/) to run a local instance but this isn't recommended for production use.
+
+Then, head to the [services/database](../database/) directory and input the credentials in the `.env` file.
+
+```bash
+cd ../database
+cp .env.template .env
+```
+
+Fill in the `POSTGRES_XXXXX` environment variables with the credentials for your database.
+
+The migrations have different setups for different environments in the `database.json` file. Run the migrations to create the schema:
+
+```bash
+npm run migrate:up -- --env production
+```
+
+Additionally you need to set up the credentials in the server's `.env` file. See [Server Config](#server-config) for more details.
 
 ## Docker
 
