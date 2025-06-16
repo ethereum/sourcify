@@ -2323,5 +2323,14 @@
         "url": "https://testnet.explorer.etherlink.com"
       }
     }
+  },
+  "3338": {
+    "sourcifyName": "peaq Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://scout.peaq.xyz/"
+      }
+    }
   }
 }
