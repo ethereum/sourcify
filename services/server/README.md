@@ -4,6 +4,21 @@ Sourcify's server for verifying Solidity and Vyper smart contracts.
 
 The server uses [lib-sourcify](https://github.com/ethereum/sourcify/tree/main/packages/lib-sourcify) under the hood for contract verification logic. It provides REST API endpoints for users to submit new contracts for verification or retrieve verified contracts. The data is stored in a PostgreSQL database.
 
+## Quick Start with Docker Compose
+
+There is a docker compose file which makes running the latest published Sourcify server image easy.
+
+Keep in mind this is not recommended for production use. You should run a production instance of a Postgres database, add your user, run the migrations, and then run the server.
+
+You should change the chains you want to support in the `sourcify-chains-example.json` file (see [Chains Config](#chains-config)) and the server's `.env.docker` file with the required and optional values (see `.env.dev` file).
+
+```bash
+cd ../.. ## Run from the project root
+docker compose -f ./services/server/docker-compose.yml up
+```
+
+The setup starts a postgres database, runs the needed database migrations, builds and starts the Sourcify server with port 5555 exposed to your local machine and just supporting Ethereum Mainnet, and local testnets (chainIds: 1, 1337, 31337) as defined in the `sourcify-chains-example.json` file.
+
 ## Development
 
 ### Prerequisites
@@ -11,7 +26,7 @@ The server uses [lib-sourcify](https://github.com/ethereum/sourcify/tree/main/pa
 - [Node.js](https://nodejs.org/en/) (recommended v22)
 - Postgres 16 (or Docker)
 
-## Quick Start
+### Local Development Setup
 
 First head to the project root directory and run the following commands:
 
@@ -31,9 +46,39 @@ npm install
 npx lerna run build
 ```
 
-### 3. Spin up a PostgreSQL database
+### 3. Pull the database schema
+
+Pull the database schema from the [Verifier Alliance](https://github.com/verifier-alliance/database-specs) repository. It's the base for the Sourcify database.
+
+```bash
+git submodule update --init --recursive
+```
+
+### 4. Spin up a PostgreSQL database
+
+Here you can run a Postgres container with Docker or a Postgres instance yourself. For production, you should run a Postgres instance and then add your own user.
+
+#### Option 1: Run a Postgres container
 
 Go to the `services/database`
+
+```bash
+cd services/database
+```
+
+Run Postgres with docker compose (note that this will not have a `postgres` root user).
+
+```bash
+docker compose up -d
+```
+
+#### Option 2: Run a Postgres instance
+
+You can run a Postgres instance on your local machine or a cloud instance and enter the credentials in the `.env` file when running the migrations below and later in the server's `.env` file.
+
+### 5. Run the migrations
+
+Go to the `services/database` if you haven't already.
 
 ```bash
 cd services/database
@@ -45,22 +90,6 @@ Copy the `.env.template` file into a file named `.env`. Change values if they ar
 cp .env.template .env
 ```
 
-Run Postgres with docker compose (note that this will not have a `postgres` root user. For production, you should run a Postgres instance and then add your own user).
-
-```bash
-docker compose up -d
-```
-
-### 4. Pull the database schema
-
-Pull the database schema from the [Verifier Alliance](https://github.com/verifier-alliance/database-specs) repository. It's the base for the Sourcify database.
-
-```bash
-git submodule update --init --recursive
-```
-
-### 5. Run the migrations
-
 Migrations will write the database schema for your instance using the credentials from the `.env` file.
 
 ```bash
@@ -69,7 +98,7 @@ npm run migrate:up -- --env dev
 
 If you get a DB authentication error, double check you don't have an existing Postgres instance. If so either stop or change the values in the `.env` file. If you were using docker, make sure the container and the container's volume is deleted for a fresh new instance.
 
-### 6. Set env vars
+### 6. Set env vars for the server
 
 Go to the `services/server` directory to set env vars.
 
@@ -83,11 +112,15 @@ Copy the `.env.dev` file into a file named `.env`.
 cp .env.dev .env
 ```
 
+The `.env.dev` contains the default database credentials for the Sourcify database. You should change the values to match your Postgres instance.
+
 You can run without filling the optional values in `.env` but to connect to some RPCs you need to add API keys as env vars. Check the `sourcify-chains-default.json` file if the chain you are interested in has an authenticated RPC or create your own `sourcify-chains.json` file. See [Chains Config](#chains-config) for more details.
 
 ### 7. Set supported chains
 
-Copy the example chains config file as the main chains config file
+Copy the example chains config file as the main chains config file. You can change the chains you want to support here.
+
+If there is a `src/sourcify-chains.json` file already, the server will use it. Otherwise, it will use the `src/sourcify-chains-default.json` file.
 
 ```bash
 cp src/sourcify-chains-example.json src/sourcify-chains.json
@@ -114,21 +147,6 @@ curl http://localhost:5555/health
 ```
 
 You should see `Alive and kicking!` in the response.
-
-### Instant Run with Docker Compose
-
-There is a docker compose file which makes running the server locally easy.
-
-Keep in mind this is not recommended for production use. You should run a production instance of a Postgres database, add your user, run the migrations, and then run the server.
-
-You should change the chains you want to support in the `sourcify-chains-example.json` file (see [Chains Config](#chains-config)) and the server's `.env.docker` file with the required and optional values (see `.env.dev` file).
-
-```bash
-cd ../.. ## Run from the project root
-docker compose -f ./services/server/docker-compose.yml up
-```
-
-The setup starts a postgres database, runs the needed database migrations, builds and starts the Sourcify server with port 5555 exposed to your local machine.
 
 ## Config
 
