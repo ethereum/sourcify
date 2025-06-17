@@ -66,12 +66,6 @@ Go to the `services/database`
 cd services/database
 ```
 
-Run Postgres with docker compose (note that this will not have a `postgres` root user).
-
-```bash
-docker compose up -d
-```
-
 Copy the `.env.template` file into a file named `.env`.
 
 ```bash
@@ -79,6 +73,12 @@ cp .env.template .env
 ```
 
 Change values if they are different for your Postgres instance or use those defaults.
+
+Run Postgres with docker compose (note that this will not have a `postgres` root user).
+
+```bash
+docker compose up -d
+```
 
 #### Option 2: Run a Postgres instance
 
