@@ -90,7 +90,7 @@ Copy the `.env.template` file into a file named `.env`. Change values if they ar
 cp .env.template .env
 ```
 
-Migrations will write the database schema for your instance using the credentials from the `.env` file.
+Migrations with `--env dev` will write the database schema for your instance using the credentials from the `.env` file. See `database.json` for other environments.
 
 ```bash
 npm run migrate:up -- --env dev
