@@ -72,6 +72,14 @@ Run Postgres with docker compose (note that this will not have a `postgres` root
 docker compose up -d
 ```
 
+Copy the `.env.template` file into a file named `.env`.
+
+```bash
+cp .env.template .env
+```
+
+Change values if they are different for your Postgres instance or use those defaults.
+
 #### Option 2: Run a Postgres instance
 
 You can run a Postgres instance on your local machine or a cloud instance and enter the credentials in the `.env` file when running the migrations below and later in the server's `.env` file.
@@ -84,13 +92,7 @@ Go to the `services/database` if you haven't already.
 cd services/database
 ```
 
-Copy the `.env.template` file into a file named `.env`. Change values if they are different for your Postgres instance or use those defaults.
-
-```bash
-cp .env.template .env
-```
-
-Migrations with `--env dev` will write the database schema for your instance using the credentials from the `.env` file. See `database.json` for other environments.
+Run the migrations. Migrations with `--env dev` will write the database schema for your instance using the credentials from the `serivces/database/.env` file. See `database.json` for other environments.
 
 ```bash
 npm run migrate:up -- --env dev
