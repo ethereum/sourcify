@@ -87,6 +87,7 @@ describe("GET /v2/verify/:verificationId", function () {
         recompiledRuntimeCode,
         onchainCreationCode,
         onchainRuntimeCode,
+        errorData,
       };
     }
 

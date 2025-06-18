@@ -27,6 +27,21 @@ describe("POST /v2/verify/:chainId/:address", function () {
     sandbox.restore();
   });
 
+  it("should return an invalid_json error if the body JSON is invalid", async () => {
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(
+        `/v2/verify/${chainFixture.chainId}/${chainFixture.defaultContractAddress}`,
+      )
+      .set("Content-Type", "application/json")
+      .send("{ invalid-json }");
+
+    chai.expect(verifyRes.status).to.equal(400);
+    chai.expect(verifyRes.body.customCode).to.equal("invalid_json");
+    chai.expect(verifyRes.body).to.have.property("errorId");
+    chai.expect(verifyRes.body).to.have.property("message");
+  });
+
   it("should verify a contract with Solidity standard input JSON", async () => {
     const { resolveWorkers } = makeWorkersWait();
 
@@ -86,7 +101,6 @@ describe("POST /v2/verify/:chainId/:address", function () {
       .request(serverFixture.server.app)
       .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
       .send({
-        language: "Vyper",
         stdJsonInput: {
           language: "Vyper",
           sources: {
@@ -143,7 +157,7 @@ describe("POST /v2/verify/:chainId/:address", function () {
     );
   });
 
-  it("should store a job error if the compiler returns an error", async () => {
+  it("should store a job error if the Solidity compiler returns an error", async () => {
     const { resolveWorkers } = makeWorkersWait();
 
     const sourcePath = Object.keys(
@@ -186,12 +200,94 @@ describe("POST /v2/verify/:chainId/:address", function () {
     });
     chai.expect(jobRes.body.error).to.exist;
     chai.expect(jobRes.body.error.customCode).to.equal("compiler_error");
+    chai
+      .expect(jobRes.body.error.errorData.compilerErrors[0].formattedMessage)
+      .to.equal(
+        "ParserError: Expected ';' but got '{'\n --> project:/contracts/Storage.sol:9:17:\n  |\n9 | contrat Storage {\n  |                 ^\n\n",
+      );
     chai.expect(jobRes.body.contract).to.deep.equal({
       match: null,
       creationMatch: null,
       runtimeMatch: null,
       chainId: chainFixture.chainId,
       address: chainFixture.defaultContractAddress,
+    });
+  });
+
+  it("should store a job error if the Vyper compiler returns an error", async () => {
+    const { resolveWorkers } = makeWorkersWait();
+
+    const vyperContractPath = path.join(
+      __dirname,
+      "..",
+      "..",
+      "..",
+      "sources",
+      "vyper",
+      "testcontract3_fail",
+    );
+    const vyperArtifactPath = path.join(vyperContractPath, "artifact.json");
+    const vyperArtifact = JSON.parse(
+      fs.readFileSync(vyperArtifactPath, "utf8"),
+    );
+    const vyperSourceFileName = "test.vy";
+    const vyperSourcePath = path.join(vyperContractPath, vyperSourceFileName);
+    const vyperSource = fs.readFileSync(vyperSourcePath, "utf8");
+
+    const { contractAddress, txHash } =
+      await deployFromAbiAndBytecodeForCreatorTxHash(
+        chainFixture.localSigner,
+        vyperArtifact.abi,
+        vyperArtifact.bytecode,
+      );
+
+    const verifyRes = await chai
+      .request(serverFixture.server.app)
+      .post(`/v2/verify/${chainFixture.chainId}/${contractAddress}`)
+      .send({
+        stdJsonInput: {
+          language: "Vyper",
+          sources: {
+            [vyperSourceFileName]: {
+              content: vyperSource,
+            },
+          },
+          settings: {
+            evmVersion: "istanbul",
+            outputSelection: {
+              "*": ["evm.bytecode"],
+            },
+          },
+        },
+        compilerVersion: "0.3.10+commit.91361694",
+        contractIdentifier: `${vyperSourceFileName}:${vyperSourceFileName.split(".")[0]}`,
+        creationTransactionHash: txHash,
+      });
+    chai.expect(verifyRes.status).to.equal(202);
+
+    await resolveWorkers();
+
+    const jobRes = await chai
+      .request(serverFixture.server.app)
+      .get(`/v2/verify/${verifyRes.body.verificationId}`);
+
+    chai.expect(jobRes.status).to.equal(200);
+    chai.expect(jobRes.body).to.include({
+      isJobCompleted: true,
+    });
+    chai.expect(jobRes.body.error).to.exist;
+    chai.expect(jobRes.body.error.customCode).to.equal("compiler_error");
+    chai
+      .expect(jobRes.body.error.errorData.compilerErrors[0].formattedMessage)
+      .to.equal(
+        'invalid syntax (<unknown>, line 11)\n  line 11:22 \n       10 def helloWorld() -> String[24]:\n  ---> 11     error_in_the_code!\n  ------------------------------^\n       12     return "Hello Vyper!"\n',
+      );
+    chai.expect(jobRes.body.contract).to.deep.equal({
+      match: null,
+      creationMatch: null,
+      runtimeMatch: null,
+      chainId: chainFixture.chainId,
+      address: contractAddress,
     });
   });
 

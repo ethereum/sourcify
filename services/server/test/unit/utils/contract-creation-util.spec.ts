@@ -183,6 +183,13 @@ describe("contract creation util", function () {
       txHash:
         "0x7790ee646f9cf4d4ec0d2e9dbb4943e606d18bab0e36fe71075b0a8246c6be4e",
     },
+    {
+      type: "veChainApi",
+      chainId: 100009,
+      address: "0xae4c53b120cba91a44832f875107cbc8fbee185c",
+      txHash:
+        "0x0ace736bc4ad5a25e2493d71fbc3315e422068ecefb3715d86ea85ab0ba26716",
+    },
   ];
   for (const testCase of testCases) {
     it(`should run getCreatorTx with ${testCase.type}`, async function () {
@@ -197,10 +204,10 @@ describe("contract creation util", function () {
 
       // Don't run if it's an external PR. Etherscan tests need API keys that can't be exposed to external PRs.
       if (
-        testCase.type === "etherscanApi" &&
+        (testCase.type === "etherscanApi" || testCase.type === "veChainApi") &&
         process.env.CIRCLE_PR_REPONAME !== undefined
       ) {
-        console.log("Skipping Etherscan test for external PR");
+        console.log(`Skipping ${testCase.type} test for external PR`);
         return;
       }
 

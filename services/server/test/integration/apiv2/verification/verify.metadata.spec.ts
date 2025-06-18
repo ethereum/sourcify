@@ -117,6 +117,10 @@ describe("POST /v2/verify/metadata/:chainId/:address", function () {
     chai
       .expect(jobRes.body.error.customCode)
       .to.equal("missing_or_invalid_source");
+    chai.expect(jobRes.body.error.errorData).to.deep.equal({
+      missingSources: [],
+      invalidSources: ["project:/contracts/Storage.sol"],
+    });
     chai.expect(jobRes.body.contract).to.deep.equal({
       match: null,
       creationMatch: null,

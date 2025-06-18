@@ -2057,7 +2057,10 @@
   },
   "100009": {
     "sourcifyName": "VeChain Mainnet",
-    "supported": true
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "veChainApi": true
+    }
   },
   "100010": {
     "sourcifyName": "VeChain Testnet",
@@ -2318,6 +2321,15 @@
     "fetchContractCreationTxUsing": {
       "blockscoutApi": {
         "url": "https://testnet.explorer.etherlink.com"
+      }
+    }
+  },
+  "3338": {
+    "sourcifyName": "peaq Mainnet",
+    "supported": true,
+    "fetchContractCreationTxUsing": {
+      "blockscoutApi": {
+        "url": "https://scout.peaq.xyz/"
       }
     }
   }

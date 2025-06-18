@@ -14,15 +14,9 @@ module.exports = {
     // read option will be the "source of truth" where the contracts read from for the API requests.
     read: RWStorageIdentifiers.SourcifyDatabase,
     // User request will NOT fail if saving to these fail, but only log a warning
-    writeOrWarn: [
-      WStorageIdentifiers.AllianceDatabase,
-      RWStorageIdentifiers.RepositoryV1,
-    ],
+    writeOrWarn: [],
     // The user request will fail if saving to these fail
-    writeOrErr: [
-      WStorageIdentifiers.RepositoryV2,
-      RWStorageIdentifiers.SourcifyDatabase,
-    ],
+    writeOrErr: [RWStorageIdentifiers.SourcifyDatabase],
   },
   // Legacy repository
   repositoryV1: {
@@ -38,7 +32,12 @@ module.exports = {
     secret: process.env.SESSION_SECRET || "CHANGE_ME",
     maxAge: 12 * 60 * 60 * 1000, // 12 hrs in millis
     secure: false, // Set Secure in the Set-Cookie header i.e. require https
-    storeType: "memory", // Where to save the session info. "memory" is only good for testing and local development. Don't use it in production!
+    // Where to save session data. Options: "memory" | "database"
+    // - "memory": Sessions stored in server memory. Only use for testing/local development.
+    //   Sessions are lost when server restarts.
+    // - "database": Sessions stored in PostgreSQL. Recommended for production.
+    //   Requires database setup (see Database section) and uses the `session` table.
+    storeType: "memory",
   },
   // If true, downloads all production version compilers and saves them.
   initCompilers: false,

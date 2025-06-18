@@ -6,7 +6,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import logger from "../../../common/logger";
 import AbstractDatabaseService from "./AbstractDatabaseService";
-import { RWStorageService, StorageService } from "../StorageService";
+import { RWStorageService } from "../StorageService";
 import {
   bytesFromString,
   Field,
@@ -53,17 +53,11 @@ export class SourcifyDatabaseService
   extends AbstractDatabaseService
   implements RWStorageService
 {
-  storageService: StorageService;
   serverUrl: string;
   IDENTIFIER = RWStorageIdentifiers.SourcifyDatabase;
 
-  constructor(
-    storageService_: StorageService,
-    options: DatabaseOptions,
-    serverUrl: string,
-  ) {
+  constructor(options: DatabaseOptions, serverUrl: string) {
     super(options);
-    this.storageService = storageService_;
     this.serverUrl = serverUrl;
   }
 
@@ -741,6 +735,26 @@ export class SourcifyDatabaseService
     return result;
   };
 
+  getContractsAllChains = async (
+    address: string,
+  ): Promise<{ results: VerifiedContractMinimal[] }> => {
+    const result = await this.database.getSourcifyMatchesAllChains(
+      bytesFromString(address),
+    );
+
+    const results: VerifiedContractMinimal[] = result.rows.map((row) => ({
+      match: getTotalMatchLevel(row.creation_match, row.runtime_match),
+      creationMatch: toMatchLevel(row.creation_match),
+      runtimeMatch: toMatchLevel(row.runtime_match),
+      matchId: row.id,
+      chainId: row.chain_id,
+      address: getAddress(row.address),
+      verifiedAt: row.verified_at,
+    }));
+
+    return { results };
+  };
+
   getVerificationJob = async (
     verificationId: string,
   ): Promise<VerificationJob | null> => {
@@ -797,6 +811,7 @@ export class SourcifyDatabaseService
         onchainCreationCode: row.onchain_creation_code || undefined,
         onchainRuntimeCode: row.onchain_runtime_code || undefined,
         creationTransactionHash: row.creation_transaction_hash || undefined,
+        errorData: row.error_data || undefined,
       };
     }
 

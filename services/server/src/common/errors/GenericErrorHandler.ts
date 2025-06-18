@@ -17,6 +17,8 @@ export default function genericErrorHandler(
       logger.error(`Unexpected server error: ${err.message}`, { error: err });
     }
 
+    logger.debug("❌ Error in genericErrorHandler", { error: err });
+
     if (err.payload) {
       // APIv2 errors include the response payload
       res.status(errorCode).json(err.payload);
@@ -35,7 +37,7 @@ export default function genericErrorHandler(
       message: err.message || getReasonPhrase(errorCode),
     });
   } catch (error) {
-    logger.error("Error in genericErrorHandler", { error });
+    logger.error("Error in genericErrorHandler's catch block", { error });
     const errorCode = StatusCodes.INTERNAL_SERVER_ERROR;
     res.status(errorCode).json({
       error: err.message || getReasonPhrase(errorCode),

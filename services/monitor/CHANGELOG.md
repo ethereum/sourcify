@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.3.14 - 2025-06-18
+
+- Update packages
+
 ## sourcify-monitor@1.3.13 - 2025-05-20
 
 - update dependencies
