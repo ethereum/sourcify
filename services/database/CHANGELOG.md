@@ -1,5 +1,10 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.5.3 - 2025-06-18
+
+- Update readme and .env.dev for documentation
+- Update packages
+
 ## sourcify-database@2.5.2 - 2025-05-20
 
 - update dependencies
