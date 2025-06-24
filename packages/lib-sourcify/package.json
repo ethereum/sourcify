@@ -67,7 +67,7 @@
     "cspell": "8.19.4",
     "cz-conventional-changelog": "3.3.0",
     "gh-pages": "6.3.0",
-    "hardhat": "2.24.3",
+    "hardhat": "2.25.0",
     "mocha": "10.8.2",
     "nock": "14.0.5",
     "npm-run-all2": "5.0.2",
