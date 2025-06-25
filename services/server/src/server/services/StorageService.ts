@@ -128,12 +128,12 @@ export interface StorageServiceOptions {
   sourcifyDatabaseServiceOptions?: DatabaseOptions;
   allianceDatabaseServiceOptions?: DatabaseOptions;
   s3RepositoryServiceOptions?: S3RepositoryServiceOptions;
-  throwOnPartialMatch?: boolean;
+  throwIfAlreadyVerified?: boolean;
 }
 
 export class StorageService {
   enabledServices: EnabledServices;
-  throwOnPartialMatch: boolean = true;
+  throwIfAlreadyVerified: boolean = true;
 
   rwServices: { [key in RWStorageIdentifiers]: RWStorageService } = {} as {
     [key in RWStorageIdentifiers]: RWStorageService;
@@ -144,7 +144,7 @@ export class StorageService {
 
   constructor(options: StorageServiceOptions) {
     this.enabledServices = options.enabledServices;
-    this.throwOnPartialMatch = options.throwOnPartialMatch ?? true;
+    this.throwIfAlreadyVerified = options.throwIfAlreadyVerified ?? true;
     const enabledServicesArray = [
       this.enabledServices.read,
       ...this.enabledServices.writeOrWarn,
@@ -332,7 +332,7 @@ export class StorageService {
       existingMatch.length > 0 &&
       !isBetterVerification(verification, existingMatch[0])
     ) {
-      if (this.throwOnPartialMatch)  {
+      if (this.throwIfAlreadyVerified)  {
         logger.info("Partial match already exists", {
           chain: verification.chainId,
           address: verification.address,
