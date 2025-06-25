@@ -51,7 +51,7 @@ for package in "${packages[@]}"; do
   if [[ $CIRCLE_TAG == *"${npm_package}@"* ]]; then # Only publish if tag contains exact package name followed by @.
     echo "$CIRCLE_TAG matches $npm_package, publishing $npm_package"
   else
-    echo "Skipping $npm_package as CIRCLE_TAG doesn't start with $npm_package"
+    echo "Skipping $npm_package as CIRCLE_TAG $CIRCLE_TAG doesn't start with $npm_package"
     continue
   fi
 
