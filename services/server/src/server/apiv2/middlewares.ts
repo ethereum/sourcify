@@ -196,20 +196,23 @@ export async function checkIfAlreadyVerified(
   res: Response,
   next: NextFunction,
 ) {
-  const { address, chainId } = req.params;
-  const services = req.app.get("services") as Services;
-  const contract = await services.storage.performServiceOperation(
-    "getContract",
-    [chainId, address],
-  );
-
-  if (
-    contract.runtimeMatch === "exact_match" &&
-    contract.creationMatch === "exact_match"
-  ) {
-    throw new AlreadyVerifiedError(
-      `Contract ${address} on chain ${chainId} is already verified with runtimeMatch and creationMatch both being exact matches.`,
+  const throwIfAlreadyVerified = req.app.get("chainRepository") as boolean;
+  if (!throwIfAlreadyVerified) {
+    const { address, chainId } = req.params;
+    const services = req.app.get("services") as Services;
+    const contract = await services.storage.performServiceOperation(
+      "getContract",
+      [chainId, address],
     );
+
+    if (
+      contract.runtimeMatch === "exact_match" &&
+      contract.creationMatch === "exact_match"
+    ) {
+      throw new AlreadyVerifiedError(
+        `Contract ${address} on chain ${chainId} is already verified with runtimeMatch and creationMatch both being exact matches.`,
+      );
+    }
   }
 
   next();
