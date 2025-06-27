@@ -86,9 +86,17 @@ export async function verifyFromMetadataEndpoint(
   logger.debug("verifyFromMetadataEndpoint", {
     chainId: req.params.chainId,
     address: req.params.address,
-    sources: req.body.sources,
-    metadata: req.body.metadata,
-    creationTransactionHash: req.body.creationTransactionHash,
+    sources: Object.keys(req.body.sources),
+    truncatedMetadata:
+      JSON.stringify(req.body.metadata).length > 600
+        ? JSON.stringify(req.body.metadata).substring(0, 300) +
+          "..." +
+          JSON.stringify(req.body.metadata).substring(
+            JSON.stringify(req.body.metadata).length - 300,
+          )
+        : JSON.stringify(req.body.metadata),
+    compilationTarget: req.body.metadata?.settings?.compilationTarget,
+    creationTransactionHash: req.body?.creationTransactionHash,
   });
 
   const services = req.app.get("services") as Services;
