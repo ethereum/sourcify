@@ -48,35 +48,6 @@ export class PreRunCompilation extends AbstractCompilation {
           this.compilationTarget.path
         ][this.compilationTarget.name] as SolidityOutputContract;
         this._metadata = JSON.parse(contractOutput.metadata.trim());
-        /* const compilerOutputData = {
-          sources: jsonOutput.sources || {},
-          contracts: {
-            [compilationTarget.path]: {
-              [compilationTarget.name]: {
-                abi: contractOutput.abi,
-                userdoc: contractOutput.userdoc,
-                devdoc: contractOutput.devdoc,
-                metadata: contractOutput.metadata?.toString() || '',
-                storageLayout: contractOutput.storageLayout,
-                evm: {
-                  bytecode: {
-                    object: contractOutput.evm.bytecode.object,
-                    sourceMap: contractOutput.evm.bytecode.sourceMap,
-                    linkReferences: contractOutput.evm.bytecode.linkReferences,
-                  },
-                  deployedBytecode: {
-                    object: contractOutput.evm.deployedBytecode.object,
-                    sourceMap: contractOutput.evm.deployedBytecode.sourceMap,
-                    linkReferences:
-                      contractOutput.evm.deployedBytecode.linkReferences,
-                    immutableReferences:
-                      contractOutput.evm.deployedBytecode.immutableReferences,
-                  },
-                },
-              },
-            },
-          },
-        }; */
         break;
       }
       case 'vyper': {
@@ -107,40 +78,6 @@ export class PreRunCompilation extends AbstractCompilation {
         } else {
           this.auxdataStyle = AuxdataStyle.VYPER;
         }
-        /* const compilerOutputData = {
-          compiler: this.compilerVersion,
-          sources: jsonOutput.sources || {},
-          contracts: {
-            [compilationTarget.path]: {
-              [compilationTarget.name]: {
-                abi: contractOutput.abi,
-                userdoc: contractOutput.userdoc,
-                devdoc: contractOutput.devdoc,
-                metadata: contractOutput.metadata?.toString() || '',
-                storageLayout: contractOutput.storageLayout,
-                ir: contractOutput.ir,
-                evm: {
-                  bytecode: {
-                    object: contractOutput.evm.bytecode.object,
-                    sourceMap: contractOutput.evm.bytecode.sourceMap,
-                    linkReferences: contractOutput.evm.bytecode.linkReferences,
-                    opcodes: contractOutput.evm.bytecode.opcodes,
-                  },
-                  deployedBytecode: {
-                    object: contractOutput.evm.deployedBytecode.object,
-                    sourceMap: contractOutput.evm.deployedBytecode.sourceMap,
-                    linkReferences:
-                      contractOutput.evm.deployedBytecode.linkReferences,
-                    immutableReferences:
-                      contractOutput.evm.deployedBytecode.immutableReferences,
-                    opcodes: contractOutput.evm.deployedBytecode.opcodes,
-                  },
-                  methodIdentifiers: contractOutput.evm.methodIdentifiers,
-                },
-              },
-            },
-          },
-        }; */
         break;
       }
       default:
@@ -196,14 +133,26 @@ export class PreRunCompilation extends AbstractCompilation {
   }
 
   get runtimeLinkReferences(): LinkReferences {
-    const compilationTarget = this
-      .contractCompilerOutput as SolidityOutputContract;
-    return compilationTarget.evm.deployedBytecode.linkReferences || {};
+    switch (this.language) {
+      case 'Solidity': {
+        const compilationTarget = this
+          .contractCompilerOutput as SolidityOutputContract;
+        return compilationTarget.evm.deployedBytecode.linkReferences || {};
+      }
+      case 'Vyper':
+        return {};
+    }
   }
 
   get creationLinkReferences(): LinkReferences {
-    const compilationTarget = this
-      .contractCompilerOutput as SolidityOutputContract;
-    return compilationTarget.evm.bytecode.linkReferences || {};
+    switch (this.language) {
+      case 'Solidity': {
+        const compilationTarget = this
+          .contractCompilerOutput as SolidityOutputContract;
+        return compilationTarget.evm.bytecode.linkReferences || {};
+      }
+      case 'Vyper':
+        return {};
+    }
   }
 }

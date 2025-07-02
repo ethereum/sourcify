@@ -13,6 +13,7 @@ import { ChainRepository } from "../../../../../sourcify-chain-repository";
 import logger from "../../../../../common/logger";
 import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 import { DatabaseCompilation } from "../../../../services/utils/DatabaseCompilation";
+import { SourcifyDatabaseService } from "../../../../services/storageServices/SourcifyDatabaseService";
 
 export async function verifyDeprecated(
   req: LegacyVerifyRequest,
@@ -154,8 +155,9 @@ export async function upgradeContract(
   const services = req.app.get("services") as Services;
 
   // Get the connection pool from storage service to fetch data
-  const sourcifyDatabaseService =
-    services.storage.rwServices["SourcifyDatabase"];
+  const sourcifyDatabaseService = services.storage.rwServices[
+    "SourcifyDatabase"
+  ] as SourcifyDatabaseService;
 
   if (!sourcifyDatabaseService) {
     return res
@@ -164,9 +166,7 @@ export async function upgradeContract(
   }
 
   // Access the pool via the sourcifyDatabaseService
-  const poolClient = await (
-    sourcifyDatabaseService as any
-  ).database.pool.connect();
+  const poolClient = await sourcifyDatabaseService.database.pool.connect();
 
   try {
     const deploymentResult = await poolClient.query(
@@ -196,7 +196,7 @@ export async function upgradeContract(
 
     const databaseCompilation = new DatabaseCompilation(
       solc,
-      poolClient,
+      sourcifyDatabaseService.database,
       address,
       chainId,
       transactionHash,

@@ -252,6 +252,41 @@ ${
     );
   }
 
+  async getVerifiedContractFromDeployment(
+    poolClient: PoolClient,
+    chainId: number,
+    address: Bytes,
+    transactionHash: Bytes,
+  ) {
+    return await poolClient.query(
+      `SELECT 
+          verified_contracts.*,
+          sourcify_matches.metadata,
+          compiled_contracts.compiler,
+          compiled_contracts.version,
+          compiled_contracts.language,
+          compiled_contracts.name,
+          compiled_contracts.fully_qualified_name,
+          compiled_contracts.compiler_settings,
+          compiled_contracts.compilation_artifacts,
+          compiled_contracts.creation_code_artifacts,
+          compiled_contracts.runtime_code_artifacts,
+          compiled_creation_code.code as compiled_creation_code,
+          compiled_runtime_code.code as compiled_runtime_code
+        FROM verified_contracts
+        JOIN compiled_contracts ON compiled_contracts.id = verified_contracts.compilation_id
+        JOIN sourcify_matches ON sourcify_matches.verified_contract_id = verified_contracts.id
+        JOIN code compiled_creation_code ON compiled_contracts.creation_code_hash = compiled_creation_code.code_hash 
+        JOIN code compiled_runtime_code ON compiled_contracts.runtime_code_hash = compiled_runtime_code.code_hash
+        JOIN contract_deployments ON contract_deployments.id = verified_contracts.deployment_id
+        WHERE 1=1
+        AND contract_deployments.chain_id = $1
+        AND contract_deployments.address = $2
+        AND contract_deployments.transaction_hash = $3`,
+      [chainId, address, transactionHash],
+    );
+  }
+
   async insertSourcifyMatch({
     verified_contract_id,
     runtime_match,
