@@ -134,6 +134,7 @@ export class Server {
     this.app.set("verifyDeprecated", options.verifyDeprecated);
     this.app.set("upgradeContract", options.upgradeContract);
     this.app.set("services", this.services);
+    this.app.set("throwIfAlreadyVerified", storageServiceOptions.throwIfAlreadyVerified ?? true);
 
     // Session API endpoints require non "*" origins because of the session cookies
     const sessionPaths = [

@@ -128,10 +128,12 @@ export interface StorageServiceOptions {
   sourcifyDatabaseServiceOptions?: DatabaseOptions;
   allianceDatabaseServiceOptions?: DatabaseOptions;
   s3RepositoryServiceOptions?: S3RepositoryServiceOptions;
+  throwIfAlreadyVerified?: boolean;
 }
 
 export class StorageService {
   enabledServices: EnabledServices;
+  throwIfAlreadyVerified: boolean = true;
 
   rwServices: { [key in RWStorageIdentifiers]: RWStorageService } = {} as {
     [key in RWStorageIdentifiers]: RWStorageService;
@@ -142,7 +144,7 @@ export class StorageService {
 
   constructor(options: StorageServiceOptions) {
     this.enabledServices = options.enabledServices;
-
+    this.throwIfAlreadyVerified = options.throwIfAlreadyVerified ?? true;
     const enabledServicesArray = [
       this.enabledServices.read,
       ...this.enabledServices.writeOrWarn,
@@ -330,17 +332,20 @@ export class StorageService {
       existingMatch.length > 0 &&
       !isBetterVerification(verification, existingMatch[0])
     ) {
-      logger.info("Partial match already exists", {
-        chain: verification.chainId,
-        address: verification.address,
-        newRuntimeMatch: verification.status.runtimeMatch,
-        newCreationMatch: verification.status.creationMatch,
-        existingRuntimeMatch: existingMatch[0].runtimeMatch,
-        existingCreationMatch: existingMatch[0].creationMatch,
-      });
-      throw new ConflictError(
-        `The contract ${verification.address} on chainId ${verification.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
-      );
+      if (this.throwIfAlreadyVerified)  {
+        logger.info("Partial match already exists", {
+          chain: verification.chainId,
+          address: verification.address,
+          newRuntimeMatch: verification.status.runtimeMatch,
+          newCreationMatch: verification.status.creationMatch,
+          existingRuntimeMatch: existingMatch[0].runtimeMatch,
+          existingCreationMatch: existingMatch[0].creationMatch,
+        });
+        throw new ConflictError(
+          `The contract ${verification.address} on chainId ${verification.chainId} is already partially verified. The provided new source code also yielded a partial match and will not be stored unless it's a full match`,
+        );
+      }
+      return;
     }
 
     // Initialize an array to hold active service promises

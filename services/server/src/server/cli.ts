@@ -154,6 +154,7 @@ const server = new Server(
       },
       schema: process.env.ALLIANCE_POSTGRES_SCHEMA as string,
     },
+    throwIfAlreadyVerified: config.get("throwIfAlreadyVerified"),
   },
 );
 
