@@ -5,6 +5,11 @@ import {
   SolidityMetadataContract,
   createMetadataContractsFromFiles,
   Verification,
+  SolidityJsonInput,
+  SolidityCompilation,
+  AbstractCompilation,
+  CompilationTarget,
+  SourcifyChain,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
@@ -14,6 +19,7 @@ import logger from "../../../../../common/logger";
 import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 import { DatabaseCompilation } from "../../../../services/utils/DatabaseCompilation";
 import { SourcifyDatabaseService } from "../../../../services/storageServices/SourcifyDatabaseService";
+import SourcifyChainMock from "../../../../services/utils/SourcifyChainMock";
 
 export async function verifyDeprecated(
   req: LegacyVerifyRequest,
@@ -134,100 +140,111 @@ export async function verifyDeprecated(
 }
 
 /**
- * This function is used to fix the creation information (match, transformations list, transformations values, metadata match) of contract with misaligned creation data.
+ * Endpoint: /private/replace-contract
  *
- * We beging by mocking both the compilation and the sourcifyChain information with data from the database, so that recompilation and rpc calls are not performed.
- * Then we verify the contract again with the new mocked compilation and sourcifyChain objects.
- * Finally we upgrade the misaligned contract by UPDATING the verified_contracts and sourcify_matches creation fields.
+ * This endpoint allows the Sourcify instance maintainer to replace an existing contract in the database,
+ * addressing issues with misaligned or incorrect contract data. Historically, fixing such issues required
+ * custom scripts for each case (#1974), but this endpoint provides a generic, maintainable solution.
+ * This new endpoint optimizes performance by optionally skipping recompilation and on-chain RPC calls,
+ * using data already stored in the database. This endpoint is private and should only be callable by the
+ * Sourcify instance maintainer.
+ *
+ * @param {string|number} req.body.chainId - The chain ID of the contract.
+ * @param {string} req.body.address - The contract address.
+ * @param {string} req.body.transactionHash - The creation transaction hash.
+ * @param {boolean} req.body.forceCompilation - If true, recompiles the contract using the provided jsonInput, compilerVersion and compilationTarget.
+ * @param {boolean} req.body.forceRPCRequest - If true, fetches the contract's information from the RPC.
+ * @param {object} [req.body.jsonInput] - If forceCompilation is true, provide jsonInput to use for recompilation.
+ * @param {string} [req.body.compilerVersion] - If forceCompilation is true, provide the compiler version to use for recompilation.
+ * @param {string} [req.body.compilationTarget] - If forceCompilation is true, provide the compilation target to use for recompilation.
  */
-export async function upgradeContract(
+export async function replaceContract(
   req: LegacyVerifyRequest,
   res: Response,
 ): Promise<any> {
-  const sourcifyMatchId = req.body.sourcifyMatchId;
-  if (!sourcifyMatchId) {
-    return res
-      .status(StatusCodes.BAD_REQUEST)
-      .send({ error: "sourcifyMatchId is required" });
+  // Extract the request body parameters
+  const address = req.body.address;
+  const transactionHash = req.body.transactionHash;
+  const chainId = req.body.chainId;
+
+  const forceCompilation = req.body.forceCompilation;
+  let jsonInput: SolidityJsonInput | undefined;
+  let compilerVersion: string | undefined;
+  let compilationTarget: CompilationTarget | undefined;
+  if (forceCompilation) {
+    jsonInput = req.body.jsonInput;
+    compilerVersion = req.body.compilerVersion;
+    compilationTarget = req.body.compilationTarget;
   }
 
+  const forceRPCRequest = req.body.forceRPCRequest;
+
+  // Get the solc compiler and services
   const solc = req.app.get("solc") as ISolidityCompiler;
   const services = req.app.get("services") as Services;
 
-  // Get the connection pool from storage service to fetch data
+  // Get the connection pool from SourcifyDatabaseService
   const sourcifyDatabaseService = services.storage.rwServices[
     "SourcifyDatabase"
   ] as SourcifyDatabaseService;
-
   if (!sourcifyDatabaseService) {
     return res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .send({ error: "Database service not available" });
   }
-
-  // Access the pool via the sourcifyDatabaseService
   const poolClient = await sourcifyDatabaseService.database.pool.connect();
 
   try {
-    const deploymentResult = await poolClient.query(
-      `SELECT 
-        verified_contracts.id as verified_contract_id,
-        contract_deployments.address,
-        contract_deployments.transaction_hash,
-        contract_deployments.chain_id,
-        contract_deployments.block_number,
-        contract_deployments.transaction_index,
-        encode(contract_deployments.deployer, 'hex') as deployer,
-        onchain_creation_code.code as onchain_creation_code,
-        onchain_runtime_code.code as onchain_runtime_code
-      FROM contract_deployments
-      JOIN verified_contracts ON verified_contracts.deployment_id = contract_deployments.id
-      JOIN sourcify_matches ON sourcify_matches.verified_contract_id = verified_contracts.id
-      JOIN contracts ON contracts.id = contract_deployments.contract_id
-      JOIN code onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
-      JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
-      WHERE sourcify_matches.id = $1`,
-      [sourcifyMatchId],
-    );
+    let compilation: AbstractCompilation;
+    if (!forceCompilation) {
+      // Create a DatabaseCompilation object to create a PreRunCompilation object
+      const databaseCompilation = new DatabaseCompilation(
+        solc,
+        sourcifyDatabaseService.database, // TODO: check
+        address,
+        chainId,
+        transactionHash,
+      );
+      compilation = await databaseCompilation.createCompilation();
+    } else {
+      // Create a SolidityCompilation object and compile it if forceCompilation is true
+      if (
+        jsonInput === undefined ||
+        compilerVersion === undefined ||
+        compilationTarget === undefined
+      ) {
+        throw new BadRequestError(
+          "jsonInput, compilerVersion and compilationTarget are required when forceCompilation is true",
+        );
+      }
+      compilation = new SolidityCompilation(
+        solc,
+        compilerVersion,
+        jsonInput,
+        compilationTarget,
+      );
+      await compilation.compile();
+    }
 
-    const address = `0x${deploymentResult.rows[0].address.toString("hex")}`;
-    const transactionHash = `0x${deploymentResult.rows[0].transaction_hash.toString("hex")}`;
-    const chainId = deploymentResult.rows[0].chain_id;
-
-    const databaseCompilation = new DatabaseCompilation(
-      solc,
-      sourcifyDatabaseService.database,
-      address,
-      chainId,
-      transactionHash,
-    );
-
-    const contractDeployment = deploymentResult.rows[0];
-
-    const sourcifyChainMock = {
-      getBytecode: async (address: string) => {
-        return `0x${contractDeployment.onchain_runtime_code.toString("hex")}`;
-      },
-      getTx: async (txHash: string) => {
-        return {
-          blockNumber: contractDeployment.block_number,
-          from: `0x${contractDeployment.deployer.toString("hex")}`,
-        };
-      },
-      getContractCreationBytecodeAndReceipt: async (address: string) => {
-        return {
-          creationBytecode: `0x${contractDeployment.onchain_creation_code.toString("hex")}`,
-          txReceipt: {
-            index: contractDeployment.transaction_index,
-          },
-        };
-      },
-      chainId: chainId,
-    };
+    let sourcifyChain: SourcifyChain;
+    if (!forceRPCRequest) {
+      // Create a SourcifyChainMock object filled with data from the database
+      sourcifyChain = new SourcifyChainMock(
+        poolClient, // TODO: check
+        chainId,
+        address,
+        transactionHash,
+      );
+      await (sourcifyChain as SourcifyChainMock).init();
+    } else {
+      // Use the chainRepository to get the sourcifyChain object and fetch the contract's information from the RPC
+      const chainRepository = req.app.get("chainRepository") as ChainRepository;
+      sourcifyChain = chainRepository.sourcifyChainMap[chainId];
+    }
 
     const verification = new Verification(
-      await databaseCompilation.createCompilation(),
-      sourcifyChainMock as any,
+      compilation,
+      sourcifyChain,
       address,
       transactionHash,
     );
@@ -240,69 +257,40 @@ export async function upgradeContract(
       verificationStatus.creationMatch === "perfect" ||
       verificationStatus.creationMatch === "partial";
 
-    let creationTransformations = null;
-    let creationValues = null;
-    let creationMetadataMatch = null;
-    if (creationMatch) {
-      creationTransformations = verification.transformations.creation.list
-        ? JSON.stringify(verification.transformations.creation.list)
-        : [];
-      creationValues = verification.transformations.creation.values
-        ? JSON.stringify(verification.transformations.creation.values)
-        : {};
-      creationMetadataMatch = verification.status.creationMatch === "perfect";
+    const runtimeMatch =
+      verificationStatus.runtimeMatch === "perfect" ||
+      verificationStatus.runtimeMatch === "partial";
+
+    // If the new verification leads to a non-match, we can't replace the contract
+    if (!runtimeMatch || !creationMatch) {
+      throw new BadRequestError(
+        "The contract is not verified or the verification is not perfect",
+      );
     }
 
-    // Begin transaction for database updates
-    await poolClient.query("BEGIN");
-
-    // 1. Update verified_contracts table using direct query
-    await poolClient.query(
-      `UPDATE verified_contracts SET 
-        creation_match = $1,
-        creation_transformations = $2,
-        creation_values = $3,
-        creation_metadata_match = $4
-      WHERE id = $5`,
-      [
-        creationMatch,
-        creationTransformations,
-        creationValues,
-        creationMetadataMatch,
-        contractDeployment.verified_contract_id,
-      ],
+    // Delete the old verification information from the database
+    await sourcifyDatabaseService.database.deleteMatch(
+      chainId,
+      address,
+      transactionHash,
     );
 
-    // 2. Update sourcify_matches table using direct query instead of updateSourcifyMatch
-    await poolClient.query(
-      `UPDATE sourcify_matches SET 
-        creation_match = $1
-      WHERE id = $2`,
-      [verificationStatus.creationMatch, sourcifyMatchId],
-    );
-
-    // Commit the transaction
-    await poolClient.query("COMMIT");
+    // Insert the new verification information into the database
+    await services.storage.storeVerification(verification.export());
 
     res.send({
-      result: {
-        message: "Contract upgrade successful",
-        verifiedContractId: contractDeployment.verified_contract_id,
-        sourcifyMatchId: sourcifyMatchId,
-      },
+      replaced: true,
+      address: address,
+      chainId: chainId,
+      transactionHash: transactionHash,
+      newStatus: verificationStatus,
     });
   } catch (error: any) {
-    // Rollback in case of error
-    if (poolClient) {
-      await poolClient.query("ROLLBACK");
-    }
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .send({ error: error.message });
   } finally {
     // Release the client back to the pool
-    if (poolClient) {
-      poolClient.release();
-    }
+    poolClient.release();
   }
 }
