@@ -11,6 +11,7 @@ import {
 } from "@ethereum-sourcify/lib-sourcify";
 import { bytesFromString } from "./database-util";
 import { Database } from "./Database";
+import logger from "../../../common/logger";
 
 export class DatabaseCompilation {
   public jsonInput?: SolidityJsonInput | VyperJsonInput;
@@ -30,21 +31,29 @@ export class DatabaseCompilation {
     public address: string,
     public chainId: number,
     public transactionHash: string,
-  ) {}
+  ) {
+    if (!this.database.isPoolInitialized()) {
+      logger.error("DatabaseCompilation: database pool not initialized");
+      throw new Error("DatabaseCompilation: database pool not initialized");
+    }
+  }
 
   async extractCompilationProperties() {
     try {
-      const poolClient = await this.database.pool.connect();
       // Fetch compilation data from the database
       const verifiedContractResult =
         await this.database.getVerifiedContractFromDeployment(
-          poolClient,
           this.chainId,
           bytesFromString(this.address),
           bytesFromString(this.transactionHash),
         );
 
       if (verifiedContractResult.rows.length === 0) {
+        logger.error("DatabaseCompilation: verified contract not found", {
+          chainId: this.chainId,
+          address: this.address,
+          transactionHash: this.transactionHash,
+        });
         throw new Error("Verified contract not found");
       }
 
@@ -118,7 +127,15 @@ export class DatabaseCompilation {
         },
       };
     } catch (error) {
-      console.error(error);
+      logger.error(
+        "DatabaseCompilation: error extracting compilation properties",
+        {
+          error: error,
+          chainId: this.chainId,
+          address: this.address,
+          transactionHash: this.transactionHash,
+        },
+      );
       throw error;
     }
   }
@@ -135,6 +152,11 @@ export class DatabaseCompilation {
       !this.creationCodeCborAuxdata ||
       !this.runtimeCodeCborAuxdata
     ) {
+      logger.error("DatabaseCompilation: compilation properties not found", {
+        chainId: this.chainId,
+        address: this.address,
+        transactionHash: this.transactionHash,
+      });
       throw new Error("Compilation properties not found");
     }
 

@@ -67,6 +67,10 @@ export class Database {
     return this._pool;
   }
 
+  isPoolInitialized(): boolean {
+    return this._pool != undefined;
+  }
+
   async initDatabasePool(identifier: string): Promise<boolean> {
     // if the database is already initialized
     if (this._pool != undefined) {
@@ -253,12 +257,11 @@ ${
   }
 
   async getVerifiedContractFromDeployment(
-    poolClient: PoolClient,
     chainId: number,
     address: Bytes,
     transactionHash: Bytes,
   ) {
-    return await poolClient.query(
+    return await this.pool.query(
       `SELECT 
           verified_contracts.*,
           sourcify_matches.metadata,
