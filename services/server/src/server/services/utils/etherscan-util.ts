@@ -19,7 +19,7 @@ import {
   MalformedEtherscanResponseError,
   NotEtherscanVerifiedError,
 } from "../../apiv2/errors";
-import SolidityParser from "@solidity-parser/parser";
+import { getContractPathFromSources } from "./parsing-util";
 
 interface VyperVersion {
   compiler_version: string;
@@ -151,42 +151,7 @@ export const getContractPathFromSourcesOrThrow = (
   sources: Sources,
   throwV2Errors: boolean,
 ): string => {
-  logger.debug(
-    "etherscan-util: Parsing sources for finding the contract path",
-    {
-      contractName,
-    },
-  );
-  const startTime = Date.now();
-  let contractPath: string | undefined;
-  for (const [path, { content }] of Object.entries(sources)) {
-    try {
-      const ast = SolidityParser.parse(content);
-      SolidityParser.visit(ast, {
-        ContractDefinition: (node) => {
-          if (node.name === contractName) {
-            contractPath = path;
-            return false; // Stop visiting
-          }
-        },
-      });
-    } catch (error) {
-      // Just continue, because the relevant contract might be in a different source file.
-      logger.warn(
-        "etherscan-util: Error parsing source code. Ignoring this source.",
-        {
-          path,
-          error,
-        },
-      );
-    }
-  }
-  const endTime = Date.now();
-  logger.debug("etherscan-util: Parsing for all sources done", {
-    contractName,
-    contractPath,
-    timeInMs: endTime - startTime,
-  });
+  const contractPath = getContractPathFromSources(contractName, sources);
 
   if (contractPath === undefined) {
     const errorMessage =
@@ -195,6 +160,7 @@ export const getContractPathFromSourcesOrThrow = (
       ? new MalformedEtherscanResponseError(errorMessage)
       : new BadRequestError(errorMessage);
   }
+
   return contractPath;
 };
 
