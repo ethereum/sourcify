@@ -3,6 +3,7 @@ import AbstractDatabaseService from "./AbstractDatabaseService";
 import { WStorageService } from "../StorageService";
 import { VerificationExport } from "@ethereum-sourcify/lib-sourcify";
 import { WStorageIdentifiers } from "./identifiers";
+import { withTransaction } from "../utils/database-util";
 
 export class AllianceDatabaseService
   extends AbstractDatabaseService
@@ -14,7 +15,20 @@ export class AllianceDatabaseService
     if (!verification.status.creationMatch) {
       throw new Error("Can't store to AllianceDatabase without creationMatch");
     }
-    await super.insertOrUpdateVerification(verification);
+    await withTransaction(
+      this.database,
+      async (transactionPoolClient) => {
+        await super.insertOrUpdateVerification(
+          verification,
+          transactionPoolClient,
+        );
+      },
+      (error) => {
+        logger.error("Error storing verification", {
+          error: error,
+        });
+      },
+    );
     logger.info("Stored to AllianceDatabase", {
       name: verification.compilation.compilationTarget.name,
       address: verification.address,

@@ -27,6 +27,8 @@ import {
   Nullable,
 } from "../../types";
 import { keccak256 } from "ethers";
+import { Database } from "./Database";
+import { PoolClient } from "pg";
 
 export type JobErrorData = Omit<SourcifyLibErrorData, "chainId" | "address">;
 
@@ -804,4 +806,27 @@ export function prepareCompilerSettingsFromVerification(
   const { outputSelection, ...restSettings } =
     verification.compilation.jsonInput.settings;
   return restSettings;
+}
+
+// Transaction wrapper utility
+export async function withTransaction<T>(
+  database: Database,
+  callback: (client: PoolClient) => Promise<T>,
+  errorCallback?: (error: unknown) => void,
+): Promise<T> {
+  const client = await database.pool.connect();
+  try {
+    await client.query("BEGIN");
+    const result = await callback(client);
+    await client.query("COMMIT");
+    return result;
+  } catch (error) {
+    await client.query("ROLLBACK");
+    if (errorCallback) {
+      errorCallback(error);
+    }
+    throw error;
+  } finally {
+    client.release();
+  }
 }

@@ -12,6 +12,7 @@ import {
   Field,
   FIELDS_TO_STORED_PROPERTIES,
   StoredProperties,
+  withTransaction,
 } from "../utils/database-util";
 import {
   ContractData,
@@ -46,6 +47,7 @@ import {
   VerificationErrorCode,
 } from "../../apiv2/errors";
 import { VerifyErrorExport } from "../workers/workerTypes";
+import { PoolClient } from "pg";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -884,73 +886,122 @@ export class SourcifyDatabaseService
   }
 
   // Override this method to include the SourcifyMatch
-  async storeVerification(
+  async storeVerificationWithPoolClient(
+    poolClient: PoolClient,
     verification: VerificationExport,
     jobData?: {
       verificationId: VerificationJobId;
       finishTime: Date;
     },
   ): Promise<void> {
-    const { type, verifiedContractId, oldVerifiedContractId } =
-      await super.insertOrUpdateVerification(verification);
+    try {
+      const { type, verifiedContractId, oldVerifiedContractId } =
+        await super.insertOrUpdateVerification(verification, poolClient);
 
-    if (type === "insert") {
-      if (!verifiedContractId) {
+      if (type === "insert") {
+        if (!verifiedContractId) {
+          throw new Error(
+            "VerifiedContractId undefined before inserting sourcify match",
+          );
+        }
+        await this.database.insertSourcifyMatch(
+          {
+            verified_contract_id: verifiedContractId,
+            creation_match: verification.status.creationMatch,
+            runtime_match: verification.status.runtimeMatch,
+            metadata: verification.compilation.metadata as any,
+          },
+          poolClient,
+        );
+        logger.info("Stored to SourcifyDatabase", {
+          address: verification.address,
+          chainId: verification.chainId,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
+        });
+      } else if (type === "update") {
+        if (!oldVerifiedContractId) {
+          throw new Error(
+            "oldVerifiedContractId undefined before updating sourcify match",
+          );
+        }
+        await this.database.updateSourcifyMatch(
+          {
+            verified_contract_id: verifiedContractId,
+            creation_match: verification.status.creationMatch,
+            runtime_match: verification.status.runtimeMatch,
+            metadata: verification.compilation.metadata as any,
+          },
+          oldVerifiedContractId,
+          poolClient,
+        );
+        logger.info("Updated in SourcifyDatabase", {
+          address: verification.address,
+          chainId: verification.chainId,
+          runtimeMatch: verification.status.runtimeMatch,
+          creationMatch: verification.status.creationMatch,
+        });
+      } else {
         throw new Error(
-          "VerifiedContractId undefined before inserting sourcify match",
+          "insertOrUpdateVerifiedContract returned a type that doesn't exist",
         );
       }
-      await this.database.insertSourcifyMatch({
-        verified_contract_id: verifiedContractId,
-        creation_match: verification.status.creationMatch,
-        runtime_match: verification.status.runtimeMatch,
-        metadata: verification.compilation.metadata as any,
-      });
-      logger.info("Stored to SourcifyDatabase", {
-        address: verification.address,
-        chainId: verification.chainId,
-        runtimeMatch: verification.status.runtimeMatch,
-        creationMatch: verification.status.creationMatch,
-      });
-    } else if (type === "update") {
-      if (!oldVerifiedContractId) {
-        throw new Error(
-          "oldVerifiedContractId undefined before updating sourcify match",
+
+      // Update the verification job to be successful
+      if (jobData) {
+        await this.database.updateVerificationJob(
+          {
+            id: jobData.verificationId,
+            completed_at: jobData.finishTime,
+            verified_contract_id: verifiedContractId,
+            compilation_time:
+              verification.compilation.compilationTime?.toString() || null,
+            error_code: null,
+            error_id: null,
+            error_data: null,
+          },
+          poolClient,
         );
       }
-      await this.database.updateSourcifyMatch(
-        {
-          verified_contract_id: verifiedContractId,
-          creation_match: verification.status.creationMatch,
-          runtime_match: verification.status.runtimeMatch,
-          metadata: verification.compilation.metadata as any,
-        },
-        oldVerifiedContractId,
-      );
-      logger.info("Updated in SourcifyDatabase", {
-        address: verification.address,
-        chainId: verification.chainId,
-        runtimeMatch: verification.status.runtimeMatch,
-        creationMatch: verification.status.creationMatch,
+    } catch (error: any) {
+      logger.error("Error storing verification", {
+        error: error,
       });
-    } else {
-      throw new Error(
-        "insertOrUpdateVerifiedContract returned a type that doesn't exist",
-      );
+      throw error;
     }
+  }
 
-    // Update the verification job to be successful
-    if (jobData) {
-      await this.database.updateVerificationJob({
-        id: jobData.verificationId,
-        completed_at: jobData.finishTime,
-        verified_contract_id: verifiedContractId,
-        compilation_time:
-          verification.compilation.compilationTime?.toString() || null,
-        error_code: null,
-        error_id: null,
-        error_data: null,
-      });
+  // Override this method to include the SourcifyMatch
+  async storeVerification(
+    verification: VerificationExport,
+    jobData?: {
+      verificationId: VerificationJobId;
+      finishTime: Date;
+    },
+    alternativePoolClient?: PoolClient,
+  ): Promise<void> {
+    if (!alternativePoolClient) {
+      await withTransaction(
+        this.database,
+        async (transactionPoolClient) => {
+          await this.storeVerificationWithPoolClient(
+            transactionPoolClient,
+            verification,
+            jobData,
+          );
+        },
+        (error) => {
+          logger.error("Error storing verification", {
+            error: error,
+          });
+        },
+      );
+    } else {
+      await this.storeVerificationWithPoolClient(
+        alternativePoolClient,
+        verification,
+        jobData,
+      );
     }
   }
 }
