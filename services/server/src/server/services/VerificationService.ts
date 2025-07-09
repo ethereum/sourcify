@@ -174,7 +174,7 @@ export class VerificationService {
     await Promise.all(this.runningTasks);
   }
 
-  private throwErrorIfContractIsAlreadyBeingVerified(
+  private async throwErrorIfContractIsAlreadyBeingVerified(
     chainId: string,
     address: string,
   ) {
@@ -182,8 +182,28 @@ export class VerificationService {
       this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] !==
       undefined
     ) {
-      logger.warn("Contract already being verified", { chainId, address });
+      logger.warn("Contract already being verified via API v1", {
+        chainId,
+        address,
+      });
       throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
+    }
+
+    if (
+      this.storageService.getDefaultReadService()
+        .getVerificationJobsByChainAndAddress
+    ) {
+      const jobs = await this.storageService.performServiceOperation(
+        "getVerificationJobsByChainAndAddress",
+        [chainId, address],
+      );
+      if (jobs.length > 0 && jobs.some((job) => !job.isJobCompleted)) {
+        logger.warn("Contract already being verified via a worker", {
+          chainId,
+          address,
+        });
+        throw new ContractIsAlreadyBeingVerifiedError(chainId, address);
+      }
     }
   }
 
@@ -243,7 +263,7 @@ export class VerificationService {
       chainId,
       address,
     });
-    this.throwErrorIfContractIsAlreadyBeingVerified(chainId, address);
+    await this.throwErrorIfContractIsAlreadyBeingVerified(chainId, address);
     this.activeVerificationsByChainIdAddress[`${chainId}:${address}`] = true;
 
     const foundCreatorTxHash =
