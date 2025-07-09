@@ -1,6 +1,7 @@
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import { TransactionReceipt, TransactionResponse } from "ethers";
 import { PoolClient } from "pg";
+import { bytesFromString } from "./database-util";
 
 interface ContractDeployment {
   verified_contract_id: number;
@@ -25,7 +26,7 @@ export default class SourcifyChainMock extends SourcifyChain {
     super({
       name: "SourcifyChainMock",
       chainId: chainId,
-      rpc: [],
+      rpc: ["http://mock"],
       supported: true,
     });
   }
@@ -49,7 +50,11 @@ export default class SourcifyChainMock extends SourcifyChain {
         JOIN code onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
         JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
         WHERE contract_deployments.address = $1 AND contract_deployments.transaction_hash = $2 AND contract_deployments.chain_id = $3`,
-      [this.address, this.transactionHash, this.chainId],
+      [
+        bytesFromString(this.address),
+        bytesFromString(this.transactionHash),
+        this.chainId,
+      ],
     );
     if (deploymentResult.rows.length === 0) {
       throw new Error("Contract not found");

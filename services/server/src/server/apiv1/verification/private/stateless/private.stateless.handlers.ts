@@ -156,7 +156,7 @@ export async function verifyDeprecated(
  * @param {boolean} req.body.forceRPCRequest - If true, fetches the contract's information from the RPC.
  * @param {object} [req.body.jsonInput] - If forceCompilation is true, provide jsonInput to use for recompilation.
  * @param {string} [req.body.compilerVersion] - If forceCompilation is true, provide the compiler version to use for recompilation.
- * @param {string} [req.body.compilationTarget] - If forceCompilation is true, provide the compilation target to use for recompilation.
+ * @param {object} [req.body.compilationTarget] - If forceCompilation is true, provide the compilation target to use for recompilation.
  */
 export async function replaceContract(
   req: LegacyVerifyRequest,
