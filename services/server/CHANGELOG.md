@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@3.2.1 - 2025-07-09
+
+- Move CORS settings as the first middleware (#2204)
+- Verify via SolidityCompilation directly inside /verify/solc-json endpoint (#2216)
+- update dependencies
+
+
 ## sourcify-server@3.2.0 - 2025-06-18
 
 - Add new endpoint /v2/contract/all-chains/{address} to get all verified deployments of a contract on all chains #2183
