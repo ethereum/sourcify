@@ -10,6 +10,9 @@ import {
   AbstractCompilation,
   CompilationTarget,
   SourcifyChain,
+  VyperJsonInput,
+  IVyperCompiler,
+  VyperCompilation,
 } from "@ethereum-sourcify/lib-sourcify";
 import { BadRequestError, NotFoundError } from "../../../../../common/errors";
 import { StatusCodes } from "http-status-codes";
@@ -169,7 +172,7 @@ export async function replaceContract(
   const chainId = req.body.chainId;
 
   const forceCompilation = req.body.forceCompilation;
-  let jsonInput: SolidityJsonInput | undefined;
+  let jsonInput: SolidityJsonInput | VyperJsonInput | undefined;
   let compilerVersion: string | undefined;
   let compilationTarget: CompilationTarget | undefined;
   if (forceCompilation) {
@@ -182,6 +185,7 @@ export async function replaceContract(
 
   // Get the solc compiler and services
   const solc = req.app.get("solc") as ISolidityCompiler;
+  const vyper = req.app.get("vyper") as IVyperCompiler;
   const services = req.app.get("services") as Services;
 
   // Get the connection pool from SourcifyDatabaseService
@@ -199,7 +203,7 @@ export async function replaceContract(
     if (!forceCompilation) {
       // Create a DatabaseCompilation object to create a PreRunCompilation object
       const databaseCompilation = new DatabaseCompilation(
-        solc,
+        jsonInput?.language === "Solidity" ? solc : vyper,
         sourcifyDatabaseService.database,
         address,
         chainId,
@@ -217,12 +221,25 @@ export async function replaceContract(
           "jsonInput, compilerVersion and compilationTarget are required when forceCompilation is true",
         );
       }
-      compilation = new SolidityCompilation(
-        solc,
-        compilerVersion,
-        jsonInput,
-        compilationTarget,
-      );
+      if (jsonInput?.language === "Solidity") {
+        compilation = new SolidityCompilation(
+          solc,
+          compilerVersion,
+          jsonInput as SolidityJsonInput,
+          compilationTarget,
+        );
+      } else if (jsonInput?.language === "Vyper") {
+        compilation = new VyperCompilation(
+          vyper,
+          compilerVersion,
+          jsonInput as VyperJsonInput,
+          compilationTarget,
+        );
+      } else {
+        throw new BadRequestError(
+          "Invalid language. Only Solidity and Vyper are supported",
+        );
+      }
       await compilation.compile();
     }
 

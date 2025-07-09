@@ -1586,5 +1586,212 @@ describe("/", function () {
         .expect(restoredMatchResult.rows[0].creation_match)
         .to.equal(originalCreationMatch);
     });
+
+    it("should replace a vyper match contract and remove old data", async () => {
+      // Load Vyper test contract artifacts and source
+      const vyperArtifact = (
+        await import("../../../sources/vyper/testcontract/artifact.json")
+      ).default;
+      const vyperSourcePath = path.join(
+        __dirname,
+        "..",
+        "..",
+        "..",
+        "sources",
+        "vyper",
+        "testcontract",
+        "test.vy",
+      );
+      const vyperSource = fs.readFileSync(vyperSourcePath, "utf8");
+
+      // Deploy the Vyper contract
+      const { contractAddress, txHash } =
+        await deployFromAbiAndBytecodeForCreatorTxHash(
+          chainFixture.localSigner,
+          vyperArtifact.abi,
+          vyperArtifact.bytecode,
+        );
+
+      // First, verify the Vyper contract normally to get a partial match
+      const res = await chai
+        .request(serverFixture.server.app)
+        .post("/verify/vyper")
+        .send({
+          address: contractAddress,
+          chain: chainFixture.chainId,
+          creatorTxHash: txHash,
+          files: {
+            "test.vy": vyperSource,
+          },
+          contractPath: "test.vy",
+          contractName: "test",
+          compilerVersion: "0.3.10+commit.91361694",
+          compilerSettings: {
+            evmVersion: "istanbul",
+            outputSelection: {
+              "*": ["evm.bytecode"],
+            },
+          },
+        });
+
+      await assertVerification(
+        serverFixture,
+        null,
+        res,
+        null,
+        contractAddress,
+        chainFixture.chainId,
+        "partial",
+      );
+
+      // Get the original runtime bytecode hash before corruption
+      const originalBytecodeResult = await serverFixture.sourcifyDatabase.query(
+        `SELECT code.code_hash_keccak as runtime_bytecode_keccak
+         FROM contracts c 
+         JOIN code ON code.code_hash = c.runtime_code_hash 
+         JOIN contract_deployments cd ON cd.contract_id = c.id 
+         WHERE cd.address = $1`,
+        [Buffer.from(contractAddress.substring(2), "hex")],
+      );
+      const originalRuntimeBytecode =
+        originalBytecodeResult.rows[0].runtime_bytecode_keccak;
+
+      // Manually corrupt the runtime bytecode hash in the database to test replacement
+      await serverFixture.sourcifyDatabase.query(
+        `UPDATE code SET code_hash_keccak = decode($1, 'hex')
+         WHERE code_hash IN (
+           SELECT c.runtime_code_hash 
+           FROM contracts c 
+           JOIN contract_deployments cd ON cd.contract_id = c.id 
+           WHERE cd.address = $2
+         )`,
+        ["deadbeef", Buffer.from(contractAddress.substring(2), "hex")],
+      );
+
+      // Prepare VyperJsonInput for force compilation
+      const vyperJsonInput = {
+        language: "Vyper" as const,
+        sources: {
+          "test.vy": {
+            content: vyperSource,
+          },
+        },
+        settings: {
+          evmVersion: "istanbul" as const,
+          outputSelection: {
+            "*": ["evm.bytecode", "evm.deployedBytecode"],
+          },
+        },
+      };
+
+      // Call replace-contract endpoint with forceCompilation: true for Vyper
+      const replaceRes = await chai
+        .request(serverFixture.server.app)
+        .post("/private/replace-contract")
+        .set("authorization", `Bearer sourcify-test-token`)
+        .send({
+          address: contractAddress,
+          chainId: chainFixture.chainId,
+          transactionHash: txHash,
+          forceCompilation: true,
+          forceRPCRequest: false,
+          jsonInput: vyperJsonInput,
+          compilerVersion: "0.3.10+commit.91361694",
+          compilationTarget: {
+            name: "test",
+            path: "test.vy",
+          },
+        });
+
+      chai.expect(replaceRes.status).to.equal(StatusCodes.OK);
+      chai.expect(replaceRes.body.replaced).to.be.true;
+      chai.expect(replaceRes.body.address).to.equal(contractAddress);
+      chai.expect(replaceRes.body.chainId).to.equal(chainFixture.chainId);
+      chai.expect(replaceRes.body.newStatus.runtimeMatch).to.equal("partial");
+      chai.expect(replaceRes.body.newStatus.creationMatch).to.equal("partial");
+
+      // Verify that runtime bytecode hash was restored to original value
+      const restoredBytecodeResult = await serverFixture.sourcifyDatabase.query(
+        `SELECT code.code_hash_keccak as runtime_bytecode_keccak
+         FROM contracts c 
+         JOIN code ON code.code_hash = c.runtime_code_hash 
+         JOIN contract_deployments cd ON cd.contract_id = c.id 
+         WHERE cd.address = $1`,
+        [Buffer.from(contractAddress.substring(2), "hex")],
+      );
+      chai
+        .expect(restoredBytecodeResult.rows[0].runtime_bytecode_keccak)
+        .to.deep.equal(originalRuntimeBytecode);
+
+      // Verify all database tables contain only the new Vyper contract data
+      const finalVerificationResult =
+        await serverFixture.sourcifyDatabase.query(
+          "SELECT runtime_match, creation_match FROM verified_contracts",
+        );
+      chai.expect(finalVerificationResult.rows).to.have.length(1);
+      chai.expect(finalVerificationResult.rows[0].runtime_match).to.be.true;
+      chai.expect(finalVerificationResult.rows[0].creation_match).to.be.true;
+
+      // Verify sourcify_matches table contains only the new partial match
+      const sourcifyMatchesResult = await serverFixture.sourcifyDatabase.query(
+        "SELECT runtime_match, creation_match FROM sourcify_matches",
+      );
+      chai.expect(sourcifyMatchesResult.rows).to.have.length(1);
+      chai
+        .expect(sourcifyMatchesResult.rows[0].runtime_match)
+        .to.equal("partial");
+      chai
+        .expect(sourcifyMatchesResult.rows[0].creation_match)
+        .to.equal("partial");
+
+      // Check compiled_contracts - should only have the new Vyper compilation
+      const compiledContractsResult =
+        await serverFixture.sourcifyDatabase.query(
+          "SELECT COUNT(*) as count, name, language FROM compiled_contracts GROUP BY name, language",
+        );
+      chai.expect(compiledContractsResult.rows[0].name).to.equal("test");
+      chai.expect(compiledContractsResult.rows[0].language).to.equal("vyper");
+      chai.expect(parseInt(compiledContractsResult.rows[0].count)).to.equal(1);
+
+      // Check compiled_contracts_sources - should only have sources for the new compilation
+      const compiledContractsSourcesResult =
+        await serverFixture.sourcifyDatabase.query(
+          "SELECT COUNT(*) as count FROM compiled_contracts_sources",
+        );
+      chai
+        .expect(parseInt(compiledContractsSourcesResult.rows[0].count))
+        .to.equal(1);
+
+      // Check sources - should only have sources for the new contract
+      const sourcesResult = await serverFixture.sourcifyDatabase.query(
+        "SELECT COUNT(*) as count FROM sources",
+      );
+      chai.expect(parseInt(sourcesResult.rows[0].count)).to.equal(1);
+
+      // Check contract_deployments - should only have the new deployment
+      const contractDeploymentsResult =
+        await serverFixture.sourcifyDatabase.query(
+          "SELECT COUNT(*) as count, encode(address, 'hex') as address FROM contract_deployments GROUP BY address",
+        );
+      chai
+        .expect(contractDeploymentsResult.rows[0].address.toLowerCase())
+        .to.equal(contractAddress.toLowerCase().substring(2));
+      chai
+        .expect(parseInt(contractDeploymentsResult.rows[0].count))
+        .to.equal(1);
+
+      // Check contracts - should only have the new contract
+      const contractsResult = await serverFixture.sourcifyDatabase.query(
+        "SELECT COUNT(*) as count FROM contracts",
+      );
+      chai.expect(parseInt(contractsResult.rows[0].count)).to.equal(1);
+
+      // Check code - should only have code for the new contract (creation + runtime)
+      const codeResult = await serverFixture.sourcifyDatabase.query(
+        "SELECT COUNT(*) as count FROM code",
+      );
+      // Should have exactly 2 code entries: creation and runtime bytecode
+      chai.expect(parseInt(codeResult.rows[0].count)).to.equal(2);
+    });
   });
 });
