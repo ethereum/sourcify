@@ -1,7 +1,8 @@
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import { TransactionReceipt, TransactionResponse } from "ethers";
-import { PoolClient } from "pg";
 import { bytesFromString } from "./database-util";
+import { Database } from "./Database";
+import logger from "../../../common/logger";
 
 interface ContractDeployment {
   verified_contract_id: number;
@@ -18,7 +19,7 @@ interface ContractDeployment {
 export default class SourcifyChainMock extends SourcifyChain {
   public contractDeployment?: ContractDeployment;
   constructor(
-    private readonly poolClient: PoolClient,
+    public database: Database,
     public readonly chainId: number,
     private readonly address: string,
     private readonly transactionHash: string,
@@ -29,32 +30,17 @@ export default class SourcifyChainMock extends SourcifyChain {
       rpc: ["http://mock"],
       supported: true,
     });
+    if (!this.database.isPoolInitialized()) {
+      logger.error("SourcifyChainMock: database pool not initialized");
+      throw new Error("SourcifyChainMock: database pool not initialized");
+    }
   }
 
   async init() {
-    const deploymentResult = await this.poolClient.query(
-      `SELECT 
-          verified_contracts.id as verified_contract_id,
-          contract_deployments.address,
-          contract_deployments.transaction_hash,
-          contract_deployments.chain_id,
-          contract_deployments.block_number,
-          contract_deployments.transaction_index,
-          encode(contract_deployments.deployer, 'hex') as deployer,
-          onchain_creation_code.code as onchain_creation_code,
-          onchain_runtime_code.code as onchain_runtime_code
-        FROM contract_deployments
-        JOIN verified_contracts ON verified_contracts.deployment_id = contract_deployments.id
-        JOIN sourcify_matches ON sourcify_matches.verified_contract_id = verified_contracts.id
-        JOIN contracts ON contracts.id = contract_deployments.contract_id
-        JOIN code onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
-        JOIN code onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
-        WHERE contract_deployments.address = $1 AND contract_deployments.transaction_hash = $2 AND contract_deployments.chain_id = $3`,
-      [
-        bytesFromString(this.address),
-        bytesFromString(this.transactionHash),
-        this.chainId,
-      ],
+    const deploymentResult = await this.database.getContractDeploymentInfo(
+      this.chainId,
+      bytesFromString(this.address),
+      bytesFromString(this.transactionHash),
     );
     if (deploymentResult.rows.length === 0) {
       throw new Error("Contract not found");

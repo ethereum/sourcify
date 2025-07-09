@@ -192,7 +192,6 @@ export async function replaceContract(
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .send({ error: "Database service not available" });
   }
-  const poolClient = await sourcifyDatabaseService.database.pool.connect();
 
   try {
     let compilation: AbstractCompilation;
@@ -200,7 +199,7 @@ export async function replaceContract(
       // Create a DatabaseCompilation object to create a PreRunCompilation object
       const databaseCompilation = new DatabaseCompilation(
         solc,
-        sourcifyDatabaseService.database, // TODO: check
+        sourcifyDatabaseService.database,
         address,
         chainId,
         transactionHash,
@@ -230,7 +229,7 @@ export async function replaceContract(
     if (!forceRPCRequest) {
       // Create a SourcifyChainMock object filled with data from the database
       sourcifyChain = new SourcifyChainMock(
-        poolClient, // TODO: check
+        sourcifyDatabaseService.database,
         chainId,
         address,
         transactionHash,
@@ -289,8 +288,5 @@ export async function replaceContract(
     res
       .status(StatusCodes.INTERNAL_SERVER_ERROR)
       .send({ error: error.message });
-  } finally {
-    // Release the client back to the pool
-    poolClient.release();
   }
 }

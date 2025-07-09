@@ -291,6 +291,33 @@ ${
     );
   }
 
+  async getContractDeploymentInfo(
+    chainId: number,
+    address: Bytes,
+    transactionHash: Bytes,
+  ) {
+    return await this.pool.query(
+      `SELECT 
+          verified_contracts.id as verified_contract_id,
+          contract_deployments.address,
+          contract_deployments.transaction_hash,
+          contract_deployments.chain_id,
+          contract_deployments.block_number,
+          contract_deployments.transaction_index,
+          encode(contract_deployments.deployer, 'hex') as deployer,
+          onchain_creation_code.code as onchain_creation_code,
+          onchain_runtime_code.code as onchain_runtime_code
+        FROM ${this.schema}.contract_deployments
+        JOIN ${this.schema}.verified_contracts ON verified_contracts.deployment_id = contract_deployments.id
+        JOIN ${this.schema}.sourcify_matches ON sourcify_matches.verified_contract_id = verified_contracts.id
+        JOIN ${this.schema}.contracts ON contracts.id = contract_deployments.contract_id
+        JOIN ${this.schema}.code onchain_creation_code ON onchain_creation_code.code_hash = contracts.creation_code_hash
+        JOIN ${this.schema}.code onchain_runtime_code ON onchain_runtime_code.code_hash = contracts.runtime_code_hash
+        WHERE contract_deployments.address = $1 AND contract_deployments.transaction_hash = $2 AND contract_deployments.chain_id = $3`,
+      [address, transactionHash, chainId],
+    );
+  }
+
   async insertSourcifyMatch({
     verified_contract_id,
     runtime_match,
