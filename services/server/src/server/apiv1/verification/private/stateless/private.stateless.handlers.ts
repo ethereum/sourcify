@@ -20,6 +20,7 @@ import { getApiV1ResponseFromVerification } from "../../../controllers.common";
 import { DatabaseCompilation } from "../../../../services/utils/DatabaseCompilation";
 import { SourcifyDatabaseService } from "../../../../services/storageServices/SourcifyDatabaseService";
 import SourcifyChainMock from "../../../../services/utils/SourcifyChainMock";
+import { withTransaction } from "../../../../services/utils/database-util";
 
 export async function verifyDeprecated(
   req: LegacyVerifyRequest,
@@ -267,34 +268,31 @@ export async function replaceContract(
       );
     }
 
-    const poolClient = await sourcifyDatabaseService.database.pool.connect();
-    try {
-      poolClient.query("BEGIN");
-      // Delete the old verification information from the database
-      await sourcifyDatabaseService.database.deleteMatch(
-        poolClient,
-        chainId,
-        address,
-        transactionHash,
-      );
+    await withTransaction(
+      sourcifyDatabaseService.database,
+      async (transactionPoolClient) => {
+        // Delete the old verification information from the database
+        await sourcifyDatabaseService.database.deleteMatch(
+          transactionPoolClient,
+          chainId,
+          address,
+          transactionHash,
+        );
 
-      // Insert the new verification information into the database
-      await sourcifyDatabaseService.storeVerification(
-        verification.export(),
-        undefined, // jobData
-        poolClient,
-      );
-      poolClient.query("COMMIT");
-    } catch (error: any) {
-      poolClient.query("ROLLBACK");
-      logger.error("Error replacing contract", {
-        error: error,
-        verification: verification.export(),
-      });
-      throw error;
-    } finally {
-      poolClient.release();
-    }
+        // Insert the new verification information into the database
+        await sourcifyDatabaseService.storeVerification(
+          verification.export(),
+          undefined, // jobData
+          transactionPoolClient,
+        );
+      },
+      (error) => {
+        logger.error("Error replacing contract", {
+          error: error,
+          verification: verification.export(),
+        });
+      },
+    );
 
     res.send({
       replaced: true,

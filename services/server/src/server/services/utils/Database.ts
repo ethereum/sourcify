@@ -350,8 +350,9 @@ ${
       metadata,
     }: Omit<Tables.SourcifyMatch, "created_at" | "id">,
     oldVerifiedContractId: string,
+    poolClient?: PoolClient,
   ) {
-    await this.pool.query(
+    await (poolClient || this.pool).query(
       `UPDATE ${this.schema}.sourcify_matches SET 
       verified_contract_id = $1,
       creation_match=$2,
@@ -922,25 +923,28 @@ ${
     );
   }
 
-  async updateVerificationJob({
-    id,
-    completed_at,
-    verified_contract_id,
-    compilation_time,
-    error_code,
-    error_id,
-    error_data,
-  }: Pick<
-    Tables.VerificationJob,
-    | "id"
-    | "completed_at"
-    | "verified_contract_id"
-    | "compilation_time"
-    | "error_code"
-    | "error_id"
-    | "error_data"
-  >): Promise<void> {
-    await this.pool.query(
+  async updateVerificationJob(
+    {
+      id,
+      completed_at,
+      verified_contract_id,
+      compilation_time,
+      error_code,
+      error_id,
+      error_data,
+    }: Pick<
+      Tables.VerificationJob,
+      | "id"
+      | "completed_at"
+      | "verified_contract_id"
+      | "compilation_time"
+      | "error_code"
+      | "error_id"
+      | "error_data"
+    >,
+    poolClient?: PoolClient,
+  ): Promise<void> {
+    await (poolClient || this.pool).query(
       `UPDATE ${this.schema}.verification_jobs 
       SET 
         completed_at = $2,
