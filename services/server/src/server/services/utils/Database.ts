@@ -240,8 +240,9 @@ ${
   async getVerifiedContractByChainAndAddress(
     chain: number,
     address: Bytes,
+    poolClient?: PoolClient,
   ): Promise<QueryResult<GetVerifiedContractByChainAndAddressResult>> {
-    return await this.pool.query(
+    return await (poolClient || this.pool).query(
       `
         SELECT
           verified_contracts.*,

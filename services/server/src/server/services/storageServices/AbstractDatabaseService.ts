@@ -41,98 +41,125 @@ export default abstract class AbstractDatabaseService {
     return true;
   }
 
-  async insertNewVerifiedContract(
+  async insertNewVerifiedContractWithExistingPoolClient(
     databaseColumns: DatabaseUtil.DatabaseColumns,
-    poolClient?: PoolClient,
+    client: PoolClient,
+  ): Promise<string> {
+    try {
+      return await this.insertNewVerifiedContract(databaseColumns, client);
+    } catch (e) {
+      throw new Error(
+        `cannot insert verified_contract address=${databaseColumns.contractDeployment.address} chainId=${databaseColumns.contractDeployment.chain_id}\n${e}`,
+      );
+    }
+  }
+
+  async insertNewVerifiedContractCreatingPoolClient(
+    databaseColumns: DatabaseUtil.DatabaseColumns,
   ): Promise<string> {
     // Get a client from the pool, so that we can execute all the insert queries within the same transaction
-    const client = poolClient || (await this.database.pool.connect());
+    const client = await this.database.pool.connect();
 
     try {
       // Start the sql transaction
       await client.query("BEGIN");
-      let recompiledCreationCodeInsertResult:
-        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
-        | undefined;
-      let onchainCreationCodeInsertResult:
-        | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
-        | undefined;
 
-      // Add recompiled bytecodes
-      if (databaseColumns.recompiledCreationCode) {
-        recompiledCreationCodeInsertResult = await this.database.insertCode(
-          client,
-          databaseColumns.recompiledCreationCode,
-        );
-      }
-      const recompiledRuntimeCodeInsertResult = await this.database.insertCode(
+      const verifiedContractInsertId = await this.insertNewVerifiedContract(
+        databaseColumns,
         client,
-        databaseColumns.recompiledRuntimeCode,
       );
 
-      // Add onchain bytecodes
-      if (databaseColumns.onchainCreationCode) {
-        onchainCreationCodeInsertResult = await this.database.insertCode(
-          client,
-          databaseColumns.onchainCreationCode,
-        );
-      }
-      const onchainRuntimeCodeInsertResult = await this.database.insertCode(
-        client,
-        databaseColumns.onchainRuntimeCode,
-      );
-
-      // Add the onchain contract in contracts
-      const contractInsertResult = await this.database.insertContract(client, {
-        creation_bytecode_hash:
-          onchainCreationCodeInsertResult?.rows[0].bytecode_hash,
-        runtime_bytecode_hash:
-          onchainRuntimeCodeInsertResult.rows[0].bytecode_hash,
-      });
-
-      // add the onchain contract in contract_deployments
-      const contractDeploymentInsertResult =
-        await this.database.insertContractDeployment(client, {
-          ...databaseColumns.contractDeployment,
-          contract_id: contractInsertResult.rows[0].id,
-        });
-
-      // insert new recompiled contract
-      const compiledContractsInsertResult =
-        await this.database.insertCompiledContract(client, {
-          ...databaseColumns.compiledContract,
-          creation_code_hash:
-            recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
-          runtime_code_hash:
-            recompiledRuntimeCodeInsertResult.rows[0].bytecode_hash,
-        });
-
-      const compiledContractId = compiledContractsInsertResult.rows[0].id;
-
-      await this.database.insertCompiledContractsSources(client, {
-        sourcesInformation: databaseColumns.sourcesInformation,
-        compilation_id: compiledContractId,
-      });
-
-      // insert new recompiled contract with newly added contract and compiledContract
-      const verifiedContractInsertResult =
-        await this.database.insertVerifiedContract(client, {
-          ...databaseColumns.verifiedContract,
-          compilation_id: compiledContractId,
-          deployment_id: contractDeploymentInsertResult.rows[0].id,
-        });
       // Commit the transaction
       await client.query("COMMIT");
-      return verifiedContractInsertResult.rows[0].id;
+
+      return verifiedContractInsertId;
     } catch (e) {
       // Rollback the transaction in case of error
       await client.query("ROLLBACK");
+
       throw new Error(
         `cannot insert verified_contract address=${databaseColumns.contractDeployment.address} chainId=${databaseColumns.contractDeployment.chain_id}\n${e}`,
       );
     } finally {
       client.release();
     }
+  }
+
+  async insertNewVerifiedContract(
+    databaseColumns: DatabaseUtil.DatabaseColumns,
+    client: PoolClient,
+  ): Promise<string> {
+    let recompiledCreationCodeInsertResult:
+      | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
+      | undefined;
+    let onchainCreationCodeInsertResult:
+      | QueryResult<Pick<DatabaseUtil.Tables.Code, "bytecode_hash">>
+      | undefined;
+
+    // Add recompiled bytecodes
+    if (databaseColumns.recompiledCreationCode) {
+      recompiledCreationCodeInsertResult = await this.database.insertCode(
+        client,
+        databaseColumns.recompiledCreationCode,
+      );
+    }
+    const recompiledRuntimeCodeInsertResult = await this.database.insertCode(
+      client,
+      databaseColumns.recompiledRuntimeCode,
+    );
+
+    // Add onchain bytecodes
+    if (databaseColumns.onchainCreationCode) {
+      onchainCreationCodeInsertResult = await this.database.insertCode(
+        client,
+        databaseColumns.onchainCreationCode,
+      );
+    }
+    const onchainRuntimeCodeInsertResult = await this.database.insertCode(
+      client,
+      databaseColumns.onchainRuntimeCode,
+    );
+
+    // Add the onchain contract in contracts
+    const contractInsertResult = await this.database.insertContract(client, {
+      creation_bytecode_hash:
+        onchainCreationCodeInsertResult?.rows[0].bytecode_hash,
+      runtime_bytecode_hash:
+        onchainRuntimeCodeInsertResult.rows[0].bytecode_hash,
+    });
+
+    // add the onchain contract in contract_deployments
+    const contractDeploymentInsertResult =
+      await this.database.insertContractDeployment(client, {
+        ...databaseColumns.contractDeployment,
+        contract_id: contractInsertResult.rows[0].id,
+      });
+
+    // insert new recompiled contract
+    const compiledContractsInsertResult =
+      await this.database.insertCompiledContract(client, {
+        ...databaseColumns.compiledContract,
+        creation_code_hash:
+          recompiledCreationCodeInsertResult?.rows[0].bytecode_hash,
+        runtime_code_hash:
+          recompiledRuntimeCodeInsertResult.rows[0].bytecode_hash,
+      });
+
+    const compiledContractId = compiledContractsInsertResult.rows[0].id;
+
+    await this.database.insertCompiledContractsSources(client, {
+      sourcesInformation: databaseColumns.sourcesInformation,
+      compilation_id: compiledContractId,
+    });
+
+    // insert new recompiled contract with newly added contract and compiledContract
+    const verifiedContractInsertResult =
+      await this.database.insertVerifiedContract(client, {
+        ...databaseColumns.verifiedContract,
+        compilation_id: compiledContractId,
+        deployment_id: contractDeploymentInsertResult.rows[0].id,
+      });
+    return verifiedContractInsertResult.rows[0].id;
   }
 
   async updateExistingVerifiedContract(
@@ -259,16 +286,28 @@ export default abstract class AbstractDatabaseService {
       await this.database.getVerifiedContractByChainAndAddress(
         verification.chainId,
         bytesFromString(verification.address)!,
+        poolClient,
       );
 
     if (existingVerifiedContractResult.rowCount === 0) {
-      return {
-        type: "insert",
-        verifiedContractId: await this.insertNewVerifiedContract(
-          databaseColumns,
-          poolClient,
-        ),
-      };
+      if (poolClient) {
+        return {
+          type: "insert",
+          verifiedContractId:
+            await this.insertNewVerifiedContractWithExistingPoolClient(
+              databaseColumns,
+              poolClient,
+            ),
+        };
+      } else {
+        return {
+          type: "insert",
+          verifiedContractId:
+            await this.insertNewVerifiedContractCreatingPoolClient(
+              databaseColumns,
+            ),
+        };
+      }
     } else {
       return {
         type: "update",
