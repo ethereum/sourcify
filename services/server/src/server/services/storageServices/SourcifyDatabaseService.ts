@@ -46,6 +46,7 @@ import {
   VerificationErrorCode,
 } from "../../apiv2/errors";
 import { VerifyErrorExport } from "../workers/workerTypes";
+import { PoolClient } from "pg";
 
 const MAX_RETURNED_CONTRACTS_BY_GETCONTRACTS = 200;
 
@@ -870,9 +871,10 @@ export class SourcifyDatabaseService
       verificationId: VerificationJobId;
       finishTime: Date;
     },
+    poolClient?: PoolClient,
   ): Promise<void> {
     const { type, verifiedContractId, oldVerifiedContractId } =
-      await super.insertOrUpdateVerification(verification);
+      await super.insertOrUpdateVerification(verification, poolClient);
 
     if (type === "insert") {
       if (!verifiedContractId) {
@@ -880,12 +882,15 @@ export class SourcifyDatabaseService
           "VerifiedContractId undefined before inserting sourcify match",
         );
       }
-      await this.database.insertSourcifyMatch({
-        verified_contract_id: verifiedContractId,
-        creation_match: verification.status.creationMatch,
-        runtime_match: verification.status.runtimeMatch,
-        metadata: verification.compilation.metadata as any,
-      });
+      await this.database.insertSourcifyMatch(
+        {
+          verified_contract_id: verifiedContractId,
+          creation_match: verification.status.creationMatch,
+          runtime_match: verification.status.runtimeMatch,
+          metadata: verification.compilation.metadata as any,
+        },
+        poolClient,
+      );
       logger.info("Stored to SourcifyDatabase", {
         address: verification.address,
         chainId: verification.chainId,

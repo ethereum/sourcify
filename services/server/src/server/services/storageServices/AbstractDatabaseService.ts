@@ -2,7 +2,7 @@ import { VerificationExport } from "@ethereum-sourcify/lib-sourcify";
 import * as DatabaseUtil from "../utils/database-util";
 import { bytesFromString } from "../utils/database-util";
 import { Database, DatabaseOptions } from "../utils/Database";
-import { QueryResult } from "pg";
+import { PoolClient, QueryResult } from "pg";
 
 export default abstract class AbstractDatabaseService {
   public database: Database;
@@ -43,9 +43,10 @@ export default abstract class AbstractDatabaseService {
 
   async insertNewVerifiedContract(
     databaseColumns: DatabaseUtil.DatabaseColumns,
+    poolClient?: PoolClient,
   ): Promise<string> {
     // Get a client from the pool, so that we can execute all the insert queries within the same transaction
-    const client = await this.database.pool.connect();
+    const client = poolClient || (await this.database.pool.connect());
 
     try {
       // Start the sql transaction
@@ -238,7 +239,10 @@ export default abstract class AbstractDatabaseService {
     }
   }
 
-  async insertOrUpdateVerification(verification: VerificationExport): Promise<{
+  async insertOrUpdateVerification(
+    verification: VerificationExport,
+    poolClient?: PoolClient,
+  ): Promise<{
     type: "update" | "insert";
     verifiedContractId: string;
     oldVerifiedContractId?: string;
@@ -260,8 +264,10 @@ export default abstract class AbstractDatabaseService {
     if (existingVerifiedContractResult.rowCount === 0) {
       return {
         type: "insert",
-        verifiedContractId:
-          await this.insertNewVerifiedContract(databaseColumns),
+        verifiedContractId: await this.insertNewVerifiedContract(
+          databaseColumns,
+          poolClient,
+        ),
       };
     } else {
       return {

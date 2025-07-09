@@ -1331,7 +1331,7 @@ describe("/", function () {
         .expect(sourcifyMatchesResult.rows[0].creation_match)
         .to.equal("perfect");
 
-      // Verify all other tables contain only the new contract data (as per deleteMatch in Database.ts)
+      // Verify all other tables contain only the new contract data
       // Check compiled_contracts - should only have the new compilation
       const compiledContractsResult =
         await serverFixture.sourcifyDatabase.query(
