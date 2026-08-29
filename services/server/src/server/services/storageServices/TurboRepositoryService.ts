@@ -32,8 +32,8 @@ export type TurboRepositoryServiceOptions = TurboConfig;
 
 const DEFAULT_APP_NAME = "Sourcify";
 const DEFAULT_GATEWAY_URL = "https://arweave.net";
-// Turbo uploads the whole data item in a single request without a timeout of
-// its own, so uploads are aborted by the service instead.
+// The Turbo SDK's HTTP client retries but sets no request timeout of its
+// own, so uploads are bounded here with an AbortSignal instead.
 const DEFAULT_UPLOAD_TIMEOUT = 60 * 1000;
 
 export class TurboRepositoryService
