@@ -26,6 +26,8 @@ import { ConflictError } from "../../common/errors/ConflictError";
 import { isBetterVerification } from "./utils/util";
 import type { S3RepositoryServiceOptions } from "./storageServices/S3RepositoryService";
 import { S3RepositoryService } from "./storageServices/S3RepositoryService";
+import type { TurboRepositoryServiceOptions } from "./storageServices/TurboRepositoryService";
+import { TurboRepositoryService } from "./storageServices/TurboRepositoryService";
 import type { DatabaseOptions } from "./utils/Database";
 import type { Field } from "./utils/database-util";
 import type { VerifyErrorExport } from "./workers/workerTypes";
@@ -107,6 +109,7 @@ export interface StorageServiceOptions {
   sourcifyDatabaseServiceOptions?: DatabaseOptions;
   allianceDatabaseServiceOptions?: DatabaseOptions;
   s3RepositoryServiceOptions?: S3RepositoryServiceOptions;
+  turboRepositoryServiceOptions?: TurboRepositoryServiceOptions;
   etherscanVerifyApiServiceOptions?: {
     [WStorageIdentifiers.EtherscanVerify]?: EtherscanVerifyApiServiceOptions;
     [WStorageIdentifiers.BlockscoutVerify]?: EtherscanVerifyApiServiceOptions;
@@ -237,6 +240,19 @@ export class StorageService {
         throw new Error(
           "S3Repository enabled, but S3 options are not fully set",
         );
+      }
+    }
+
+    // TurboRepositoryService
+    if (enabledServicesArray.includes(WStorageIdentifiers.TurboRepository)) {
+      if (options.turboRepositoryServiceOptions?.privateKey) {
+        const turboRepository = new TurboRepositoryService(
+          options.turboRepositoryServiceOptions,
+        );
+        this.wServices[turboRepository.IDENTIFIER] = turboRepository;
+      } else {
+        logger.error("TurboRepository enabled, but no private key is set");
+        throw new Error("TurboRepository enabled, but no private key is set");
       }
     }
 
