@@ -2,7 +2,7 @@ import { expect, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { TurboFactory } from "@ardrive/turbo-sdk";
-import type { TurboAuthenticatedClient } from "@ardrive/turbo-sdk";
+import type { TokenType, TurboAuthenticatedClient } from "@ardrive/turbo-sdk";
 import { getAddress, id as keccak256 } from "ethers";
 import { TurboRepositoryService } from "../../../src/server/services/storageServices/TurboRepositoryService";
 import { WStorageIdentifiers } from "../../../src/server/services/storageServices/identifiers";
@@ -28,6 +28,7 @@ describe("TurboRepositoryService", function () {
   const createService = (
     options: Partial<{
       privateKey: string;
+      token: TokenType;
       appName: string;
       gatewayUrl: string;
     }> = {},
@@ -69,6 +70,19 @@ describe("TurboRepositoryService", function () {
     expect(() => createService({ privateKey: "{not-json" })).to.throw(
       "Failed to parse the Turbo Arweave JWK",
     );
+  });
+
+  it("rejects an unknown token instead of failing on the first upload", () => {
+    expect(() => createService({ token: "etherium" as never })).to.throw(
+      "Unsupported Turbo token: etherium",
+    );
+  });
+
+  it("treats an unset token environment variable as the default", () => {
+    createService({ token: "" as never });
+    const { token } = (TurboFactory.authenticated as sinon.SinonStub).firstCall
+      .args[0];
+    expect(token).to.equal(undefined);
   });
 
   it("initializes even when Turbo is unreachable", async () => {

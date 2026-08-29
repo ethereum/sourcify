@@ -18,8 +18,12 @@
  * degrades to a warning instead of failing the verification.
  */
 
-import { TurboFactory } from "@ardrive/turbo-sdk";
-import type { TurboAuthenticatedClient, TurboWallet } from "@ardrive/turbo-sdk";
+import { TurboFactory, tokenTypes } from "@ardrive/turbo-sdk";
+import type {
+  TokenType,
+  TurboAuthenticatedClient,
+  TurboWallet,
+} from "@ardrive/turbo-sdk";
 import { getAddress } from "ethers";
 import Path from "path";
 import { RepositoryV2Service } from "./RepositoryV2Service";
@@ -58,7 +62,7 @@ export class TurboRepositoryService
     this.abortController = new AbortController();
     this.turbo = TurboFactory.authenticated({
       privateKey: this.parsePrivateKey(options.privateKey),
-      token: options.token,
+      token: this.parseToken(options.token),
       uploadServiceConfig: options.uploadServiceUrl
         ? { url: options.uploadServiceUrl }
         : undefined,
@@ -80,6 +84,21 @@ export class TurboRepositoryService
       logger.error("Failed to parse the Turbo Arweave JWK", { error });
       throw new Error("Failed to parse the Turbo Arweave JWK");
     }
+  }
+
+  /**
+   * An unknown token silently builds a client without a signer that only fails
+   * on the first upload, and an unset environment variable arrives as an empty
+   * string, so both are rejected here.
+   */
+  private parseToken(token?: string): TokenType | undefined {
+    if (!token) {
+      return undefined;
+    }
+    if (!(tokenTypes as readonly string[]).includes(token)) {
+      throw new Error(`Unsupported Turbo token: ${token}`);
+    }
+    return token as TokenType;
   }
 
   async init() {
