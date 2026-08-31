@@ -22,7 +22,7 @@
  * own, so enabling this service adds one package to the server's tree.
  */
 
-import { TurboUpload } from "@ardrive/turbo-upload";
+import { TurboUpload, TurboHTTPError } from "@ardrive/turbo-upload";
 import type { SignedDataItem, Tag } from "@ardrive/turbo-upload";
 import { getAddress } from "ethers";
 import Path from "path";
@@ -42,6 +42,17 @@ const DEFAULT_GATEWAY_URL = "https://arweave.net";
 // timeouts plus backoff. The same value is therefore also imposed on the whole
 // operation with an AbortSignal.
 const DEFAULT_UPLOAD_TIMEOUT = 60 * 1000;
+// What the upload service answers when the wallet cannot cover the item, and
+// the free tier does not either. Verified against the AR.IO bundler: a
+// zero-balance wallet posting an item above the free-tier ceiling gets
+// `402 Payment Required` with an x402 payment challenge as the body.
+const PAYMENT_REQUIRED_STATUS = 402;
+// Being unable to pay is a standing condition, not an event: it stays broken
+// until someone funds the wallet, and every verification after that fails the
+// same way. `storeVerification` stops at the first failing file, so this is one
+// alarm per verification rather than one per file -- still one per verification
+// for as long as the wallet is empty. Announced once, then at most this often.
+const CREDIT_ALARM_INTERVAL = 15 * 60 * 1000;
 
 export class TurboRepositoryService
   extends RepositoryV2Service
@@ -52,7 +63,12 @@ export class TurboRepositoryService
   private appName: string;
   private gatewayUrl: string;
   private uploadTimeout: number;
+  private minBalanceWinc: bigint;
   private abortController: AbortController;
+  /** True from the first upload refused for payment until the next success. */
+  private outOfCredit = false;
+  private lastCreditAlarm = 0;
+  private uploadsLostToPayment = 0;
 
   constructor(options: TurboRepositoryServiceOptions) {
     super({ repositoryPath: "" });
@@ -62,6 +78,7 @@ export class TurboRepositoryService
       "",
     );
     this.uploadTimeout = options.uploadTimeout || DEFAULT_UPLOAD_TIMEOUT;
+    this.minBalanceWinc = this.parseMinBalanceWinc(options.minBalanceWinc);
     this.abortController = new AbortController();
     // The client validates all of this in its constructor and throws an error
     // that names the problem, so a malformed JWK or an unsupported token is a
@@ -78,21 +95,44 @@ export class TurboRepositoryService
   }
 
   async init() {
-    // Items at or below the upload service's free limit cost nothing, so an
-    // empty balance is not an error. Report the balance and that limit at
-    // startup instead of failing, and never let an unreachable Turbo stop the
-    // server from booting.
+    // An empty balance is not an error: small items are free. It is still worth
+    // saying out loud, because the free tier is a fixed lifetime allowance and
+    // not a standing exemption, and the day it runs out every upload starts
+    // failing. Never let an unreachable Turbo stop the server from booting.
     try {
-      const [balance, freeUploadLimitBytes] = await Promise.all([
+      const [balance, info] = await Promise.all([
         this.turbo.getBalance(),
-        this.turbo.getFreeUploadLimitBytes(),
+        this.turbo.getInfo(),
       ]);
-      logger.info(`${this.IDENTIFIER} initialized`, {
-        address: this.turbo.address,
-        winc: balance.winc,
-        freeUploadLimitBytes,
-        gatewayUrl: this.gatewayUrl,
-      });
+      // /v1/info reports the free tier's LIMITS, not how much of it this wallet
+      // or this IP has already spent, so the remaining allowance cannot be
+      // reported here. The limits are logged so an operator can see the size of
+      // the runway they are relying on.
+      const freeTier = {
+        perItemBytes: info.freeUploadLimitBytes,
+        lifetimeBytes: info.freeTier?.lifetimeBytes,
+        perIpBytes: info.freeTier?.ipBytes,
+      };
+
+      if (this.isBelowMinBalance(balance.winc)) {
+        logger.warn(
+          `${this.IDENTIFIER} has no credit to spend: uploads are free only until the free tier is used up, after which nothing more is archived to Arweave`,
+          {
+            address: this.turbo.address,
+            winc: balance.winc,
+            minBalanceWinc: this.minBalanceWinc.toString(),
+            freeTier,
+            gatewayUrl: this.gatewayUrl,
+          },
+        );
+      } else {
+        logger.info(`${this.IDENTIFIER} initialized`, {
+          address: this.turbo.address,
+          winc: balance.winc,
+          freeTier,
+          gatewayUrl: this.gatewayUrl,
+        });
+      }
     } catch (error) {
       logger.warn(`${this.IDENTIFIER} initialized without reaching Turbo`, {
         error,
@@ -148,6 +188,7 @@ export class TurboRepositoryService
       const { id, winc } = await this.turbo.uploadSigned(item, {
         signal: this.uploadSignal(),
       });
+      this.noteUploadPaid();
       // The data item id is the only handle on an irreversible write, so it is
       // logged for every upload.
       logger.info(`Stored file to ${this.IDENTIFIER}`, {
@@ -157,12 +198,116 @@ export class TurboRepositoryService
         filePath,
       });
     } catch (error) {
-      logger.error("Failed to store file to Turbo", {
-        error,
-        dataItemId: item?.idB64Url,
-        filePath,
-      });
+      // A wallet that cannot pay is a different kind of problem from a network
+      // blip: it does not clear on its own, and every later upload fails the
+      // same way. It gets its own alarm so it is not lost among transient
+      // errors, and so it is not repeated once per file.
+      if (TurboRepositoryService.isPaymentFailure(error)) {
+        this.noteUploadUnpaid(error, filePath);
+      } else {
+        logger.error("Failed to store file to Turbo", {
+          error,
+          dataItemId: item?.idB64Url,
+          filePath,
+        });
+      }
       throw error;
+    }
+  }
+
+  /**
+   * The upload service answers `402 Payment Required` when neither the wallet
+   * balance nor the free tier covers the item.
+   */
+  private static isPaymentFailure(error: unknown): error is TurboHTTPError {
+    return (
+      error instanceof TurboHTTPError &&
+      error.status === PAYMENT_REQUIRED_STATUS
+    );
+  }
+
+  /**
+   * Announce that archiving has stopped, and keep saying so at intervals for as
+   * long as it is true. Every refused upload is still recorded at debug level,
+   * so nothing is lost, but the operator gets one alarm rather than one per
+   * verification for as long as the wallet stays empty.
+   */
+  private noteUploadUnpaid(error: TurboHTTPError, filePath: string) {
+    this.uploadsLostToPayment++;
+    const now = Date.now();
+    const firstFailure = !this.outOfCredit;
+
+    if (firstFailure || now - this.lastCreditAlarm >= CREDIT_ALARM_INTERVAL) {
+      this.lastCreditAlarm = now;
+      logger.error(
+        `${this.IDENTIFIER} cannot pay for uploads: nothing is being archived to Arweave until the wallet is funded`,
+        {
+          error,
+          address: this.turbo.address,
+          status: error.status,
+          uploadsLostToPayment: this.uploadsLostToPayment,
+          filePath,
+          remedy: `Fund ${this.turbo.address} with Turbo credits, or remove ${this.IDENTIFIER} from storage.writeOrWarn to stop trying`,
+        },
+      );
+    } else {
+      logger.debug(`${this.IDENTIFIER} upload refused for payment`, {
+        filePath,
+        uploadsLostToPayment: this.uploadsLostToPayment,
+      });
+    }
+    this.outOfCredit = true;
+  }
+
+  /** Say so once when uploads start being accepted again. */
+  private noteUploadPaid() {
+    if (!this.outOfCredit) {
+      return;
+    }
+    logger.info(
+      `${this.IDENTIFIER} is archiving again after being unable to pay`,
+      {
+        address: this.turbo.address,
+        uploadsLostToPayment: this.uploadsLostToPayment,
+      },
+    );
+    this.outOfCredit = false;
+    this.lastCreditAlarm = 0;
+    this.uploadsLostToPayment = 0;
+  }
+
+  /**
+   * Winston credits are decimal strings that can exceed Number.MAX_SAFE_INTEGER,
+   * so the threshold is held and compared as a BigInt. Parsed in the constructor
+   * so a typo is a startup failure rather than something swallowed by init()'s
+   * catch and reported as an unreachable Turbo.
+   */
+  private parseMinBalanceWinc(value?: string): bigint {
+    if (!value) {
+      return BigInt(0);
+    }
+    let parsed: bigint;
+    try {
+      parsed = BigInt(value.trim());
+    } catch {
+      throw new Error(
+        `Turbo minBalanceWinc (TURBO_MIN_BALANCE_WINC) must be a whole number of winston credits, got: ${value}`,
+      );
+    }
+    if (parsed < BigInt(0)) {
+      throw new Error(
+        `Turbo minBalanceWinc (TURBO_MIN_BALANCE_WINC) must not be negative, got: ${value}`,
+      );
+    }
+    return parsed;
+  }
+
+  /** A balance that cannot be read is not a healthy balance. */
+  private isBelowMinBalance(winc: string): boolean {
+    try {
+      return BigInt(winc) <= this.minBalanceWinc;
+    } catch {
+      return true;
     }
   }
 

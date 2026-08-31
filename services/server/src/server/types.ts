@@ -271,4 +271,9 @@ export interface TurboConfig {
   appName?: string;
   /** Milliseconds after which an upload is aborted */
   uploadTimeout?: number;
+  /**
+   * Warn at startup when the balance is at or below this many winston credits.
+   * Defaults to "0", i.e. warn only when there is nothing left to spend.
+   */
+  minBalanceWinc?: string;
 }

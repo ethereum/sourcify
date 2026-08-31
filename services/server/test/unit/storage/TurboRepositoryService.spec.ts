@@ -4,6 +4,7 @@ import sinon from "sinon";
 import { generateKeyPairSync } from "crypto";
 import {
   TurboUpload,
+  TurboHTTPError,
   deserializeTags,
   parseDataItem,
 } from "@ardrive/turbo-upload";
@@ -12,6 +13,7 @@ import { getAddress, id as keccak256 } from "ethers";
 import { TurboRepositoryService } from "../../../src/server/services/storageServices/TurboRepositoryService";
 import { WStorageIdentifiers } from "../../../src/server/services/storageServices/identifiers";
 import { MockVerificationExport } from "../../helpers/mocks";
+import logger from "../../../src/common/logger";
 
 use(chaiAsPromised);
 
@@ -34,13 +36,29 @@ const tagsOf = (item: SignedDataItem): Record<string, string> =>
 const dataOf = (item: SignedDataItem): string =>
   parseDataItem(item.binary).rawData.toString("utf8");
 
+/**
+ * @ardrive/turbo-upload declares no constructor for its error classes, so
+ * TypeScript infers Error's `(message?: string)` while the runtime constructor
+ * takes an options object. Cast once here rather than at every call site.
+ */
+const HTTPError = TurboHTTPError as unknown as new (init: {
+  status: number;
+  statusText?: string;
+  endpoint: string;
+  method: string;
+  body?: unknown;
+}) => TurboHTTPError;
+
 describe("TurboRepositoryService", function () {
   const sandbox = sinon.createSandbox();
 
   let signSpy: sinon.SinonSpy;
   let uploadSignedStub: sinon.SinonStub;
   let getBalanceStub: sinon.SinonStub;
-  let getFreeUploadLimitStub: sinon.SinonStub;
+  let getInfoStub: sinon.SinonStub;
+  let errorSpy: sinon.SinonSpy;
+  let warnSpy: sinon.SinonSpy;
+  let infoSpy: sinon.SinonSpy;
 
   const createService = (
     options: Partial<{
@@ -50,6 +68,7 @@ describe("TurboRepositoryService", function () {
       gatewayUrl: string;
       uploadServiceUrl: string;
       uploadTimeout: number;
+      minBalanceWinc: string;
     }> = {},
   ): TurboRepositoryService =>
     new TurboRepositoryService({
@@ -82,10 +101,34 @@ describe("TurboRepositoryService", function () {
         effectiveBalance: "0",
         address: "test-address",
       });
-    getFreeUploadLimitStub = sandbox
-      .stub(TurboUpload.prototype, "getFreeUploadLimitBytes")
-      .resolves(107520);
+    getInfoStub = sandbox.stub(TurboUpload.prototype, "getInfo").resolves({
+      freeUploadLimitBytes: 107520,
+      freeTier: {
+        lifetimeBytes: 10485760,
+        ipBytes: 10485760,
+        maxItemBytes: 107520,
+      },
+    });
+    errorSpy = sandbox.spy(logger, "error");
+    warnSpy = sandbox.spy(logger, "warn");
+    infoSpy = sandbox.spy(logger, "info");
   });
+
+  // The alarm is identified by its message, not by the count of error logs,
+  // so an unrelated error elsewhere cannot make these pass or fail.
+  const creditAlarms = () =>
+    errorSpy
+      .getCalls()
+      .filter((call) => /cannot pay for uploads/.test(String(call.args[0])));
+
+  const paymentRequired = () =>
+    new HTTPError({
+      status: 402,
+      statusText: "Payment Required",
+      endpoint: "https://upload.ardrive.io/v1/tx",
+      method: "POST",
+      body: { x402Version: 1 },
+    });
 
   afterEach(() => {
     sandbox.restore();
@@ -122,8 +165,177 @@ describe("TurboRepositoryService", function () {
   it("initializes even when Turbo is unreachable", async () => {
     const service = createService();
     getBalanceStub.rejects(new Error("Turbo is down"));
-    getFreeUploadLimitStub.rejects(new Error("Turbo is down"));
+    getInfoStub.rejects(new Error("Turbo is down"));
     await expect(service.init()).to.eventually.equal(true);
+  });
+
+  it("warns at startup when there is nothing left to spend", async () => {
+    const service = createService();
+    await service.init();
+
+    const [message, metadata] = warnSpy.lastCall.args as [
+      string,
+      Record<string, unknown>,
+    ];
+    expect(message).to.match(/no credit to spend/);
+    // The free tier is a fixed lifetime allowance, so the size of the runway
+    // an operator is relying on is part of the warning.
+    expect(metadata.freeTier).to.deep.equal({
+      perItemBytes: 107520,
+      lifetimeBytes: 10485760,
+      perIpBytes: 10485760,
+    });
+    expect(metadata.winc).to.equal("0");
+  });
+
+  it("does not warn at startup when the balance is above the minimum", async () => {
+    const service = createService();
+    getBalanceStub.resolves({
+      winc: "1000000000",
+      controlledWinc: "1000000000",
+      effectiveBalance: "1000000000",
+      address: "test-address",
+    });
+
+    await service.init();
+
+    expect(warnSpy.called).to.equal(false);
+    expect(String(infoSpy.lastCall.args[0])).to.match(
+      /TurboRepository initialized/,
+    );
+  });
+
+  it("warns at startup when the balance is at or below the configured minimum", async () => {
+    const service = createService({ minBalanceWinc: "1000" });
+    getBalanceStub.resolves({
+      winc: "999",
+      controlledWinc: "999",
+      effectiveBalance: "999",
+      address: "test-address",
+    });
+
+    await service.init();
+
+    expect(String(warnSpy.lastCall.args[0])).to.match(/no credit to spend/);
+    // Winston credits can exceed Number.MAX_SAFE_INTEGER, so the comparison is
+    // done on BigInts and not on parsed numbers.
+    const big = createService({
+      minBalanceWinc: "90071992547409910000",
+    });
+    getBalanceStub.resolves({
+      winc: "90071992547409920000",
+      controlledWinc: "0",
+      effectiveBalance: "0",
+      address: "test-address",
+    });
+    warnSpy.resetHistory();
+    await big.init();
+    expect(warnSpy.called).to.equal(false);
+  });
+
+  it("rejects a minimum balance that is not a whole number of credits", () => {
+    expect(() => createService({ minBalanceWinc: "1.5 AR" })).to.throw(
+      /whole number of winston credits/,
+    );
+    expect(() => createService({ minBalanceWinc: "-1" })).to.throw(
+      /must not be negative/,
+    );
+  });
+
+  it("raises one credit alarm, not one per verification, while the wallet is empty", async () => {
+    const service = createService();
+    uploadSignedStub.rejects(paymentRequired());
+
+    // storeVerification stops at the first failing file, so an empty wallet
+    // produces one refusal per verification. On a busy server that is one error
+    // line per verification until someone notices.
+    for (let i = 0; i < 3; i++) {
+      await expect(
+        service.storeVerification(structuredClone(MockVerificationExport)),
+      ).to.eventually.be.rejected;
+    }
+
+    expect(creditAlarms()).to.have.lengthOf(1);
+    const [message, metadata] = creditAlarms()[0].args as [
+      string,
+      Record<string, unknown>,
+    ];
+    expect(message).to.match(/nothing is being archived to Arweave/);
+    expect(metadata.uploadsLostToPayment).to.equal(1);
+    expect(metadata.remedy).to.be.a("string");
+    // Nothing is lost: the suppressed refusals are still counted.
+    expect(
+      (creditAlarms()[0].args[1] as Record<string, unknown>).status,
+    ).to.equal(402);
+  });
+
+  it("announces recovery once uploads are paid for again", async () => {
+    const service = createService();
+    uploadSignedStub.rejects(paymentRequired());
+    await expect(
+      service.storeVerification(structuredClone(MockVerificationExport)),
+    ).to.eventually.be.rejected;
+    expect(creditAlarms()).to.have.lengthOf(1);
+
+    uploadSignedStub.callsFake(async (item) => ({
+      id: (item as SignedDataItem).idB64Url,
+      owner: "test-address",
+      byteCount: (item as SignedDataItem).binary.length,
+      winc: "0",
+    }));
+    await service.storeVerification(structuredClone(MockVerificationExport));
+
+    expect(
+      infoSpy
+        .getCalls()
+        .filter((call) => /archiving again/.test(String(call.args[0]))),
+    ).to.have.lengthOf(1);
+
+    // And the alarm arms again if it happens a second time.
+    uploadSignedStub.rejects(paymentRequired());
+    await expect(
+      service.storeVerification(structuredClone(MockVerificationExport)),
+    ).to.eventually.be.rejected;
+    expect(creditAlarms()).to.have.lengthOf(2);
+  });
+
+  it("still throws a payment failure so the storage service can warn", async () => {
+    const service = createService();
+    uploadSignedStub.rejects(paymentRequired());
+
+    await expect(
+      service.storeVerification(structuredClone(MockVerificationExport)),
+    ).to.eventually.be.rejectedWith(/402/);
+  });
+
+  it("keeps reporting non-payment failures individually", async () => {
+    const service = createService();
+    uploadSignedStub.rejects(
+      new HTTPError({
+        status: 503,
+        statusText: "Service Unavailable",
+        endpoint: "https://upload.ardrive.io/v1/tx",
+        method: "POST",
+        body: "upstream unavailable",
+      }),
+    );
+
+    for (let i = 0; i < 3; i++) {
+      await expect(
+        service.storeVerification(structuredClone(MockVerificationExport)),
+      ).to.eventually.be.rejected;
+    }
+
+    // A transient failure is not a standing condition: it is not suppressed,
+    // and it does not raise the credit alarm.
+    expect(creditAlarms()).to.have.lengthOf(0);
+    expect(
+      errorSpy
+        .getCalls()
+        .filter((call) =>
+          /Failed to store file to Turbo/.test(String(call.args[0])),
+        ),
+    ).to.have.lengthOf(3);
   });
 
   it("uploads every file of a verification with retrieval tags", async () => {

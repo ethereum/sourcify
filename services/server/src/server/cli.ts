@@ -185,6 +185,7 @@ Object.defineProperty(RegExp.prototype, "toJSON", {
         uploadTimeout: process.env.TURBO_UPLOAD_TIMEOUT
           ? parseInt(process.env.TURBO_UPLOAD_TIMEOUT)
           : undefined,
+        minBalanceWinc: process.env.TURBO_MIN_BALANCE_WINC as string,
       },
       sourcifyDatabaseServiceOptions: {
         postgres: {
