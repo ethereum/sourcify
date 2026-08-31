@@ -15,7 +15,7 @@ import yamljs from "yamljs";
 import logger from "../common/logger";
 import { initializeSourcifyChains } from "../sourcify-chains";
 import type { SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
-import type { TokenType } from "@ardrive/turbo-sdk";
+import type { TurboConfig } from "./types";
 import type { LibSourcifyConfig } from "./server";
 import { Server } from "./server";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
@@ -178,7 +178,7 @@ Object.defineProperty(RegExp.prototype, "toJSON", {
       },
       turboRepositoryServiceOptions: {
         privateKey: process.env.TURBO_PRIVATE_KEY as string,
-        token: process.env.TURBO_TOKEN as TokenType,
+        token: process.env.TURBO_TOKEN as TurboConfig["token"],
         uploadServiceUrl: process.env.TURBO_UPLOAD_SERVICE_URL as string,
         gatewayUrl: process.env.TURBO_GATEWAY_URL as string,
         appName: process.env.TURBO_APP_NAME as string,

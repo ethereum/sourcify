@@ -22,7 +22,6 @@ import type {
 } from "@ethereum-sourcify/lib-sourcify";
 import type { Response } from "express";
 import type { JsonFragment } from "ethers";
-import type { TokenType } from "@ardrive/turbo-sdk";
 import type { ProxyDetectionResult } from "./services/utils/proxy-contract-util";
 import type {
   GenericErrorResponse,
@@ -256,11 +255,15 @@ export interface S3Config {
 }
 
 export interface TurboConfig {
-  /** Arweave JWK as a JSON string, or the private key of the configured `token` */
+  /** Arweave JWK, as a JSON string or an already parsed object */
   privateKey: string;
-  /** Token the private key belongs to. Defaults to "arweave" */
-  token?: TokenType;
-  /** Turbo upload service URL. Defaults to the SDK's production endpoint */
+  /**
+   * Token the private key belongs to. Only "arweave" is supported: anything
+   * else is rejected by @ardrive/turbo-upload at startup, with a pointer to
+   * @ardrive/turbo-sdk for the other chains. Defaults to "arweave".
+   */
+  token?: "arweave";
+  /** Turbo upload service URL. Defaults to the production upload service */
   uploadServiceUrl?: string;
   /** AR.IO gateway the uploaded data items are read from */
   gatewayUrl?: string;

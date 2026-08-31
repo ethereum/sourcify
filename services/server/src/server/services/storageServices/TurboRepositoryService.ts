@@ -16,14 +16,14 @@
  * Turbo is a third-party network that has to be paid for, so this service is
  * meant to be configured under `storage.writeOrWarn`: a Turbo outage then
  * degrades to a warning instead of failing the verification.
+ *
+ * Uploading is done with `@ardrive/turbo-upload`, which signs an Arweave JWK
+ * and POSTs the data item and does nothing else. It has no dependencies of its
+ * own, so enabling this service adds one package to the server's tree.
  */
 
-import { TurboFactory, tokenTypes } from "@ardrive/turbo-sdk";
-import type {
-  TokenType,
-  TurboAuthenticatedClient,
-  TurboWallet,
-} from "@ardrive/turbo-sdk";
+import { TurboUpload } from "@ardrive/turbo-upload";
+import type { SignedDataItem, Tag } from "@ardrive/turbo-upload";
 import { getAddress } from "ethers";
 import Path from "path";
 import { RepositoryV2Service } from "./RepositoryV2Service";
@@ -36,8 +36,11 @@ export type TurboRepositoryServiceOptions = TurboConfig;
 
 const DEFAULT_APP_NAME = "Sourcify";
 const DEFAULT_GATEWAY_URL = "https://arweave.net";
-// The Turbo SDK's HTTP client retries but sets no request timeout of its
-// own, so uploads are bounded here with an AbortSignal instead.
+// Bounds an upload end to end. @ardrive/turbo-upload applies `timeoutMs` per
+// HTTP request and retries transient failures three times, so the client
+// setting alone would allow a hung endpoint to hold a verification for four
+// timeouts plus backoff. The same value is therefore also imposed on the whole
+// operation with an AbortSignal.
 const DEFAULT_UPLOAD_TIMEOUT = 60 * 1000;
 
 export class TurboRepositoryService
@@ -45,7 +48,7 @@ export class TurboRepositoryService
   implements WStorageService
 {
   IDENTIFIER = WStorageIdentifiers.TurboRepository;
-  private turbo: TurboAuthenticatedClient;
+  private turbo: TurboUpload;
   private appName: string;
   private gatewayUrl: string;
   private uploadTimeout: number;
@@ -60,64 +63,40 @@ export class TurboRepositoryService
     );
     this.uploadTimeout = options.uploadTimeout || DEFAULT_UPLOAD_TIMEOUT;
     this.abortController = new AbortController();
-    this.turbo = TurboFactory.authenticated({
-      privateKey: this.parsePrivateKey(options.privateKey),
-      token: this.parseToken(options.token),
-      uploadServiceConfig: options.uploadServiceUrl
-        ? { url: options.uploadServiceUrl }
-        : undefined,
+    // The client validates all of this in its constructor and throws an error
+    // that names the problem, so a malformed JWK or an unsupported token is a
+    // startup failure rather than a mystery on the first upload. Nothing is
+    // pre-checked here on purpose. The only normalisation is the empty string:
+    // an env var that is present but unset arrives as `""`, which is a
+    // missing value and not a bad one.
+    this.turbo = new TurboUpload({
+      jwk: options.privateKey,
+      token: options.token || undefined,
+      uploadUrl: options.uploadServiceUrl || undefined,
+      timeoutMs: this.uploadTimeout,
     });
   }
 
-  /**
-   * An Arweave wallet is a JWK object, every other token is a plain private key
-   * string. Both arrive as a single environment variable.
-   */
-  private parsePrivateKey(privateKey: string): TurboWallet {
-    const trimmed = privateKey.trim();
-    if (!trimmed.startsWith("{")) {
-      return trimmed;
-    }
-    try {
-      return JSON.parse(trimmed) as TurboWallet;
-    } catch (error) {
-      logger.error("Failed to parse the Turbo Arweave JWK", { error });
-      throw new Error("Failed to parse the Turbo Arweave JWK");
-    }
-  }
-
-  /**
-   * An unknown token silently builds a client without a signer that only fails
-   * on the first upload, and an unset environment variable arrives as an empty
-   * string, so both are rejected here.
-   */
-  private parseToken(token?: string): TokenType | undefined {
-    if (!token) {
-      return undefined;
-    }
-    if (!(tokenTypes as readonly string[]).includes(token)) {
-      throw new Error(`Unsupported Turbo token: ${token}`);
-    }
-    return token as TokenType;
-  }
-
   async init() {
-    // Uploads below 100 KiB are free on Turbo, so an empty balance is not an
-    // error. Report it at startup instead of failing, and never let an
-    // unreachable Turbo stop the server from booting.
+    // Items at or below the upload service's free limit cost nothing, so an
+    // empty balance is not an error. Report the balance and that limit at
+    // startup instead of failing, and never let an unreachable Turbo stop the
+    // server from booting.
     try {
-      const [nativeAddress, balance] = await Promise.all([
-        this.turbo.signer.getNativeAddress(),
+      const [balance, freeUploadLimitBytes] = await Promise.all([
         this.turbo.getBalance(),
+        this.turbo.getFreeUploadLimitBytes(),
       ]);
       logger.info(`${this.IDENTIFIER} initialized`, {
-        nativeAddress,
+        address: this.turbo.address,
         winc: balance.winc,
+        freeUploadLimitBytes,
         gatewayUrl: this.gatewayUrl,
       });
     } catch (error) {
-      logger.warn(`${this.IDENTIFIER} initialized without a Turbo balance`, {
+      logger.warn(`${this.IDENTIFIER} initialized without reaching Turbo`, {
         error,
+        address: this.turbo.address,
         gatewayUrl: this.gatewayUrl,
       });
     }
@@ -143,7 +122,7 @@ export class TurboRepositoryService
 
   async save(path: PathConfig, content: string) {
     const filePath = this.generateRelativeFilePath(path);
-    const tags = [
+    const tags: Tag[] = [
       { name: "App-Name", value: this.appName },
       { name: "Content-Type", value: this.contentType(path.fileName) },
       { name: "Chain-Id", value: path.chainId },
@@ -152,10 +131,21 @@ export class TurboRepositoryService
       { name: "File-Path", value: filePath },
     ];
 
+    let item: SignedDataItem | undefined;
     try {
-      const { id, winc } = await this.turbo.upload({
-        data: content,
-        dataItemOpts: { tags },
+      // Signed first so the data item id exists before the write leaves the
+      // process: an upload that times out may still have landed, and the id is
+      // the only handle on it. `uploadSigned` posts exactly these bytes.
+      // `upload` would sign a second time, and because RSA-PSS draws a fresh
+      // salt per signature the id it returned would not be the one logged here.
+      item = this.turbo.sign({ data: content, tags });
+      logger.debug(`Uploading file to ${this.IDENTIFIER}`, {
+        dataItemId: item.idB64Url,
+        byteCount: item.binary.length,
+        filePath,
+      });
+
+      const { id, winc } = await this.turbo.uploadSigned(item, {
         signal: this.uploadSignal(),
       });
       // The data item id is the only handle on an irreversible write, so it is
@@ -167,21 +157,29 @@ export class TurboRepositoryService
         filePath,
       });
     } catch (error) {
-      logger.error("Failed to store file to Turbo", { error, filePath });
+      logger.error("Failed to store file to Turbo", {
+        error,
+        dataItemId: item?.idB64Url,
+        filePath,
+      });
       throw error;
     }
+  }
+
+  /**
+   * Aborts on shutdown, and on the upload deadline. The client's own
+   * `timeoutMs` bounds each request; this bounds the retries with it.
+   */
+  private uploadSignal() {
+    return AbortSignal.any([
+      this.abortController.signal,
+      AbortSignal.timeout(this.uploadTimeout),
+    ]);
   }
 
   private contentType(fileName?: string) {
     return Path.extname(fileName || "") === ".json"
       ? "application/json"
       : "text/plain";
-  }
-
-  private uploadSignal() {
-    return AbortSignal.any([
-      this.abortController.signal,
-      AbortSignal.timeout(this.uploadTimeout),
-    ]);
   }
 }
