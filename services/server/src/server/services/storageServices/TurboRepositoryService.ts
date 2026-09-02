@@ -35,7 +35,14 @@ import type { PathConfig, TurboConfig } from "../../types";
 export type TurboRepositoryServiceOptions = TurboConfig;
 
 const DEFAULT_APP_NAME = "Sourcify";
-const DEFAULT_GATEWAY_URL = "https://arweave.net";
+// The gateway the upload service names as its own, in the `gateway` field of
+// its `/v1/info`. This is only the URL recorded and logged for an uploaded
+// item, never where it is uploaded, but it is the URL an operator will open.
+// It was `arweave.net`, which answered `429` to every read of four items that
+// had just been uploaded, while this one answered `200` to all of them. Any
+// gateway serving Arweave returns an item by id, and gateways differ in what
+// they have indexed, so set `gatewayUrl` deliberately rather than inheriting.
+const DEFAULT_GATEWAY_URL = "https://turbo-gateway.com";
 // Bounds an upload end to end. @ardrive/turbo-upload applies `timeoutMs` per
 // HTTP request and retries transient failures three times, so the client
 // setting alone would allow a hung endpoint to hold a verification for four
