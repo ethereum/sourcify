@@ -91,6 +91,75 @@ describe('historical Solidity storage layouts', () => {
     expect(reconstructed).to.deep.equal(native);
   });
 
+  it('uses compiler-resolved array lengths for denominated literals', () => {
+    const input: SolidityJsonInput = {
+      language: 'Solidity',
+      sources: {
+        'Units.sol': {
+          content: `pragma solidity >=0.5.0;
+            contract Units {
+              uint256[2 minutes] values;
+              uint8[1 ether] packed;
+              uint256 tail;
+            }`,
+        },
+      },
+      settings: {
+        outputSelection: { '*': { '': ['ast'], '*': ['storageLayout'] } },
+      },
+    };
+    const output = JSON.parse(solc.compile(JSON.stringify(input)));
+    expect(
+      output.errors?.filter(
+        (error: { severity: string }) => error.severity === 'error',
+      ),
+    ).to.deep.equal([]);
+    const recovered = generateHistoricalSolidityStorageLayout(
+      '0.5.12',
+      input,
+      output,
+      { path: 'Units.sol', name: 'Units' },
+    );
+    expect(recovered).to.deep.equal(
+      output.contracts['Units.sol'].Units.storageLayout,
+    );
+    expect(recovered?.storage[1].slot).to.equal('120');
+  });
+
+  it('reuses storage sizes for repeated nested struct types', () => {
+    const depth = 10;
+    const structs = ['struct S0 { uint256 value; }'];
+    for (let index = 1; index <= depth; index++) {
+      structs.push(`struct S${index} { S${index - 1} a; S${index - 1} b; }`);
+    }
+    const input: SolidityJsonInput = {
+      language: 'Solidity',
+      sources: {
+        'Nested.sol': {
+          content: `pragma solidity >=0.5.0; contract Nested {
+            ${structs.join('\n')}
+            S${depth} root;
+            uint256 tail;
+          }`,
+        },
+      },
+      settings: {
+        outputSelection: { '*': { '': ['ast'], '*': ['storageLayout'] } },
+      },
+    };
+    const output = JSON.parse(solc.compile(JSON.stringify(input)));
+    const recovered = generateHistoricalSolidityStorageLayout(
+      '0.5.12',
+      input,
+      output,
+      { path: 'Nested.sol', name: 'Nested' },
+    );
+    expect(recovered).to.deep.equal(
+      output.contracts['Nested.sol'].Nested.storageLayout,
+    );
+    expect(recovered?.storage[1].slot).to.equal(String(2 ** depth));
+  });
+
   it('normalizes legacy ASTs and excludes constants from their source span', () => {
     const source =
       '// 😀😀😀😀😀😀😀😀\n' +

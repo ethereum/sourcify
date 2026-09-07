@@ -30,7 +30,12 @@ interface HistoricalType {
   key: string;
   label: string;
   kind:
-    'value' | 'bytes' | 'dynamic_array' | 'fixed_array' | 'mapping' | 'struct';
+    | 'value'
+    | 'bytes'
+    | 'dynamic_array'
+    | 'fixed_array'
+    | 'mapping'
+    | 'struct';
   astId: number;
   storageBytes: bigint;
   base?: HistoricalType;
@@ -97,6 +102,7 @@ class HistoricalStorageLayoutBuilder {
   private readonly definitionsById = new Map<number, TypeDefinition>();
   private readonly contractsById = new Map<number, JsonObject>();
   private readonly types = new Map<string, HistoricalType>();
+  private readonly storageSizes = new Map<string, bigint>();
   private readonly generatedTypes: Record<string, StorageLayoutType> = {};
   private readonly fullyQualifiedName: string;
 
@@ -646,6 +652,9 @@ class HistoricalStorageLayoutBuilder {
     type: HistoricalType,
     visiting = new Set<string>(),
   ): bigint {
+    const cached = this.storageSizes.get(type.key);
+    if (cached !== undefined) return cached;
+
     if (
       type.kind === 'value' ||
       type.kind === 'bytes' ||
@@ -666,7 +675,9 @@ class HistoricalStorageLayoutBuilder {
       } else {
         size = type.length * this.storageSize(type.base, visiting);
       }
-      return size > ZERO ? size : ONE;
+      size = size > ZERO ? size : ONE;
+      this.storageSizes.set(type.key, size);
+      return size;
     }
     if (!type.definition) throw new Error(`Incomplete struct type ${type.key}`);
     if (visiting.has(type.key)) {
@@ -674,10 +685,12 @@ class HistoricalStorageLayoutBuilder {
     }
     const nextVisiting = new Set(visiting).add(type.key);
     const members = this.structMembers(type);
-    return this.computeOffsets(
+    const size = this.computeOffsets(
       members.map((member) => member.type),
       nextVisiting,
     ).size;
+    this.storageSizes.set(type.key, size);
+    return size;
   }
 
   private computeOffsets(
@@ -858,12 +871,16 @@ function resolvedTypeString(node: JsonObject): string | undefined {
 }
 
 function constantInteger(node: JsonObject, fallback?: string): bigint {
+  // Literal values exclude denominations (e.g. `2 minutes` has value "2").
+  // Prefer the analyzed array dimension or constant type, which already
+  // includes unit conversion and constant folding from the exact compiler.
   const candidates = [
-    node.value,
-    node.attributes?.value,
+    fallback,
     node.typeDescriptions?.typeString,
     node.attributes?.type,
-    fallback,
+    ...(node.subdenomination || node.attributes?.subdenomination
+      ? []
+      : [node.value, node.attributes?.value]),
   ];
   for (const candidate of candidates) {
     if (typeof candidate !== 'string' && typeof candidate !== 'number') {
