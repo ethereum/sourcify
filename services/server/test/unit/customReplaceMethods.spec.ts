@@ -1,7 +1,13 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { replaceVyperStorageLayout } from "../../src/server/apiPrivate/customReplaceMethods";
-import backfillConfig from "../../../database/massive-replace-script/vyper-storage-layout-backfill/config-backfill-vyper-storage-layout";
+import { createRequire } from "module";
+
+// Load the other workspace's runtime config without adding it to the server's
+// TypeScript source tree (which is restricted to the server rootDir).
+const backfillConfig = createRequire(__filename)(
+  "../../../database/massive-replace-script/vyper-storage-layout-backfill/config-backfill-vyper-storage-layout.js",
+);
 
 function verificationWithStatus(runtimeMatch: "perfect" | "partial" | null) {
   return {
