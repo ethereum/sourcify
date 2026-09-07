@@ -563,13 +563,16 @@ def _imported_module_data(data, captured_by_path):
 def _module_leaf_type_definitions(request, layout, target_data, captured, parsed):
     if target_data is None:
         return {}
-    root = layout.get("storage_layout", layout)
+    roots = [
+        layout.get("storage_layout", {}),
+        layout.get("transient_storage_layout", {}),
+    ]
     captured_by_path = _captured_data_by_path(captured)
     leaf_definitions = {}
     visited = set()
 
     def visit(namespace, data, prefix):
-        marker = (id(data), tuple(prefix))
+        marker = (id(namespace), id(data), tuple(prefix))
         if marker in visited:
             return
         visited.add(marker)
@@ -596,10 +599,11 @@ def _module_leaf_type_definitions(request, layout, target_data, captured, parsed
             if isinstance(child, dict) and "slot" not in child and "type" not in child:
                 visit(child, imported, [*prefix, alias])
 
-    for alias, imported in _imported_module_data(target_data, captured_by_path):
-        child = root.get(alias)
-        if isinstance(child, dict) and "slot" not in child and "type" not in child:
-            visit(child, imported, [alias])
+    for root in roots:
+        for alias, imported in _imported_module_data(target_data, captured_by_path):
+            child = root.get(alias)
+            if isinstance(child, dict) and "slot" not in child and "type" not in child:
+                visit(child, imported, [alias])
     return leaf_definitions
 
 

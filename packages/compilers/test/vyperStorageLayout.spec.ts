@@ -8,6 +8,7 @@ import {
   repairDuplicatedVyperHashMapType,
   runIsolatedVyper,
   supportsHistoricalVyperStorageLayout,
+  supportsHistoricalVyperTransientStorageLayout,
   useVyperStorageLayout,
   useVyperStorageLayouts,
 } from '../src/lib/vyperStorageLayout';
@@ -38,6 +39,19 @@ describe('Vyper storage layout helpers', () => {
     expect(
       supportsHistoricalVyperStorageLayout('0.4.1rc1+commit.4f7e6b3'),
     ).to.equal(false);
+  });
+
+  it('limits transient backfill candidates to the historical extraction range', () => {
+    for (const version of ['0.3.8', '0.3.10', '0.4.0rc5', '0.4.1b3']) {
+      expect(supportsHistoricalVyperTransientStorageLayout(version)).to.equal(
+        true,
+      );
+    }
+    for (const version of ['0.2.16', '0.3.7', '0.4.1b4', '0.4.1', 'invalid']) {
+      expect(supportsHistoricalVyperTransientStorageLayout(version)).to.equal(
+        false,
+      );
+    }
   });
 
   it('repairs nested duplicated historical HashMap renderings', () => {
@@ -103,7 +117,39 @@ describe('Vyper storage layout helpers', () => {
     ).to.throw('Invalid Vyper storage layout n_slots');
   });
 
+  it('keeps a transient-only native layout out of persistent storage', () => {
+    const raw = {
+      transient_storage_layout: {
+        temporary: { type: 'uint256', slot: 1, n_slots: 1 },
+      },
+    };
+    expect(normalizeVyperStorageLayout(raw)).to.deep.equal({});
+    expect(normalizeVyperTransientStorageLayout(raw)).to.deep.equal(
+      raw.transient_storage_layout,
+    );
+  });
+
+  it('preserves type names that also exist on Object.prototype', () => {
+    for (const name of ['constructor', 'toString', '__proto__']) {
+      const definition = {
+        members: [{ name: 'value', type: 'uint256', slot: 0, n_slots: 1 }],
+        n_slots: 1,
+      };
+      const definitions = Object.fromEntries([[name, definition]]);
+      const layout = normalizeVyperStorageLayout(
+        { item: { type: name, slot: 0, n_slots: 1 } },
+        definitions,
+      );
+      expect(layout.item.type_definitions).to.deep.equal(definitions);
+    }
+  });
+
   it('preserves storage variables whose names resemble layout metadata', () => {
+    expect(
+      normalizeVyperTransientStorageLayout({
+        transient_storage_layout: { type: 'address', slot: 2, n_slots: 1 },
+      }),
+    ).to.equal(undefined);
     expect(
       normalizeVyperStorageLayout({
         storage_layout: { type: 'bytes32', slot: 0, n_slots: 1 },
@@ -409,6 +455,57 @@ pair: Pair
         ]);
       });
     }
+
+    it('preserves struct definitions in initialized transient modules', async function () {
+      const layouts = await useVyperStorageLayouts(
+        vyperRepoPath,
+        '0.4.0',
+        {
+          language: 'Vyper',
+          sources: {
+            'Main.vy': { content: 'import lib\ninitializes: lib\n' },
+            'lib.vy': {
+              content:
+                'struct Pair:\n    x: uint256\n    y: uint256\npair: transient(Pair)\n',
+            },
+          },
+          settings: {
+            evmVersion: 'cancun',
+            outputSelection: { 'Main.vy': [] },
+          },
+        },
+        'Main.vy',
+      );
+      expect(layouts.storageLayout).to.deep.equal({});
+      expect(layouts.transientStorageLayout?.['lib.pair']).to.deep.equal({
+        type: 'Pair',
+        slot: 1,
+        n_slots: 2,
+        type_definitions: {
+          Pair: {
+            members: [
+              { name: 'x', type: 'uint256', slot: 0, n_slots: 1 },
+              { name: 'y', type: 'uint256', slot: 1, n_slots: 1 },
+            ],
+            n_slots: 2,
+          },
+        },
+      });
+    });
+
+    it('records an empty transient layout after successful extraction', async function () {
+      const layouts = await useVyperStorageLayouts(
+        vyperRepoPath,
+        '0.4.0',
+        {
+          language: 'Vyper',
+          sources: { 'Main.vy': { content: 'value: uint256\n' } },
+          settings: { outputSelection: { 'Main.vy': [] } },
+        },
+        'Main.vy',
+      );
+      expect(layouts.transientStorageLayout).to.deep.equal({});
+    });
 
     it('scopes colliding imported struct definitions to target leaves', async function () {
       this.timeout(5 * 60 * 1000);

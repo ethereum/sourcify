@@ -212,16 +212,15 @@ async function replaceStorageLayoutForMatchingVyperCompilation(
   sourcifyDatabaseService: SourcifyDatabaseService,
   verification: VerificationExport,
   compilationId: string,
-  storageLayout: unknown,
+  layouts: { storageLayout?: unknown; transientStorageLayout?: unknown },
 ): Promise<void> {
   const { path, name } = verification.compilation.compilationTarget;
   const settings = prepareCompilerSettingsFromVerification(verification);
   const additionalInput = verification.compilation.additionalInput ?? null;
   const result = await sourcifyDatabaseService.database.pool.query(
     `UPDATE compiled_contracts cc
-       SET compilation_artifacts = jsonb_set(
-         COALESCE(cc.compilation_artifacts, '{}'::jsonb),
-         '{storageLayout}', $7::jsonb, true)
+       SET compilation_artifacts =
+         COALESCE(cc.compilation_artifacts, '{}'::jsonb) || $7::jsonb
        WHERE cc.id = $1
          AND cc.language = 'vyper'
          AND cc.version = $2
@@ -242,7 +241,7 @@ async function replaceStorageLayoutForMatchingVyperCompilation(
       JSON.stringify(settings),
       additionalInput === null ? null : JSON.stringify(additionalInput),
       JSON.stringify(verification.compilation.sources),
-      JSON.stringify(storageLayout),
+      JSON.stringify(layouts),
     ],
   );
   if (result.rows.length !== 1) {
@@ -320,7 +319,7 @@ export const replaceVyperImmutableReferences: CustomReplaceMethod = async (
   );
 };
 
-/** Backfills only `compilation_artifacts.storageLayout` on a verified Vyper compilation. */
+/** Backfills recovered persistent and transient layouts on a verified Vyper compilation. */
 export const replaceVyperStorageLayout: CustomReplaceMethod = async (
   sourcifyDatabaseService: SourcifyDatabaseService,
   verification: VerificationExport,
@@ -342,10 +341,10 @@ export const replaceVyperStorageLayout: CustomReplaceMethod = async (
     );
   }
 
-  const storageLayout =
-    verification.compilation.contractCompilerOutput.storageLayout;
-  if (storageLayout === undefined) {
-    const reason = "Historical Vyper storage layout could not be recovered";
+  const { storageLayout, transientStorageLayout } =
+    verification.compilation.contractCompilerOutput;
+  if (storageLayout === undefined && transientStorageLayout === undefined) {
+    const reason = "Historical Vyper storage layouts could not be recovered";
     logger.info(reason, {
       chainId: verification.chainId,
       address: verification.address,
@@ -363,7 +362,7 @@ export const replaceVyperStorageLayout: CustomReplaceMethod = async (
     sourcifyDatabaseService,
     verification,
     compilationId,
-    storageLayout,
+    { storageLayout, transientStorageLayout },
   );
 };
 

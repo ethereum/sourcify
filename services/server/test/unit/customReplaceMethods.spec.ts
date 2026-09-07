@@ -1,6 +1,7 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import { replaceVyperStorageLayout } from "../../src/server/apiPrivate/customReplaceMethods";
+import backfillConfig from "../../../database/massive-replace-script/vyper-storage-layout-backfill/config-backfill-vyper-storage-layout";
 
 function verificationWithStatus(runtimeMatch: "perfect" | "partial" | null) {
   return {
@@ -19,6 +20,36 @@ function verificationWithStatus(runtimeMatch: "perfect" | "partial" | null) {
 }
 
 describe("replaceVyperStorageLayout", () => {
+  it("selects compilations missing only a recoverable transient layout", async () => {
+    const query = sinon.stub();
+    query.onFirstCall().resolves({
+      rows: [
+        {
+          representative_id: "1",
+          compiler_version: "0.3.7",
+          missing_storage_layout: false,
+        },
+        {
+          representative_id: "2",
+          compiler_version: "0.4.0",
+          missing_storage_layout: false,
+        },
+        {
+          representative_id: "3",
+          compiler_version: "0.4.1",
+          missing_storage_layout: false,
+        },
+        {
+          representative_id: "4",
+          compiler_version: "0.2.16",
+          missing_storage_layout: true,
+        },
+      ],
+    });
+    query.onSecondCall().resolves({ rows: [], rowCount: 0 });
+    await backfillConfig.query({ query }, "public", 0, 10);
+    expect(query.secondCall.args[1]).to.deep.equal([[2, 4]]);
+  });
   it("rejects a layout from a compilation that did not match", async () => {
     const query = sinon.stub();
     const service = { database: { pool: { query } } } as any;
@@ -47,7 +78,7 @@ describe("replaceVyperStorageLayout", () => {
       "compiler_settings = $4::jsonb",
     );
     expect(query.secondCall.args[0]).to.contain(
-      "compilation_artifacts = jsonb_set",
+      "COALESCE(cc.compilation_artifacts, '{}'::jsonb) || $7::jsonb",
     );
     expect(query.secondCall.args[1]).to.deep.equal([
       "7",
@@ -56,8 +87,42 @@ describe("replaceVyperStorageLayout", () => {
       '{"evmVersion":"london"}',
       null,
       '{"Fixture.vy":"owner: address\\n"}',
-      "{}",
+      '{"storageLayout":{}}',
     ]);
+  });
+
+  it("backfills both recovered namespaces in one identity-guarded update", async () => {
+    const query = sinon.stub();
+    query.onFirstCall().resolves({ rows: [{ compilation_id: "7" }] });
+    query.onSecondCall().resolves({ rows: [{ id: "7" }] });
+    const service = { database: { pool: { query } } } as any;
+    const verification = verificationWithStatus("perfect");
+    verification.compilation.contractCompilerOutput.transientStorageLayout = {
+      temporary: { type: "uint256", slot: 1, n_slots: 1 },
+    };
+
+    await replaceVyperStorageLayout(service, verification);
+
+    expect(JSON.parse(query.secondCall.args[1][6])).to.deep.equal(
+      verification.compilation.contractCompilerOutput,
+    );
+  });
+
+  it("preserves stored persistent layout when only transient layout is recovered", async () => {
+    const query = sinon.stub();
+    query.onFirstCall().resolves({ rows: [{ compilation_id: "7" }] });
+    query.onSecondCall().resolves({ rows: [{ id: "7" }] });
+    const service = { database: { pool: { query } } } as any;
+    const verification = verificationWithStatus("perfect");
+    verification.compilation.contractCompilerOutput = {
+      transientStorageLayout: {},
+    };
+
+    await replaceVyperStorageLayout(service, verification);
+
+    expect(JSON.parse(query.secondCall.args[1][6])).to.deep.equal({
+      transientStorageLayout: {},
+    });
   });
 
   it("refuses to overwrite a different stored compilation identity", async () => {

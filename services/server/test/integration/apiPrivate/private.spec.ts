@@ -217,6 +217,7 @@ OWNER: public(immutable(address))
 MY_IMMUTABLE: public(immutable(uint256))
 stored: public(uint256)
 values: uint256[3]
+temporary: transient(uint256)
 
 @deploy
 def __init__(val: uint256):
@@ -226,7 +227,7 @@ def __init__(val: uint256):
     self.values[0] = 1
 `;
     const compilerSettings = {
-      evmVersion: "london",
+      evmVersion: "cancun",
       optimize: "codesize",
       outputSelection: { "test.vy": ["abi", "evm.bytecode.object"] },
     } satisfies VyperJsonInput["settings"];
@@ -276,9 +277,15 @@ def __init__(val: uint256):
       stored: { type: "uint256", slot: 1, n_slots: 1 },
       values: { type: "uint256[3]", slot: 2, n_slots: 3 },
     };
+    const expectedTransientStorageLayout = {
+      temporary: { type: "uint256", slot: 1, n_slots: 1 },
+    };
     chai
       .expect(compiledContract.compilation_artifacts.storageLayout)
       .to.deep.equal(expectedStorageLayout);
+    chai
+      .expect(compiledContract.compilation_artifacts.transientStorageLayout)
+      .to.deep.equal(expectedTransientStorageLayout);
 
     // Sanity check: the fix stores non-empty immutableReferences for this contract
     chai.expect(originalArtifacts.immutableReferences).to.not.be.null;
@@ -355,8 +362,8 @@ def __init__(val: uint256):
     // Simulate historical rows stored before Vyper layout extraction existed.
     await serverFixture.sourcifyDatabase.query(
       `UPDATE compiled_contracts
-          SET compilation_artifacts = jsonb_set(
-            compilation_artifacts, '{storageLayout}', 'null'::jsonb)`,
+          SET compilation_artifacts = compilation_artifacts ||
+            '{"storageLayout":null,"transientStorageLayout":null}'::jsonb`,
     );
 
     const replaceLayoutRes = await chai
@@ -407,16 +414,23 @@ def __init__(val: uint256):
     );
     chai.expect(finalMatchResult.rows).to.deep.equal(originalMatchResult.rows);
 
-    for (const fields of ["storageLayout", "all"]) {
+    for (const fields of ["storageLayout", "transientStorageLayout", "all"]) {
       const lookupRes = await chai
         .request(serverFixture.server.app)
         .get(
           `/v2/contract/${chainFixture.chainId}/${contractAddress}?fields=${fields}`,
         );
       chai.expect(lookupRes.status).to.equal(StatusCodes.OK);
-      chai
-        .expect(lookupRes.body.storageLayout)
-        .to.deep.equal(expectedStorageLayout);
+      if (fields !== "transientStorageLayout") {
+        chai
+          .expect(lookupRes.body.storageLayout)
+          .to.deep.equal(expectedStorageLayout);
+      }
+      if (fields !== "storageLayout") {
+        chai
+          .expect(lookupRes.body.transientStorageLayout)
+          .to.deep.equal(expectedTransientStorageLayout);
+      }
     }
   });
 

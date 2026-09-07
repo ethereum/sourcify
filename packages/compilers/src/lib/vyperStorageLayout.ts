@@ -70,6 +70,15 @@ export function supportsHistoricalVyperStorageLayout(version: string): boolean {
   );
 }
 
+export function supportsHistoricalVyperTransientStorageLayout(
+  version: string,
+): boolean {
+  return (
+    supportsHistoricalVyperStorageLayout(version) &&
+    semver.gte(normalizeVyperVersionForSemver(version), '0.3.8')
+  );
+}
+
 export function pythonVersionForVyper(version: string): string {
   const normalized = normalizeVyperVersionForSemver(version);
   if (semver.lt(normalized, '0.3.0')) return '3.8';
@@ -325,7 +334,8 @@ function normalizeTypeDefinitions(
     throw new Error('Invalid Vyper storage layout type definitions');
   }
 
-  const definitions: Record<string, VyperStorageTypeDefinition> = {};
+  const definitions: Record<string, VyperStorageTypeDefinition> =
+    Object.create(null);
   for (const [label, rawDefinition] of Object.entries(value)) {
     if (
       !label ||
@@ -383,20 +393,24 @@ function typeDefinitionsForLeaf(
 ): Record<string, VyperStorageTypeDefinition> | undefined {
   if (!definitions) return undefined;
 
-  const selected: Record<string, VyperStorageTypeDefinition> = {};
+  const selected = new Map<string, VyperStorageTypeDefinition>();
   const pending: string[] = [
     ...(type.match(/[A-Za-z_$][A-Za-z0-9_.$]*/g) || []),
   ];
   while (pending.length > 0) {
     const label = pending.pop()!;
+    if (
+      !Object.prototype.hasOwnProperty.call(definitions, label) ||
+      selected.has(label)
+    )
+      continue;
     const definition = definitions[label];
-    if (!definition || selected[label]) continue;
-    selected[label] = definition;
+    selected.set(label, definition);
     for (const member of definition.members) {
       pending.push(...(member.type.match(/[A-Za-z_$][A-Za-z0-9_.$]*/g) || []));
     }
   }
-  return Object.keys(selected).length > 0 ? selected : undefined;
+  return selected.size > 0 ? Object.fromEntries(selected) : undefined;
 }
 
 function normalizeLeafTypeDefinitions(
@@ -406,7 +420,10 @@ function normalizeLeafTypeDefinitions(
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
     throw new Error('Invalid Vyper storage layout leaf type definitions');
   }
-  const result: Record<string, Record<string, VyperStorageTypeDefinition>> = {};
+  const result: Record<
+    string,
+    Record<string, VyperStorageTypeDefinition>
+  > = Object.create(null);
   for (const [leaf, rawDefinitions] of Object.entries(value)) {
     const definitions = normalizeTypeDefinitions(rawDefinitions);
     if (definitions) result[leaf] = definitions;
@@ -455,17 +472,10 @@ export function normalizeVyperStorageLayout(
   }
   const raw = rawLayout as Record<string, unknown>;
   const storageLayout = raw.storage_layout;
-  const storageLayoutIsWrapper =
-    storageLayout &&
-    typeof storageLayout === 'object' &&
-    !Array.isArray(storageLayout) &&
-    !(
-      ('slot' in storageLayout &&
-        (storageLayout.slot === null ||
-          typeof storageLayout.slot !== 'object')) ||
-      ('type' in storageLayout &&
-        (storageLayout.type === null || typeof storageLayout.type !== 'object'))
-    );
+  const storageLayoutIsWrapper = isLayoutNamespace(storageLayout);
+  const transientLayoutIsWrapper = isLayoutNamespace(
+    raw.transient_storage_layout,
+  );
   const codeLayout = raw.code_layout;
   const codeLayoutIsWrapper =
     codeLayout !== null &&
@@ -481,7 +491,7 @@ export function normalizeVyperStorageLayout(
     );
   const persistent = storageLayoutIsWrapper
     ? (storageLayout as Record<string, unknown>)
-    : codeLayoutIsWrapper
+    : codeLayoutIsWrapper || transientLayoutIsWrapper
       ? {}
       : raw;
   const leaves = flattenLayout(persistent).sort(
@@ -513,6 +523,20 @@ export function normalizeVyperStorageLayout(
   );
 }
 
+function isLayoutNamespace(value: unknown): value is Record<string, unknown> {
+  return (
+    value !== null &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    !(
+      ('slot' in value &&
+        (value.slot === null || typeof value.slot !== 'object')) ||
+      ('type' in value &&
+        (value.type === null || typeof value.type !== 'object'))
+    )
+  );
+}
+
 export function normalizeVyperTransientStorageLayout(
   rawLayout: unknown,
   rawTypeDefinitions?: unknown,
@@ -524,6 +548,15 @@ export function normalizeVyperTransientStorageLayout(
   const transientStorageLayout = (rawLayout as Record<string, unknown>)
     .transient_storage_layout;
   if (transientStorageLayout === undefined) return undefined;
+  // Older flat layouts may contain a storage variable with this exact name.
+  if (
+    transientStorageLayout &&
+    typeof transientStorageLayout === 'object' &&
+    'type' in transientStorageLayout &&
+    typeof transientStorageLayout.type === 'string' &&
+    'slot' in transientStorageLayout
+  )
+    return undefined;
   return normalizeVyperStorageLayout(
     transientStorageLayout,
     rawTypeDefinitions,
@@ -586,11 +619,13 @@ export async function useVyperStorageLayouts(
     parsed.type_definitions,
     parsed.leaf_type_definitions,
   );
-  const transientStorageLayout = normalizeVyperTransientStorageLayout(
-    parsed.layout,
-    parsed.type_definitions,
-    parsed.leaf_type_definitions,
-  );
+  const transientStorageLayout =
+    normalizeVyperTransientStorageLayout(
+      parsed.layout,
+      parsed.type_definitions,
+      parsed.leaf_type_definitions,
+    ) ??
+    (supportsHistoricalVyperTransientStorageLayout(version) ? {} : undefined);
   return {
     storageLayout,
     ...(transientStorageLayout !== undefined ? { transientStorageLayout } : {}),

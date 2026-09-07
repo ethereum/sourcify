@@ -1,6 +1,9 @@
-// Recompiles one representative deployment for every shared Vyper compilation
-// whose stored storageLayout is null, then updates only that artifact through
-// the private replace-contract API.
+const {
+  supportsHistoricalVyperTransientStorageLayout,
+} = require("@ethereum-sourcify/compilers");
+
+// Recompiles one representative deployment for each Vyper compilation with
+// missing persistent or recoverable transient layout.
 let candidateIds = null;
 
 async function loadCandidateIds(sourcePool, sourcifySchema) {
@@ -9,11 +12,14 @@ async function loadCandidateIds(sourcePool, sourcifySchema) {
   // shared compiled_contracts row, but retain an ambiguous fallback so it is
   // logged.
   const result = await sourcePool.query(`
-    SELECT representative_id
+    SELECT representative_id, compiler_version, missing_storage_layout
     FROM (
       SELECT DISTINCT ON (cc.id)
         sm.id AS representative_id,
-        cc.id AS compilation_id
+        cc.id AS compilation_id,
+        cc.version AS compiler_version,
+        COALESCE(cc.compilation_artifacts->'storageLayout', 'null'::jsonb)
+          = 'null'::jsonb AS missing_storage_layout
       FROM ${sourcifySchema}.sourcify_matches sm
       JOIN ${sourcifySchema}.verified_contracts vc
         ON sm.verified_contract_id = vc.id
@@ -22,8 +28,8 @@ async function loadCandidateIds(sourcePool, sourcifySchema) {
       JOIN ${sourcifySchema}.compiled_contracts cc
         ON vc.compilation_id = cc.id
       WHERE cc.language = 'vyper'
-        AND (cc.compilation_artifacts->'storageLayout' IS NULL
-             OR cc.compilation_artifacts->'storageLayout' = 'null'::jsonb)
+        AND (COALESCE(cc.compilation_artifacts->'storageLayout', 'null'::jsonb) = 'null'::jsonb
+             OR COALESCE(cc.compilation_artifacts->'transientStorageLayout', 'null'::jsonb) = 'null'::jsonb)
       ORDER BY
         cc.id,
         NOT EXISTS (
@@ -41,7 +47,13 @@ async function loadCandidateIds(sourcePool, sourcifySchema) {
     ) candidates
     ORDER BY representative_id
   `);
-  return result.rows.map((row) => Number(row.representative_id));
+  return result.rows
+    .filter(
+      (row) =>
+        row.missing_storage_layout ||
+        supportsHistoricalVyperTransientStorageLayout(row.compiler_version),
+    )
+    .map((row) => Number(row.representative_id));
 }
 
 module.exports = {

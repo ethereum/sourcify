@@ -1,8 +1,9 @@
 # Historical Vyper storage-layout backfill
 
 This resumable job recompiles one representative deployment for every Vyper
-`compiled_contracts` row whose `compilation_artifacts.storageLayout` is null.
-The private replacement method updates only that JSON field, so every deployment
+`compiled_contracts` row whose `compilation_artifacts.storageLayout` is null,
+or whose recoverable historical `transientStorageLayout` is null.
+The private replacement method updates only recovered layout fields, so every deployment
 sharing the compilation benefits without changing match data, bytecode artifacts,
 or source associations.
 
@@ -35,6 +36,10 @@ jq -sr 'map(.verifiedContractId | tonumber) | min' FAILED_CONTRACTS \
 Successfully updated compilations no longer satisfy the candidate query, so
 rewinding the cursor retries only layouts that are still missing. Archive or
 clear `FAILED_CONTRACTS` after a clean retry to keep later retry sets distinct.
+
+Historical compilers that support transient storage but declare no transient
+variables produce an empty transient layout (`{}`). This records successful
+extraction and prevents them from being selected again on the next run.
 
 The candidate query deduplicates by `compiled_contracts.id`; reprocessing the
 same compilation through several deployments would only repeat the same update.
