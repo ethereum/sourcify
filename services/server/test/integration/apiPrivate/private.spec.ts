@@ -273,9 +273,10 @@ def __init__(val: uint256):
     );
     const compiledContract = originalArtifactsResult.rows[0];
     const originalArtifacts = compiledContract.runtime_code_artifacts;
+    // Cancun places Vyper's reserved nonreentrant slot in transient storage.
     const expectedStorageLayout = {
-      stored: { type: "uint256", slot: 1, n_slots: 1 },
-      values: { type: "uint256[3]", slot: 2, n_slots: 3 },
+      stored: { type: "uint256", slot: 0, n_slots: 1 },
+      values: { type: "uint256[3]", slot: 1, n_slots: 3 },
     };
     const expectedTransientStorageLayout = {
       temporary: { type: "uint256", slot: 1, n_slots: 1 },
