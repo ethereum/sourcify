@@ -1,7 +1,7 @@
 \restrict dbmate
 
--- Dumped from database version 15.19 (Debian 15.19-1.pgdg13+2)
--- Dumped by pg_dump version 15.19 (Debian 15.19-1.pgdg13+2)
+-- Dumped from database version 16.15 (Ubuntu 16.15-1.pgdg24.04+2)
+-- Dumped by pg_dump version 16.15 (Ubuntu 16.15-1.pgdg24.04+2)
 
 SET statement_timeout = 0;
 SET lock_timeout = 0;
@@ -1034,7 +1034,8 @@ CREATE TABLE public.compiled_contracts (
 
 CREATE TABLE public.compiled_contracts_metadata (
     compilation_id uuid NOT NULL,
-    metadata json NOT NULL
+    metadata json NOT NULL,
+    created_at timestamp with time zone DEFAULT now() NOT NULL
 );
 
 
@@ -1537,6 +1538,13 @@ CREATE INDEX compiled_contracts_creation_code_hash ON public.compiled_contracts 
 
 
 --
+-- Name: compiled_contracts_metadata_created_at; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX compiled_contracts_metadata_created_at ON public.compiled_contracts_metadata USING btree (created_at);
+
+
+--
 -- Name: compiled_contracts_runtime_code_hash; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -1768,6 +1776,13 @@ CREATE TRIGGER insert_set_created_at BEFORE INSERT ON public.compiled_contracts 
 
 
 --
+-- Name: compiled_contracts_metadata insert_set_created_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER insert_set_created_at BEFORE INSERT ON public.compiled_contracts_metadata FOR EACH ROW EXECUTE FUNCTION public.trigger_set_created_at();
+
+
+--
 -- Name: compiled_contracts_sources insert_set_created_at; Type: TRIGGER; Schema: public; Owner: -
 --
 
@@ -1940,6 +1955,13 @@ CREATE TRIGGER update_reuse_created_at BEFORE UPDATE ON public.code FOR EACH ROW
 --
 
 CREATE TRIGGER update_reuse_created_at BEFORE UPDATE ON public.compiled_contracts FOR EACH ROW EXECUTE FUNCTION public.trigger_reuse_created_at();
+
+
+--
+-- Name: compiled_contracts_metadata update_reuse_created_at; Type: TRIGGER; Schema: public; Owner: -
+--
+
+CREATE TRIGGER update_reuse_created_at BEFORE UPDATE ON public.compiled_contracts_metadata FOR EACH ROW EXECUTE FUNCTION public.trigger_reuse_created_at();
 
 
 --
@@ -2277,4 +2299,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260729090000'),
     ('20260803100000'),
     ('20260820120000'),
-    ('20260826100000');
+    ('20260826100000'),
+    ('20260908145004');
