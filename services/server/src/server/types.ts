@@ -253,3 +253,46 @@ export interface S3Config {
   secretAccessKey?: string;
   endpoint?: string;
 }
+
+export interface TurboConfig {
+  /** Arweave JWK, as a JSON string or an already parsed object */
+  privateKey: string;
+  /**
+   * Token the private key belongs to. Only "arweave" is supported: anything
+   * else is rejected by @ardrive/turbo-upload at startup, with a pointer to
+   * @ardrive/turbo-sdk for the other chains. Defaults to "arweave".
+   */
+  token?: "arweave";
+  /** Turbo upload service URL. Defaults to the production upload service */
+  uploadServiceUrl?: string;
+  /** AR.IO gateway the uploaded data items are read from */
+  gatewayUrl?: string;
+  /** Value of the `App-Name` tag set on every uploaded data item */
+  appName?: string;
+  /** Milliseconds after which an upload is aborted */
+  uploadTimeout?: number;
+  /**
+   * Warn at startup when the balance is at or below this many winston credits.
+   * Defaults to "0", i.e. warn only when there is nothing left to spend.
+   */
+  minBalanceWinc?: string;
+  /**
+   * Chain ids to archive. Empty or unset archives every chain.
+   *
+   * Arweave storage is paid for per byte and is permanent, so the volume this
+   * service uploads is the cost it incurs. A server that verifies across many
+   * chains will archive far more than one that cares about a few, and the
+   * difference is large: at the time of writing Sourcify verifies roughly
+   * 168,000 contracts a day across all chains, and about 3,000 of those are
+   * Ethereum mainnet.
+   */
+  chainIds?: string[];
+  /**
+   * Match qualities to archive. Empty or unset archives both.
+   *
+   * A partial match means the metadata differs but the bytecode matches. Some
+   * operators will want those archived; some will want to spend only on exact
+   * matches.
+   */
+  matchQualities?: MatchQuality[];
+}

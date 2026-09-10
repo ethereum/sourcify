@@ -130,6 +130,7 @@ The server supports multiple storage backends:
 - `RepositoryV1`: Legacy filesystem storage (deprecated)
 - `RepositoryV2`: IPFS-compatible filesystem storage
 - `AllianceDatabase`: Verifier Alliance database integration
+- `TurboRepository`: write-only Arweave storage through Turbo (off by default)
 
 ### Chain Configuration
 

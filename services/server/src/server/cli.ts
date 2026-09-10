@@ -15,11 +15,22 @@ import yamljs from "yamljs";
 import logger from "../common/logger";
 import { initializeSourcifyChains } from "../sourcify-chains";
 import type { SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
+import type { TurboConfig } from "./types";
 import type { LibSourcifyConfig } from "./server";
 import { Server } from "./server";
 import { SolcLocal } from "./services/compiler/local/SolcLocal";
 import { VyperLocal } from "./services/compiler/local/VyperLocal";
 import { FeLocal } from "./services/compiler/local/FeLocal";
+
+/** Splits a comma-separated env var, dropping blanks. Undefined stays undefined. */
+function splitList(value: string | undefined): string[] | undefined {
+  if (!value) return undefined;
+  const parts = value
+    .split(",")
+    .map((v) => v.trim())
+    .filter(Boolean);
+  return parts.length > 0 ? parts : undefined;
+}
 
 export const getEtherscanApiKeyForEachChain = (
   chainsMap: SourcifyChainMap,
@@ -174,6 +185,23 @@ Object.defineProperty(RegExp.prototype, "toJSON", {
         accessKeyId: process.env.S3_ACCESS_KEY_ID as string,
         secretAccessKey: process.env.S3_SECRET_ACCESS_KEY as string,
         endpoint: process.env.S3_ENDPOINT as string,
+      },
+      turboRepositoryServiceOptions: {
+        privateKey: process.env.TURBO_PRIVATE_KEY as string,
+        token: process.env.TURBO_TOKEN as TurboConfig["token"],
+        uploadServiceUrl: process.env.TURBO_UPLOAD_SERVICE_URL as string,
+        gatewayUrl: process.env.TURBO_GATEWAY_URL as string,
+        appName: process.env.TURBO_APP_NAME as string,
+        uploadTimeout: process.env.TURBO_UPLOAD_TIMEOUT
+          ? parseInt(process.env.TURBO_UPLOAD_TIMEOUT)
+          : undefined,
+        minBalanceWinc: process.env.TURBO_MIN_BALANCE_WINC as string,
+        // Comma-separated, empty means everything. Splitting here rather than
+        // in the service keeps the env-var shape out of the storage layer.
+        chainIds: splitList(process.env.TURBO_CHAIN_IDS),
+        matchQualities: splitList(
+          process.env.TURBO_MATCH_QUALITIES,
+        ) as TurboConfig["matchQualities"],
       },
       sourcifyDatabaseServiceOptions: {
         postgres: {
