@@ -12,7 +12,10 @@ import type {
   EtherscanResult,
   AnyCompilation,
 } from "@ethereum-sourcify/lib-sourcify";
-import { Verification } from "@ethereum-sourcify/lib-sourcify";
+import {
+  SolidityMetadataContract,
+  Verification,
+} from "@ethereum-sourcify/lib-sourcify";
 import { getCreatorTx } from "./utils/contract-creation-util";
 import { ContractIsAlreadyBeingVerifiedError } from "../../common/errors/ContractIsAlreadyBeingVerifiedError";
 import logger from "../../common/logger";
@@ -154,6 +157,8 @@ export class VerificationService {
         // We can use the environment variable because it is overwritten by setLogLevel at server startup
         logLevel: process.env.NODE_LOG_LEVEL,
         sourcifyChainInstanceMap,
+        // Workers run in separate threads and do not share this global
+        ipfsGateway: SolidityMetadataContract.getGlobalIpfsGateway(),
         solcRepoPath: options.solcRepoPath,
         solJsonRepoPath: options.solJsonRepoPath,
         vyperRepoPath: options.vyperRepoPath,
