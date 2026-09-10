@@ -1,3 +1,4 @@
+import type { MatchQuality } from "../../../src/server/types";
 import { expect, use } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
@@ -69,6 +70,8 @@ describe("TurboRepositoryService", function () {
       uploadServiceUrl: string;
       uploadTimeout: number;
       minBalanceWinc: string;
+      chainIds: string[];
+      matchQualities: MatchQuality[];
     }> = {},
   ): TurboRepositoryService =>
     new TurboRepositoryService({
@@ -454,5 +457,65 @@ describe("TurboRepositoryService", function () {
     await service.close();
     // The signal handed to Turbo is derived from the service's controller
     expect(signal.aborted).to.equal(true);
+  });
+
+  it("archives everything when no scope is configured, as it always did", async () => {
+    const service = createService();
+    await service.init();
+    await service.storeVerification(structuredClone(MockVerificationExport));
+    expect(uploadedItems()).to.have.lengthOf(4);
+  });
+
+  it("skips a chain outside the configured scope, and uploads nothing", async () => {
+    // The mock verifies on chain 31337. Scoping to mainnet must archive none of
+    // it. This is the whole point: Arweave is paid for per byte and permanent,
+    // so an operator has to be able to say what is worth keeping.
+    const service = createService({ chainIds: ["1"] });
+    await service.init();
+    await service.storeVerification(structuredClone(MockVerificationExport));
+    expect(uploadedItems()).to.have.lengthOf(0);
+  });
+
+  it("archives a chain that is in scope", async () => {
+    const service = createService({ chainIds: ["31337", "1"] });
+    await service.init();
+    await service.storeVerification(structuredClone(MockVerificationExport));
+    expect(uploadedItems()).to.have.lengthOf(4);
+  });
+
+  it("skips a match quality outside the configured scope", async () => {
+    const service = createService({ matchQualities: ["partial"] });
+    await service.init();
+    await service.storeVerification(structuredClone(MockVerificationExport));
+    expect(uploadedItems()).to.have.lengthOf(0);
+  });
+
+  it("applies both filters together, and both must pass", async () => {
+    const right = createService({
+      chainIds: ["31337"],
+      matchQualities: ["full"],
+    });
+    await right.init();
+    await right.storeVerification(structuredClone(MockVerificationExport));
+    expect(uploadedItems()).to.have.lengthOf(4);
+
+    uploadSignedStub.resetHistory();
+    const wrong = createService({
+      chainIds: ["31337"],
+      matchQualities: ["partial"],
+    });
+    await wrong.init();
+    await wrong.storeVerification(structuredClone(MockVerificationExport));
+    expect(uploadedItems()).to.have.lengthOf(0);
+  });
+
+  it("costs nothing when everything is out of scope: it does not even sign", async () => {
+    // Signing an RSA-4096 item is not free, and a filtered-out file should not
+    // pay for it. A filter that signs and then discards is not a filter.
+    const service = createService({ chainIds: ["1"] });
+    await service.init();
+    signSpy.resetHistory();
+    await service.storeVerification(structuredClone(MockVerificationExport));
+    expect(signSpy.callCount).to.equal(0);
   });
 });

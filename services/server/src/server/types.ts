@@ -276,4 +276,23 @@ export interface TurboConfig {
    * Defaults to "0", i.e. warn only when there is nothing left to spend.
    */
   minBalanceWinc?: string;
+  /**
+   * Chain ids to archive. Empty or unset archives every chain.
+   *
+   * Arweave storage is paid for per byte and is permanent, so the volume this
+   * service uploads is the cost it incurs. A server that verifies across many
+   * chains will archive far more than one that cares about a few, and the
+   * difference is large: at the time of writing Sourcify verifies roughly
+   * 168,000 contracts a day across all chains, and about 3,000 of those are
+   * Ethereum mainnet.
+   */
+  chainIds?: string[];
+  /**
+   * Match qualities to archive. Empty or unset archives both.
+   *
+   * A partial match means the metadata differs but the bytecode matches. Some
+   * operators will want those archived; some will want to spend only on exact
+   * matches.
+   */
+  matchQualities?: MatchQuality[];
 }

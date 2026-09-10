@@ -30,7 +30,7 @@ import { RepositoryV2Service } from "./RepositoryV2Service";
 import type { WStorageService } from "../StorageService";
 import { WStorageIdentifiers } from "./identifiers";
 import logger from "../../../common/logger";
-import type { PathConfig, TurboConfig } from "../../types";
+import type { MatchQuality, PathConfig, TurboConfig } from "../../types";
 
 export type TurboRepositoryServiceOptions = TurboConfig;
 
@@ -71,6 +71,11 @@ export class TurboRepositoryService
   private gatewayUrl: string;
   private uploadTimeout: number;
   private minBalanceWinc: bigint;
+  /** Empty means every chain. See `chainIds` in TurboConfig. */
+  private chainIds: Set<string>;
+  /** Empty means both qualities. See `matchQualities` in TurboConfig. */
+  private matchQualities: Set<MatchQuality>;
+  private skipped = 0;
   private abortController: AbortController;
   /** True from the first upload refused for payment until the next success. */
   private outOfCredit = false;
@@ -86,6 +91,8 @@ export class TurboRepositoryService
     );
     this.uploadTimeout = options.uploadTimeout || DEFAULT_UPLOAD_TIMEOUT;
     this.minBalanceWinc = this.parseMinBalanceWinc(options.minBalanceWinc);
+    this.chainIds = new Set(options.chainIds ?? []);
+    this.matchQualities = new Set(options.matchQualities ?? []);
     this.abortController = new AbortController();
     // The client validates all of this in its constructor and throws an error
     // that names the problem, so a malformed JWK or an unsupported token is a
@@ -167,7 +174,41 @@ export class TurboRepositoryService
     );
   }
 
+  /**
+   * Whether this file is in the configured archive scope.
+   *
+   * Arweave is paid for per byte and cannot be undone, so what this service
+   * uploads is what it costs, permanently. Without a scope the only thing
+   * bounding that is the wallet running out, which is a failure and not a
+   * budget. An unset filter keeps the previous behaviour of archiving
+   * everything, so this changes nothing for an existing configuration.
+   */
+  private inScope(path: PathConfig): boolean {
+    if (this.chainIds.size > 0 && !this.chainIds.has(path.chainId)) {
+      return false;
+    }
+    if (
+      this.matchQualities.size > 0 &&
+      !this.matchQualities.has(path.matchQuality)
+    ) {
+      return false;
+    }
+    return true;
+  }
+
   async save(path: PathConfig, content: string) {
+    if (!this.inScope(path)) {
+      this.skipped++;
+      logger.debug(
+        `${this.IDENTIFIER} skipped a file outside the archive scope`,
+        {
+          chainId: path.chainId,
+          matchQuality: path.matchQuality,
+          skippedTotal: this.skipped,
+        },
+      );
+      return;
+    }
     const filePath = this.generateRelativeFilePath(path);
     const tags: Tag[] = [
       { name: "App-Name", value: this.appName },
