@@ -4,7 +4,7 @@ import fs from "fs";
 import path from "path";
 import os from "os";
 import { expect } from "chai";
-import { findSolcPlatform } from "@ethereum-sourcify/compilers";
+import { findSolcPlatform, getSolcJs } from "@ethereum-sourcify/compilers";
 import config from "config";
 import { rimrafSync } from "rimraf";
 import { getWorkerPoolThreadCounts } from "../../src/server/services/VerificationService";
@@ -77,9 +77,6 @@ describe("VerificationService", function () {
       releases = {
         "0.8.26": "soljson-v0.8.26+commit.8a97fa7a.js",
         "0.6.12": "soljson-v0.6.12+commit.27d51765.js",
-        // soljson <0.6.2 used to overflow the stack when loaded under ts-node (#1473)
-        "0.1.1": "soljson-v0.1.1+commit.6ff4cd6.js",
-        "0.4.18": "soljson-v0.4.18+commit.9cf6e910.js",
       };
       nock(HOST_SOLC_REPO, { allowUnmocked: true })
         .get("/bin/list.json")
@@ -144,6 +141,15 @@ describe("VerificationService", function () {
     Object.values(releases).forEach((release) => {
       expect(fs.existsSync(path.join(downloadDir, release))).to.be.true;
     });
+  });
+
+  // Loads soljson directly so it runs on every platform, not just "bin" (#1473)
+  it("should load soljson <0.6.2 under ts-node", async function () {
+    const solc = await getSolcJs(
+      config.get<string>("solJsonRepo"),
+      "0.4.18+commit.9cf6e910",
+    );
+    expect(solc.compile).to.be.a("function");
   });
 
   it("should compute integer thread counts for the worker pool", function () {
