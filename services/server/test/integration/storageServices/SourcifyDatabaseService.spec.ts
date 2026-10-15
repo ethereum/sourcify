@@ -13,6 +13,7 @@ import {
 } from "../../../src/server/services/utils/database-util";
 import { id as keccak256str } from "ethers";
 import { ConflictError } from "../../../src/common/errors/ConflictError";
+import logger from "../../../src/common/logger";
 
 use(chaiAsPromised);
 
@@ -274,6 +275,36 @@ describe("SourcifyDatabaseService", function () {
       "SELECT COUNT(*) as count FROM compiled_contracts_metadata",
     );
     expect(parseInt(compilationMetadataResult.rows[0].count)).to.equal(0);
+  });
+
+  it("should log each new match with its matchId after storeVerification", async () => {
+    // Cast because winston's overloaded info() confuses sinon's types
+    const infoSpy = sandbox.spy(logger, "info") as unknown as sinon.SinonSpy<
+      [string, Record<string, unknown>]
+    >;
+
+    await databaseService.storeVerification(MockVerificationExport);
+
+    const sourcifyMatchesResult = await databaseService.database.pool.query(
+      "SELECT id FROM sourcify_matches",
+    );
+    expect(sourcifyMatchesResult.rows).to.have.length(1);
+
+    // A Cloud Logging sink filters on this exact message (see storeVerification)
+    const storedLogCalls = infoSpy
+      .getCalls()
+      .filter((call) => call.args[0] === "Stored to SourcifyDatabase");
+    expect(storedLogCalls).to.have.length(1);
+    const logFields = storedLogCalls[0].args[1];
+    expect(logFields.matchId).to.be.a("string").and.not.be.empty;
+    expect(logFields).to.deep.equal({
+      matchId: sourcifyMatchesResult.rows[0].id,
+      address: MockVerificationExport.address,
+      chainId: MockVerificationExport.chainId,
+      runtimeMatch: MockVerificationExport.status.runtimeMatch,
+      creationMatch: MockVerificationExport.status.creationMatch,
+      match: "exact_match",
+    });
   });
 
   it("should still store verification even if signature storage fails", async () => {
