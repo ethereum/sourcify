@@ -29,7 +29,6 @@ import type {
   VerificationJobId,
   BytesKeccak,
   SimilarityCandidate,
-  MatchLevel,
 } from "../../types";
 import {
   getTotalMatchLevel,
@@ -47,14 +46,8 @@ import type { VerifyErrorExport } from "../workers/workerTypes";
 import type { PoolClient } from "pg";
 
 // A sourcify_matches row that a verification inserted (not updated)
-export interface NewSourcifyMatch {
-  matchId: Tables.SourcifyMatch["id"];
-  address: VerificationExport["address"];
-  chainId: VerificationExport["chainId"];
-  runtimeMatch: VerificationStatus;
-  creationMatch: VerificationStatus;
-  match: MatchLevel;
-}
+type NewSourcifyMatch = VerifiedContractMinimal &
+  Required<Pick<VerifiedContractMinimal, "matchId" | "verifiedAt">>;
 
 export class SourcifyDatabaseService
   extends AbstractDatabaseService
@@ -535,7 +528,6 @@ export class SourcifyDatabaseService
     }
   }
 
-  // Override this method to include the SourcifyMatch.
   // For an insert, it returns newMatch; the caller logs it after COMMIT.
   async storeVerificationWithPoolClient(
     poolClient: PoolClient,
@@ -575,15 +567,16 @@ export class SourcifyDatabaseService
         );
         // Logged by storeVerification after the transaction commits
         newMatch = {
-          matchId: insertResult.rows[0].id,
-          address: verification.address,
-          chainId: verification.chainId,
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
           match: getTotalMatchLevel(
             verification.status.creationMatch,
             verification.status.runtimeMatch,
           ),
+          creationMatch: toMatchLevel(verification.status.creationMatch),
+          runtimeMatch: toMatchLevel(verification.status.runtimeMatch),
+          chainId: verification.chainId.toString(),
+          address: verification.address,
+          verifiedAt: insertResult.rows[0].verified_at,
+          matchId: insertResult.rows[0].id,
         };
       } else if (type === "update") {
         if (!oldVerifiedContractId) {
@@ -676,21 +669,12 @@ export class SourcifyDatabaseService
     // Log only after COMMIT, so every entry is a match that really exists.
     // Log before the signatures transaction, so a failure there cannot drop it.
     if (newMatch) {
-      const { matchId, address, chainId, runtimeMatch, creationMatch, match } =
-        newMatch;
       // DO NOT CHANGE this log message or its fields. A Cloud Logging sink
       // ("sourcify-<env>-new-match") filters on the exact message text and sends
       // each entry to Pub/Sub. The live counter and the "just verified" feed on
       // sourcify.dev read it through https://github.com/sourcifyeth/sourcify-live-stats.
       // If you must change it, update the sink filter and the parser there too.
-      logger.info("Stored to SourcifyDatabase", {
-        matchId,
-        address,
-        chainId,
-        runtimeMatch,
-        creationMatch,
-        match,
-      });
+      logger.info("Stored to SourcifyDatabase", newMatch);
     }
 
     // Separate transaction because storing the verification should not fail

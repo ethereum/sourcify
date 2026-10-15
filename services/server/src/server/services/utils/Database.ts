@@ -372,7 +372,9 @@ ${
       chain_id,
     }: Omit<Tables.SourcifyMatch, "created_at" | "id">,
     poolClient?: PoolClient,
-  ): Promise<QueryResult<Pick<Tables.SourcifyMatch, "id">>> {
+  ): Promise<
+    QueryResult<Pick<Tables.SourcifyMatch, "id"> & { verified_at: string }>
+  > {
     return await (poolClient || this.pool).query(
       `INSERT INTO ${this.schema}.sourcify_matches (
         verified_contract_id,
@@ -380,7 +382,9 @@ ${
         runtime_match,
         chain_id
       ) VALUES ($1, $2, $3, $4)
-      RETURNING id`,
+      RETURNING
+        id,
+        to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as verified_at`,
       [verified_contract_id, creation_match, runtime_match, chain_id],
     );
   }

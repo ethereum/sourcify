@@ -286,7 +286,8 @@ describe("SourcifyDatabaseService", function () {
     await databaseService.storeVerification(MockVerificationExport);
 
     const sourcifyMatchesResult = await databaseService.database.pool.query(
-      "SELECT id FROM sourcify_matches",
+      `SELECT id, to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as verified_at
+      FROM sourcify_matches`,
     );
     expect(sourcifyMatchesResult.rows).to.have.length(1);
 
@@ -296,14 +297,14 @@ describe("SourcifyDatabaseService", function () {
       .filter((call) => call.args[0] === "Stored to SourcifyDatabase");
     expect(storedLogCalls).to.have.length(1);
     const logFields = storedLogCalls[0].args[1];
-    expect(logFields.matchId).to.be.a("string").and.not.be.empty;
     expect(logFields).to.deep.equal({
-      matchId: sourcifyMatchesResult.rows[0].id,
-      address: MockVerificationExport.address,
-      chainId: MockVerificationExport.chainId,
-      runtimeMatch: MockVerificationExport.status.runtimeMatch,
-      creationMatch: MockVerificationExport.status.creationMatch,
       match: "exact_match",
+      creationMatch: "exact_match",
+      runtimeMatch: "exact_match",
+      chainId: MockVerificationExport.chainId.toString(),
+      address: MockVerificationExport.address,
+      verifiedAt: sourcifyMatchesResult.rows[0].verified_at,
+      matchId: sourcifyMatchesResult.rows[0].id,
     });
   });
 
