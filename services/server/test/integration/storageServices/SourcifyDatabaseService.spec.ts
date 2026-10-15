@@ -305,6 +305,7 @@ describe("SourcifyDatabaseService", function () {
       address: MockVerificationExport.address,
       verifiedAt: sourcifyMatchesResult.rows[0].verified_at,
       matchId: sourcifyMatchesResult.rows[0].id,
+      name: MockVerificationExport.compilation.compilationTarget.name,
     });
   });
 

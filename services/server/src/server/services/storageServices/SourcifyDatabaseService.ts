@@ -45,9 +45,12 @@ import { getVerificationErrorMessage } from "../../apiv2/errors";
 import type { VerifyErrorExport } from "../workers/workerTypes";
 import type { PoolClient } from "pg";
 
-// A sourcify_matches row that a verification inserted (not updated)
+// A sourcify_matches row that a verification inserted (not updated), plus
+// the contract name for the log line in storeVerification
 type NewSourcifyMatch = VerifiedContractMinimal &
-  Required<Pick<VerifiedContractMinimal, "matchId" | "verifiedAt">>;
+  Required<Pick<VerifiedContractMinimal, "matchId" | "verifiedAt">> & {
+    name: string;
+  };
 
 export class SourcifyDatabaseService
   extends AbstractDatabaseService
@@ -577,6 +580,7 @@ export class SourcifyDatabaseService
           address: verification.address,
           verifiedAt: insertResult.rows[0].verified_at,
           matchId: insertResult.rows[0].id,
+          name: verification.compilation.compilationTarget.name,
         };
       } else if (type === "update") {
         if (!oldVerifiedContractId) {
@@ -669,10 +673,12 @@ export class SourcifyDatabaseService
     // Log only after COMMIT, so every entry is a match that really exists.
     // Log before the signatures transaction, so a failure there cannot drop it.
     if (newMatch) {
-      // DO NOT CHANGE this log message or its fields. A Cloud Logging sink
-      // ("sourcify-<env>-new-match") filters on the exact message text and sends
-      // each entry to Pub/Sub. The live counter and the "just verified" feed on
-      // sourcify.dev read it through https://github.com/sourcifyeth/sourcify-live-stats.
+      // DO NOT CHANGE this log message or remove or rename its fields. A Cloud
+      // Logging sink ("sourcify-<env>-new-match") filters on the exact message
+      // text and sends each entry to Pub/Sub. The live counter and the "just
+      // verified" feed on sourcify.dev read it through
+      // https://github.com/sourcifyeth/sourcify-live-stats.
+      // Adding a field is safe, because the parser ignores unknown fields.
       // If you must change it, update the sink filter and the parser there too.
       logger.info("Stored to SourcifyDatabase", newMatch);
     }
