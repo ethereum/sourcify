@@ -427,7 +427,7 @@ describe("EtherscanVerifyApiService", function () {
       expect(statusUrl).to.not.include(proApiKey);
     });
 
-    it("uses the PRO API REST route for Vyper verification", async () => {
+    it("keeps the instance url for Vyper verification on a PRO chain", async () => {
       const upsertStub = sandbox.stub().resolves();
       const service = createProService(
         WStorageIdentifiers.BlockscoutVerify,
@@ -454,8 +454,9 @@ describe("EtherscanVerifyApiService", function () {
 
       const [requestUrl] = fetchStub.firstCall.args;
       expect(requestUrl).to.equal(
-        `https://api.blockscout.com/${chainId}/api/v2/smart-contracts/${vyperVerification.address.toLowerCase()}/verification/via/vyper-standard-input?apikey=${proApiKey}`,
+        `https://blockscout.example/api/v2/smart-contracts/${vyperVerification.address.toLowerCase()}/verification/via/vyper-standard-input`,
       );
+      expect(requestUrl).to.not.include(proApiKey);
     });
   });
 

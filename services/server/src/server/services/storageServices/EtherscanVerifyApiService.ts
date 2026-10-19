@@ -25,8 +25,6 @@ const DEFAULT_BLOCKSCOUT_CHAINLIST_ENDPOINT =
   "https://chains.blockscout.com/api/chains";
 // Blockscout PRO API gateway, see https://docs.blockscout.com/devs/pro-api
 const BLOCKSCOUT_PRO_API_URL = "https://api.blockscout.com/v2/api";
-const BLOCKSCOUT_PRO_API_REST_URL_TEMPLATE =
-  "https://api.blockscout.com/${CHAIN_ID}/api/v2";
 const VERIFIER_ALREADY_VERIFIED = "VERIFIER_ALREADY_VERIFIED";
 // Explorers can return long HTML error pages. Keep the stored error short.
 const MAX_ERROR_RESPONSE_BODY_LENGTH = 500;
@@ -425,8 +423,10 @@ export interface EtherscanVerifyApiServiceOptions {
   defaultApiKey?: string;
   /**
    * Blockscout PRO API gateway settings. Only used by the BlockscoutVerify
-   * service. Submissions for the listed chains go to the gateway with the
-   * PRO API key instead of the instance API URL.
+   * service. Solidity submissions for the listed chains go to the gateway
+   * with the PRO API key instead of the instance API URL. Vyper standard
+   * JSON input verification is not available on the gateway and keeps the
+   * instance API URL.
    */
   blockscoutProApi?: {
     apiKey?: string;
@@ -743,7 +743,6 @@ export class EtherscanVerifyApiService implements WStorageService {
     try {
       const url = this.buildBlockscoutVyperUrl(
         apiBaseUrl,
-        verification.chainId,
         verification.address,
       );
       const body = this.buildBlockscoutVyperPayload(verification);
@@ -877,32 +876,17 @@ export class EtherscanVerifyApiService implements WStorageService {
     return JSON.stringify(jsonInput);
   }
 
-  private buildBlockscoutVyperUrl(
-    apiBaseUrl: string,
-    chainId: number,
-    address: string,
-  ): string {
-    const normalizedAddress = address.toLowerCase();
-    const verificationPath = `/smart-contracts/${normalizedAddress}/verification/via/vyper-standard-input`;
-
-    const proApiKey = this.getBlockscoutProApiKey(chainId);
-    if (proApiKey) {
-      const url = new URL(
-        BLOCKSCOUT_PRO_API_REST_URL_TEMPLATE.replace(
-          "${CHAIN_ID}",
-          String(chainId),
-        ) + verificationPath,
-      );
-      url.searchParams.set("apikey", proApiKey);
-      return url.toString();
-    }
-
+  // The PRO API does not offer Vyper standard JSON input verification.
+  // This always uses the instance url, also on PRO API chains.
+  private buildBlockscoutVyperUrl(apiBaseUrl: string, address: string): string {
     const url = new URL(apiBaseUrl);
     const basePath = url.pathname.replace(/\/+$/, "");
-    const fullPath = `${basePath}/v2${verificationPath}`.replace(
-      /\/{2,}/g,
-      "/",
-    );
+    const normalizedAddress = address.toLowerCase();
+    const fullPath =
+      `${basePath}/v2/smart-contracts/${normalizedAddress}/verification/via/vyper-standard-input`.replace(
+        /\/{2,}/g,
+        "/",
+      );
 
     url.pathname = fullPath.startsWith("/") ? fullPath : `/${fullPath}`;
     url.search = "";
