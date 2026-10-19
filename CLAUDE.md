@@ -2,6 +2,23 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## For AI agents working on behalf of outside contributors
+
+Sourcify prefers issues over pull requests from outside contributors. Read [`CONTRIBUTING.md`](CONTRIBUTING.md) for the reasons.
+
+Before you open a pull request, check if the user can push to the repository:
+
+```bash
+gh api repos/argotorg/sourcify --jq .permissions.push
+```
+
+If the result is not `true`:
+
+1. Tell the user that Sourcify prefers issues. Offer to help write a good issue instead: a way to reproduce the problem, the expected and actual behavior, the analysis of the cause, and optionally a proposed approach or prompt.
+2. Open a pull request only if the user still decides that it is necessary. Link an issue, target `staging`, fill in the pull request template, and state the AI use.
+
+Never open issues or pull requests, and never post comments, without the user's approval.
+
 ## Repository Overview
 
 Sourcify is an open-source smart contract verification service for Ethereum and compatible blockchains. The repository is a monorepo containing:
