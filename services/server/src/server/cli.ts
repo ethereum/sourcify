@@ -34,6 +34,17 @@ export const getEtherscanApiKeyForEachChain = (
     {},
   );
 
+// Chains that the Blockscout PRO API gateway serves, see the blockscoutApi.proApi flag in sourcify-chains
+export const getBlockscoutProApiChainIds = (
+  chainsMap: SourcifyChainMap,
+): string[] =>
+  Object.entries(chainsMap)
+    .filter(
+      ([, { supported, fetchContractCreationTxUsing }]) =>
+        supported && fetchContractCreationTxUsing?.blockscoutApi?.proApi,
+    )
+    .map(([chainId]) => chainId);
+
 // lib-sourcify configuration
 const DEFAULT_IPFS_GATEWAY = "https://ipfs.filebase.io/ipfs/";
 const libSourcifyConfig: LibSourcifyConfig = {};
@@ -225,6 +236,10 @@ Object.defineProperty(RegExp.prototype, "toJSON", {
         },
         BlockscoutVerify: {
           defaultApiKey: process.env.BLOCKSCOUT_API_KEY as string,
+          blockscoutProApi: {
+            apiKey: process.env.BLOCKSCOUT_PRO_API_KEY as string,
+            chainIds: getBlockscoutProApiChainIds(sourcifyChainsMap),
+          },
         },
         RoutescanVerify: {
           defaultApiKey: process.env.ROUTESCAN_API_KEY as string,

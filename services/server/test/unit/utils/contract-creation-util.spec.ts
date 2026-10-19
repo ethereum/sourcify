@@ -95,6 +95,84 @@ describe("contract creation util", function () {
     });
   });
 
+  describe("Blockscout PRO API handling for getCreatorTx", function () {
+    const ADDRESS = "0x0000000000000000000000000000000000000001";
+    const PRO_API_KEY = "SECRET_BLOCKSCOUT_PRO_KEY";
+    const INSTANCE_URL = "https://eth.blockscout.com/";
+    let prevProApiKey: string | undefined;
+    let fetchStub: sinon.SinonStub;
+
+    const createChain = (proApi?: boolean) =>
+      new SourcifyChain({
+        name: "Blockscout Chain",
+        chainId: 1,
+        supported: true,
+        rpcs: [{ rpc: "http://localhost/" }],
+        fetchContractCreationTxUsing: {
+          blockscoutApi: { url: INSTANCE_URL, proApi },
+        },
+      });
+
+    beforeEach(function () {
+      prevProApiKey = process.env.BLOCKSCOUT_PRO_API_KEY;
+      process.env.BLOCKSCOUT_PRO_API_KEY = PRO_API_KEY;
+      fetchStub = sinon.stub(global, "fetch" as any).resolves({
+        status: 200,
+        json: async () => ({ creation_transaction_hash: "0xabc" }),
+      } as any);
+    });
+
+    afterEach(function () {
+      fetchStub.restore();
+      if (prevProApiKey === undefined)
+        delete process.env.BLOCKSCOUT_PRO_API_KEY;
+      else process.env.BLOCKSCOUT_PRO_API_KEY = prevProApiKey;
+    });
+
+    it("should use the PRO API gateway with the key when proApi is true", async function () {
+      const creatorTx = await getCreatorTx(createChain(true), ADDRESS);
+
+      chai.expect(creatorTx).to.equal("0xabc");
+      chai.expect(fetchStub.calledOnce).to.equal(true);
+      chai
+        .expect(fetchStub.firstCall.args[0])
+        .to.equal(
+          `https://api.blockscout.com/1/api/v2/addresses/${ADDRESS}?apikey=${PRO_API_KEY}`,
+        );
+    });
+
+    it("should use the instance url when proApi is false", async function () {
+      await getCreatorTx(createChain(false), ADDRESS);
+
+      chai.expect(fetchStub.calledOnce).to.equal(true);
+      const calledUrl = fetchStub.firstCall.args[0] as string;
+      chai
+        .expect(calledUrl)
+        .to.equal(`${INSTANCE_URL}/api/v2/addresses/${ADDRESS}`);
+      chai.expect(calledUrl).to.not.include(PRO_API_KEY);
+    });
+
+    it("should use the instance url when proApi is not set", async function () {
+      await getCreatorTx(createChain(), ADDRESS);
+
+      chai.expect(fetchStub.calledOnce).to.equal(true);
+      chai
+        .expect(fetchStub.firstCall.args[0])
+        .to.equal(`${INSTANCE_URL}/api/v2/addresses/${ADDRESS}`);
+    });
+
+    it("should use the instance url when BLOCKSCOUT_PRO_API_KEY is not set", async function () {
+      delete process.env.BLOCKSCOUT_PRO_API_KEY;
+
+      await getCreatorTx(createChain(true), ADDRESS);
+
+      chai.expect(fetchStub.calledOnce).to.equal(true);
+      chai
+        .expect(fetchStub.firstCall.args[0])
+        .to.equal(`${INSTANCE_URL}/api/v2/addresses/${ADDRESS}`);
+    });
+  });
+
   describe("findContractCreationTxByBinarySearch", function () {
     let mockSourcifyChain: SourcifyChain;
     const sandbox = sinon.createSandbox();
