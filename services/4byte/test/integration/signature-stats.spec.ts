@@ -13,6 +13,7 @@ describe("SignatureStats with a base file", function () {
   let baseUrl: string;
   let baseStatus = 200;
   let baseBody = "";
+  let lastPath: string | undefined;
 
   const HOUR_MS = 60 * 60 * 1000;
 
@@ -40,7 +41,23 @@ describe("SignatureStats with a base file", function () {
     });
 
   before(async () => {
-    baseServer = http.createServer((_req, res) => {
+    baseServer = http.createServer((req, res) => {
+      // Fake metadata server and Cloud Storage API for gs:// URLs
+      if (req.url === "/token") {
+        res.end(
+          JSON.stringify({ access_token: "test-token", expires_in: 3600 }),
+        );
+        return;
+      }
+      if (
+        req.url?.startsWith("/storage/") &&
+        req.headers.authorization !== "Bearer test-token"
+      ) {
+        res.statusCode = 401;
+        res.end();
+        return;
+      }
+      lastPath = req.url;
       res.statusCode = baseStatus;
       res.end(baseBody);
     });
@@ -88,6 +105,28 @@ describe("SignatureStats with a base file", function () {
       unknown: 400 + 1,
       total: 1500 + 5,
     });
+  });
+
+  it("should read a gs:// file with the token of the service account", async function () {
+    baseBody = baseFile(new Date(Date.now() - HOUR_MS), BASE_COUNTS);
+    const origin = new URL(baseUrl).origin;
+    const stats = new SignatureStats(serverFixture.server.database, logger, {
+      baseUrl: "gs://stats-bucket/production-000000000000.json",
+      gcsApiUrl: origin,
+      metadataTokenUrl: `${origin}/token`,
+      cacheTtlMs: 0,
+    });
+    await stats.start();
+
+    const result = await stats.getStats();
+    stats.stop();
+
+    chai
+      .expect(lastPath)
+      .to.equal(
+        "/storage/v1/b/stats-bucket/o/production-000000000000.json?alt=media",
+      );
+    chai.expect(result.count.function).to.equal(1000 + 2);
   });
 
   it("should count an imported signature with its type after a contract uses it", async function () {

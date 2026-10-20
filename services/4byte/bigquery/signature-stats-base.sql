@@ -4,10 +4,11 @@
 -- Before you create the scheduled query, replace:
 --   DATASET  the Datastream mirror of the database: `sourcify-project.sourcify`
 --            (production) or `sourcify-project.sourcify_staging` (staging)
---   BUCKET   the bucket of the 4byte frontend: 4bytes-sourcify (production) or
---            4bytes-sourcify-staging (staging). The file is then also at
---            https://4byte.sourcify.dev/signature-stats/ENV-000000000000.json
 --   ENV      production or staging
+--
+-- The file goes to the private bucket sourcify-signature-stats, as
+-- gs://sourcify-signature-stats/ENV-000000000000.json. The bucket is private
+-- because Cloud Storage caches public files for up to 1 hour.
 --
 -- The 4byte service accepts a base with a t0 of at most 6 hours ago, because
 -- the Postgres delta query gets slow for long windows.
@@ -39,7 +40,7 @@ IF newest_signature IS NULL OR newest_usage IS NULL
 END IF;
 
 EXPORT DATA OPTIONS (
-  uri = 'gs://BUCKET/signature-stats/ENV-*.json',
+  uri = 'gs://sourcify-signature-stats/ENV-*.json',
   format = 'JSON',
   overwrite = true
 ) AS

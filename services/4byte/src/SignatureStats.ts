@@ -29,7 +29,8 @@ export interface SignatureStatsBase {
 }
 
 export interface SignatureStatsOptions {
-  // URL of the base file. Without it, the breakdown is always null.
+  // URL of the base file: https://... or gs://bucket/object. Without it, the
+  // breakdown is always null.
   baseUrl?: string;
   baseRefreshIntervalMs?: number;
   baseMaxAgeMs?: number;
@@ -37,10 +38,27 @@ export interface SignatureStatsOptions {
   // How often the Postgres-only total gets a new full count
   totalBaseMaxAgeMs?: number;
   now?: () => Date;
+  // For tests: replace the Google endpoints that read a gs:// file
+  gcsApiUrl?: string;
+  metadataTokenUrl?: string;
 }
 
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
+
+const GCS_API_URL = "https://storage.googleapis.com";
+const METADATA_TOKEN_URL =
+  "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token";
+
+// gs://bucket/object to the download URL of the Cloud Storage JSON API
+export function gcsDownloadUrl(gsUrl: string, apiUrl = GCS_API_URL): string {
+  const match = /^gs:\/\/([^/]+)\/(.+)$/.exec(gsUrl);
+  if (!match) {
+    throw new Error(`Invalid gs:// URL: ${gsUrl}`);
+  }
+  const [, bucket, object] = match;
+  return `${apiUrl}/storage/v1/b/${encodeURIComponent(bucket)}/o/${encodeURIComponent(object)}?alt=media`;
+}
 
 const BASE_FIELDS = ["function", "event", "error", "unknown", "total"] as const;
 
@@ -83,6 +101,8 @@ export class SignatureStats {
   private readonly cacheTtlMs: number;
   private readonly totalBaseMaxAgeMs: number;
   private readonly now: () => Date;
+  private readonly gcsApiUrl: string;
+  private readonly metadataTokenUrl: string;
 
   private base?: SignatureStatsBase;
   private baseRefreshTimer?: NodeJS.Timeout;
@@ -108,6 +128,8 @@ export class SignatureStats {
     this.cacheTtlMs = options.cacheTtlMs ?? 5000;
     this.totalBaseMaxAgeMs = options.totalBaseMaxAgeMs ?? DAY_MS;
     this.now = options.now ?? (() => new Date());
+    this.gcsApiUrl = options.gcsApiUrl ?? GCS_API_URL;
+    this.metadataTokenUrl = options.metadataTokenUrl ?? METADATA_TOKEN_URL;
   }
 
   // Reads the base file now and then on each interval
@@ -147,10 +169,7 @@ export class SignatureStats {
 
   private async fetchBase(url: string): Promise<void> {
     try {
-      const response = await fetch(url, {
-        signal: AbortSignal.timeout(10000),
-        cache: "no-store",
-      });
+      const response = await this.fetchBaseFile(url);
       if (!response.ok) {
         throw new Error(`HTTP ${response.status}`);
       }
@@ -174,6 +193,34 @@ export class SignatureStats {
         currentT0: this.base?.t0.toISOString(),
       });
     }
+  }
+
+  private async fetchBaseFile(url: string): Promise<Response> {
+    if (!url.startsWith("gs://")) {
+      return fetch(url, {
+        signal: AbortSignal.timeout(10000),
+        cache: "no-store",
+      });
+    }
+    // A private object, read as the service account of the Cloud Run service.
+    // Private objects get no cache, so the service always reads the newest file.
+    const tokenResponse = await fetch(this.metadataTokenUrl, {
+      headers: { "Metadata-Flavor": "Google" },
+      signal: AbortSignal.timeout(5000),
+    });
+    if (!tokenResponse.ok) {
+      throw new Error(`Metadata server: HTTP ${tokenResponse.status}`);
+    }
+    const { access_token: accessToken } = (await tokenResponse.json()) as {
+      access_token?: string;
+    };
+    if (!accessToken) {
+      throw new Error("Metadata server gave no access token");
+    }
+    return fetch(gcsDownloadUrl(url, this.gcsApiUrl), {
+      headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(10000),
+    });
   }
 
   private usableBase(): SignatureStatsBase | undefined {

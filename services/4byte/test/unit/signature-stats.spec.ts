@@ -1,5 +1,8 @@
 import chai from "chai";
-import { parseSignatureStatsBase } from "../../src/SignatureStats";
+import {
+  gcsDownloadUrl,
+  parseSignatureStatsBase,
+} from "../../src/SignatureStats";
 
 describe("parseSignatureStatsBase", function () {
   it("should parse the BigQuery JSON export", function () {
@@ -47,5 +50,20 @@ describe("parseSignatureStatsBase", function () {
     for (const text of cases) {
       chai.expect(() => parseSignatureStatsBase(text), text).to.throw();
     }
+  });
+});
+
+describe("gcsDownloadUrl", function () {
+  it("should give the download URL of the JSON API", function () {
+    chai
+      .expect(gcsDownloadUrl("gs://bkt/dir/production-000000000000.json"))
+      .to.equal(
+        "https://storage.googleapis.com/storage/v1/b/bkt/o/dir%2Fproduction-000000000000.json?alt=media",
+      );
+  });
+
+  it("should reject a URL without an object", function () {
+    chai.expect(() => gcsDownloadUrl("gs://bkt")).to.throw("Invalid gs://");
+    chai.expect(() => gcsDownloadUrl("gs://bkt/")).to.throw("Invalid gs://");
   });
 });
