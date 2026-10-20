@@ -5,6 +5,7 @@
 --   DATASET  the Datastream mirror of the database: `sourcify-project.sourcify`
 --            (production) or `sourcify-project.sourcify_staging` (staging)
 --   ENV      production or staging
+-- and set max_mirror_lag_hours below: 3 for production, 720 for staging.
 --
 -- The file goes to the private bucket sourcify-signature-stats, as
 -- gs://sourcify-signature-stats/ENV-000000000000.json. The bucket is private
@@ -12,13 +13,16 @@
 --
 -- The 4byte service reads the file (SIGNATURE_STATS_BASE_URL). It adds the
 -- Postgres rows with created_at > t0, and then the new rows once a minute. It
--- does not use a base with a t0 of 2 days ago or more. The counts use the same rules as the old
--- signature_stats materialized view.
+-- does not use a base older than SIGNATURE_STATS_BASE_MAX_AGE_HOURS (default 48).
+-- The counts use the same rules as the old signature_stats materialized view.
 --
 -- t0 comes from the newest mirrored row, not from the clock. So if the
 -- Datastream stream stops, t0 does not move forward and the Postgres delta
 -- covers the outage. One hour of margin lets rows that commit late (created_at
 -- is the transaction start time) reach the mirror.
+
+-- Production gets new signatures every hour. Staging can go 2 weeks without one.
+DECLARE max_mirror_lag_hours INT64 DEFAULT 3;
 
 DECLARE newest_signature TIMESTAMP DEFAULT (
   SELECT MAX(created_at) FROM `DATASET.public_signatures`
@@ -28,11 +32,11 @@ DECLARE newest_usage TIMESTAMP DEFAULT (
 );
 DECLARE t0 TIMESTAMP DEFAULT TIMESTAMP_SUB(LEAST(newest_signature, newest_usage), INTERVAL 1 HOUR);
 
--- New signatures arrive every hour. If the mirror is more than 3 hours behind,
--- the stream is broken: fail, so that the scheduled query sends an alert and
--- the old file ages into the fallback of the 4byte service.
+-- If the mirror is more than max_mirror_lag_hours behind, the stream is
+-- broken: fail, so that the alert fires and the old file ages into the
+-- fallback of the 4byte service.
 IF newest_signature IS NULL OR newest_usage IS NULL
-  OR LEAST(newest_signature, newest_usage) < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 3 HOUR) THEN
+  OR LEAST(newest_signature, newest_usage) < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL max_mirror_lag_hours HOUR) THEN
   RAISE USING MESSAGE = FORMAT(
     'Mirror is stale: newest signature %t, newest usage %t', newest_signature, newest_usage);
 END IF;

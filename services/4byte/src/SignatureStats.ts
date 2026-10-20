@@ -78,6 +78,21 @@ export function gcsDownloadUrl(gsUrl: string, apiUrl = GCS_API_URL): string {
   return `${apiUrl}/storage/v1/b/${encodeURIComponent(bucket)}/o/${encodeURIComponent(object)}?alt=media`;
 }
 
+// SIGNATURE_STATS_BASE_MAX_AGE_HOURS. Staging gets few new signatures, so its
+// base can be weeks old and still give a short delta.
+export function parseBaseMaxAgeMs(
+  hours: string | undefined,
+): number | undefined {
+  if (hours === undefined || hours === "") {
+    return undefined;
+  }
+  const value = Number(hours);
+  if (!Number.isFinite(value) || value <= 0) {
+    throw new Error(`Invalid SIGNATURE_STATS_BASE_MAX_AGE_HOURS: ${hours}`);
+  }
+  return value * 60 * 60 * 1000;
+}
+
 const BASE_FIELDS = ["function", "event", "error", "unknown", "total"] as const;
 
 // BigQuery's JSON export writes newline-delimited JSON and INT64 values as strings.

@@ -17,6 +17,11 @@ describe("SignatureStats with a base file", function () {
 
   const HOUR_MS = 60 * 60 * 1000;
 
+  // created_at has microseconds and a JS Date has milliseconds. Wait, so that the
+  // next count window ends after the rows that the test just inserted.
+  const nextMillisecond = () =>
+    new Promise((resolve) => setTimeout(resolve, 5));
+
   // The format of the BigQuery JSON export: one line, INT64 as strings
   const baseFile = (t0: Date, counts: Record<string, number>) =>
     JSON.stringify({
@@ -144,6 +149,7 @@ describe("SignatureStats with a base file", function () {
     // From memory: no new count yet
     chai.expect((await stats.getStats()).count.total).to.equal(1500 + 5);
 
+    await nextMillisecond();
     await stats.refresh();
     const result = await stats.getStats();
     stats.stop();
@@ -186,6 +192,7 @@ describe("SignatureStats with a base file", function () {
     chai.expect((await stats.getStats()).count.total).to.equal(6);
 
     await serverFixture.insertTestSignatures([{ signature: "later()" }]);
+    await nextMillisecond();
     await stats.refresh();
     const result = await stats.getStats();
     stats.stop();

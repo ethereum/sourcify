@@ -59,7 +59,7 @@ Check out the `.env.example` file for the required environment variables.
 
 The numbers are approximate. A signature that is already in the database and gets a type later (an imported signature that a verified contract uses) keeps its old type until the next base.
 
-If the service has no file, or `t0` is 2 days old or more, the `function`, `event`, `error` and `unknown` counts are `null`. `total` is then one full count in Postgres at start, plus the new signatures of each minute.
+If the service has no file, or `t0` is older than `SIGNATURE_STATS_BASE_MAX_AGE_HOURS` (default 48 hours), the `function`, `event`, `error` and `unknown` counts are `null`. `total` is then one full count in Postgres at start, plus the new signatures of each minute.
 
 ## Docker
 

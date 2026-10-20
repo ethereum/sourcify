@@ -1,6 +1,7 @@
 import chai from "chai";
 import {
   gcsDownloadUrl,
+  parseBaseMaxAgeMs,
   parseSignatureStatsBase,
 } from "../../src/SignatureStats";
 
@@ -65,5 +66,21 @@ describe("gcsDownloadUrl", function () {
   it("should reject a URL without an object", function () {
     chai.expect(() => gcsDownloadUrl("gs://bkt")).to.throw("Invalid gs://");
     chai.expect(() => gcsDownloadUrl("gs://bkt/")).to.throw("Invalid gs://");
+  });
+});
+
+describe("parseBaseMaxAgeMs", function () {
+  it("should use the default if the setting is not set", function () {
+    chai.expect(parseBaseMaxAgeMs(undefined)).to.equal(undefined);
+    chai.expect(parseBaseMaxAgeMs("")).to.equal(undefined);
+  });
+
+  it("should convert hours to milliseconds", function () {
+    chai.expect(parseBaseMaxAgeMs("720")).to.equal(720 * 60 * 60 * 1000);
+  });
+
+  it("should reject a value that is not a positive number", function () {
+    chai.expect(() => parseBaseMaxAgeMs("0")).to.throw("Invalid");
+    chai.expect(() => parseBaseMaxAgeMs("two")).to.throw("Invalid");
   });
 });

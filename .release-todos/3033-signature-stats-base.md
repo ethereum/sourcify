@@ -12,6 +12,8 @@ Already done on 2026-10-20: the private bucket `gs://sourcify-signature-stats`, 
 
 ## after
 
+- Staging: set `SIGNATURE_STATS_BASE_URL=gs://sourcify-signature-stats/staging-000000000000.json` and `SIGNATURE_STATS_BASE_MAX_AGE_HOURS=720` on `sourcify-staging-4byte`. Staging can go 2 weeks without a new signature, so its base is often older than the default of 48 hours.
+
 - Set `SIGNATURE_STATS_BASE_URL=gs://sourcify-signature-stats/production-000000000000.json` on the Cloud Run service `sourcify-production-4byte`. Check that `GET https://api.4byte.sourcify.dev/signature-database/v1/stats` gives numbers, not `null`.
 - Run `npm run migrate:up` on the production database. Do this after the new 4byte service is deployed, because the old service reads the view that the migration drops.
 - Check that the cron job is gone: `SELECT jobid, jobname FROM cron.job;` must not list `refresh-signature-stats`. If it is still there, `cron.unschedule` ran as a different user than the owner of the job. Then run `SELECT cron.unschedule('refresh-signature-stats');` as the owner.
