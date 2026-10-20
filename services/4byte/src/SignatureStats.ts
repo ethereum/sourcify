@@ -17,8 +17,8 @@ export interface SignatureStatsResult {
   };
 }
 
-// The daily counts that a BigQuery scheduled query writes for all signatures with
-// created_at <= t0 (see bigquery/signature-stats-base.sql).
+// The counts that a BigQuery scheduled query writes for all signatures with
+// created_at <= t0 (see bigquery/signature-stats-base.sql). The query runs every hour.
 export interface SignatureStatsBase {
   t0: Date;
   function: number;
@@ -101,8 +101,10 @@ export class SignatureStats {
     options: SignatureStatsOptions = {},
   ) {
     this.baseUrl = options.baseUrl;
-    this.baseRefreshIntervalMs = options.baseRefreshIntervalMs ?? HOUR_MS;
-    this.baseMaxAgeMs = options.baseMaxAgeMs ?? 3 * DAY_MS;
+    this.baseRefreshIntervalMs =
+      options.baseRefreshIntervalMs ?? 10 * 60 * 1000;
+    // The delta query gets slow for long windows (see countSignaturesSince)
+    this.baseMaxAgeMs = options.baseMaxAgeMs ?? 6 * HOUR_MS;
     this.cacheTtlMs = options.cacheTtlMs ?? 5000;
     this.totalBaseMaxAgeMs = options.totalBaseMaxAgeMs ?? DAY_MS;
     this.now = options.now ?? (() => new Date());
@@ -221,14 +223,14 @@ export class SignatureStats {
     }
 
     const totalBase = await this.getTotalBase();
-    const delta = await this.database.countSignaturesSince(totalBase.t0);
+    const delta = await this.database.countAllSignaturesSince(totalBase.t0);
     return {
       count: {
         function: null,
         event: null,
         error: null,
         unknown: null,
-        total: totalBase.total + delta.total,
+        total: totalBase.total + delta,
       },
       metadata: { refreshed_at: refreshedAt },
     };

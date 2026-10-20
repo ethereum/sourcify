@@ -109,8 +109,8 @@ describe("SignatureStats with a base file", function () {
     chai.expect(result.count.total).to.equal(1500 + 5);
   });
 
-  it("should give a null breakdown if t0 is 3 days old", async function () {
-    baseBody = baseFile(new Date(Date.now() - 3 * 24 * HOUR_MS), BASE_COUNTS);
+  it("should give a null breakdown if t0 is 6 hours old", async function () {
+    baseBody = baseFile(new Date(Date.now() - 6 * HOUR_MS), BASE_COUNTS);
     const stats = createStats();
     await stats.start();
 

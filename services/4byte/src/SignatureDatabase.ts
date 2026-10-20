@@ -149,24 +149,23 @@ export class SignatureDatabase {
 
   // Counts the signatures with created_at > since, by type. The types come from all
   // current usages, so a signature that is first imported and then found in a verified
-  // contract counts with its type. Uses the signatures_created_at index, and one
-  // index lookup per type for each new signature.
+  // contract counts with its type. This does one index lookup in
+  // compiled_contracts_signatures for each new signature. On production it takes about
+  // 0.2 s for 2 hours of signatures and 8 s for 1 day, so keep the window short.
   async countSignaturesSince(since: Date): Promise<SignatureCountsSince> {
-    const usageExists = (type: `${SignatureType}`) => `EXISTS (
-          SELECT 1 FROM ${this.qualify("compiled_contracts_signatures")} ccs
-          WHERE ccs.signature_type = '${type}' AND ccs.signature_hash_32 = s.signature_hash_32
-        )`;
     const query = `
       SELECT
         COUNT(*)::text AS total,
-        (COUNT(*) FILTER (WHERE ${usageExists("function")}))::text AS function,
-        (COUNT(*) FILTER (WHERE ${usageExists("event")}))::text AS event,
-        (COUNT(*) FILTER (WHERE ${usageExists("error")}))::text AS error,
-        (COUNT(*) FILTER (WHERE NOT EXISTS (
-          SELECT 1 FROM ${this.qualify("compiled_contracts_signatures")} ccs
-          WHERE ccs.signature_hash_32 = s.signature_hash_32
-        )))::text AS unknown
+        (COUNT(*) FILTER (WHERE 'function' = ANY(u.types)))::text AS function,
+        (COUNT(*) FILTER (WHERE 'event' = ANY(u.types)))::text AS event,
+        (COUNT(*) FILTER (WHERE 'error' = ANY(u.types)))::text AS error,
+        (COUNT(*) FILTER (WHERE u.types IS NULL))::text AS unknown
       FROM ${this.qualify("signatures")} s
+      LEFT JOIN LATERAL (
+        SELECT array_agg(DISTINCT ccs.signature_type::text) AS types
+        FROM ${this.qualify("compiled_contracts_signatures")} ccs
+        WHERE ccs.signature_hash_32 = s.signature_hash_32
+      ) u ON true
       WHERE s.created_at > $1
     `;
     const result = await this.pool.query<Record<string, string>>(query, [
@@ -180,6 +179,16 @@ export class SignatureDatabase {
       error: parseInt(row.error, 10),
       unknown: parseInt(row.unknown, 10),
     };
+  }
+
+  // Counts the signatures with created_at > since. Reads only the
+  // signatures_created_at index.
+  async countAllSignaturesSince(since: Date): Promise<number> {
+    const result = await this.pool.query<{ total: string }>(
+      `SELECT COUNT(*)::text AS total FROM ${this.qualify("signatures")} WHERE created_at > $1`,
+      [since],
+    );
+    return parseInt(result.rows[0].total, 10);
   }
 
   // Counts the signatures with created_at <= until. This reads the whole

@@ -1,11 +1,16 @@
--- Daily "base" counts for GET /signature-database/v1/stats.
+-- "Base" counts for GET /signature-database/v1/stats.
 --
--- Run as a BigQuery scheduled query, one for each environment. Before you
--- create the scheduled query, replace:
+-- Run as a BigQuery scheduled query every hour, one for each environment.
+-- Before you create the scheduled query, replace:
 --   DATASET  the Datastream mirror of the database: `sourcify-project.sourcify`
 --            (production) or `sourcify-project.sourcify_staging` (staging)
---   BUCKET   the public bucket for the base files
+--   BUCKET   the bucket of the 4byte frontend: 4bytes-sourcify (production) or
+--            4bytes-sourcify-staging (staging). The file is then also at
+--            https://4byte.sourcify.dev/signature-stats/ENV-000000000000.json
 --   ENV      production or staging
+--
+-- The 4byte service accepts a base with a t0 of at most 6 hours ago, because
+-- the Postgres delta query gets slow for long windows.
 --
 -- The 4byte service reads the file (SIGNATURE_STATS_BASE_URL) and adds the
 -- Postgres rows with created_at > t0. The counts use the same rules as the old
@@ -24,11 +29,11 @@ DECLARE newest_usage TIMESTAMP DEFAULT (
 );
 DECLARE t0 TIMESTAMP DEFAULT TIMESTAMP_SUB(LEAST(newest_signature, newest_usage), INTERVAL 1 HOUR);
 
--- New signatures arrive every hour. If the mirror is more than 6 hours behind,
+-- New signatures arrive every hour. If the mirror is more than 3 hours behind,
 -- the stream is broken: fail, so that the scheduled query sends an alert and
 -- the old file ages into the fallback of the 4byte service.
 IF newest_signature IS NULL OR newest_usage IS NULL
-  OR LEAST(newest_signature, newest_usage) < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 6 HOUR) THEN
+  OR LEAST(newest_signature, newest_usage) < TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 3 HOUR) THEN
   RAISE USING MESSAGE = FORMAT(
     'Mirror is stale: newest signature %t, newest usage %t', newest_signature, newest_usage);
 END IF;
