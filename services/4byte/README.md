@@ -47,6 +47,16 @@ npm run dev
 
 Check out the `.env.example` file for the required environment variables.
 
+### Signature stats
+
+`GET /signature-database/v1/stats` does not count all signatures in Postgres, because a count by type reads all rows of `compiled_contracts_signatures`. Instead:
+
+1. Once a day, a BigQuery scheduled query ([`bigquery/signature-stats-base.sql`](./bigquery/signature-stats-base.sql)) counts all signatures with `created_at <= t0` in the BigQuery mirror of the database. It writes the counts to a JSON file.
+2. The service reads the file from `SIGNATURE_STATS_BASE_URL` at start and every hour.
+3. For each request, it adds the signatures with `created_at > t0` from Postgres. It caches the result for 5 seconds.
+
+If the service has no file, or `t0` is 3 days old or more, the `function`, `event`, `error` and `unknown` counts are `null`. `total` is then a full count in Postgres, done once a day, plus the new signatures.
+
 ## Docker
 
 ### Build
