@@ -184,10 +184,15 @@ async function getCreatorTxUsingFetcher(
     "${ADDRESS}",
     contractAddress,
   );
+  // The url can contain an API key. Only log the masked url.
+  const maskedFetchAddressFilled = fetcher?.maskedUrl?.replace(
+    "${ADDRESS}",
+    contractAddress,
+  );
 
   logger.debug("Fetching Creator Tx", {
     fetcherUrl: fetcher?.maskedUrl,
-    contractFetchAddressFilled,
+    maskedFetchAddressFilled,
     contractAddress,
   });
 
@@ -195,12 +200,15 @@ async function getCreatorTxUsingFetcher(
 
   try {
     if (fetcher?.responseParser) {
-      const response = await fetchFromApi(contractFetchAddressFilled);
+      const response = await fetchFromApi(
+        contractFetchAddressFilled,
+        maskedFetchAddressFilled,
+      );
       const creatorTx = fetcher?.responseParser(response);
       if (creatorTx) {
         logger.debug("Fetched Creator Tx", {
           fetcherUrl: fetcher?.maskedUrl,
-          contractFetchAddressFilled,
+          maskedFetchAddressFilled,
           contractAddress,
           creatorTx,
         });
@@ -350,7 +358,8 @@ export const getCreatorTx = async (
   return null;
 };
 
-async function fetchFromApi(fetchAddress: string) {
+// The error message goes into the logs. It must not contain the API key.
+async function fetchFromApi(fetchAddress: string, maskedFetchAddress?: string) {
   const res = await fetch(fetchAddress);
   if (res.status === StatusCodes.OK) {
     const response = await res.json();
@@ -358,7 +367,7 @@ async function fetchFromApi(fetchAddress: string) {
   }
 
   throw new Error(
-    `Contract creator tx could not be fetched from ${fetchAddress} because of status code ${res.status}`,
+    `Contract creator tx could not be fetched from ${maskedFetchAddress} because of status code ${res.status}`,
   );
 }
 

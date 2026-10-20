@@ -8,6 +8,7 @@ import type { SourcifyChainMap } from "@ethereum-sourcify/lib-sourcify";
 import sinon from "sinon";
 import { SourcifyChain } from "@ethereum-sourcify/lib-sourcify";
 import { findContractCreationTxByBinarySearch } from "../../../src/server/services/utils/contract-creation-util";
+import logger from "../../../src/common/logger";
 
 // Tests hitting the live creation-tx APIs are in test/creation-tx-apis/.
 describe("contract creation util", function () {
@@ -75,6 +76,45 @@ describe("contract creation util", function () {
       const calledUrl = fetchStub.firstCall.args[0] as string;
       chai.expect(calledUrl).to.not.include(GLOBAL_KEY);
       chai.expect(calledUrl.endsWith("&apikey=")).to.equal(true);
+    });
+
+    it("should not log the API key when the API request fails", async function () {
+      fetchStub.resolves({ status: 429, json: async () => ({}) } as any);
+      const warnStub = sinon.stub(logger, "warn");
+      const debugStub = sinon.stub(logger, "debug");
+      const chain = new SourcifyChain({
+        name: "Canonical Etherscan Chain",
+        chainId: 1,
+        supported: true,
+        rpcs: [{ rpc: "http://localhost/" }],
+        fetchContractCreationTxUsing: { etherscanApi: true },
+        etherscanApi: { supported: true },
+      });
+
+      try {
+        await getCreatorTx(chain, ADDRESS);
+      } finally {
+        warnStub.restore();
+        debugStub.restore();
+      }
+
+      chai.expect(fetchStub.calledOnce).to.equal(true);
+      chai.expect(fetchStub.firstCall.args[0]).to.include(GLOBAL_KEY);
+      const loggedArgs = JSON.stringify([
+        ...warnStub.getCalls().map((call) => call.args),
+        ...debugStub.getCalls().map((call) => call.args),
+      ]);
+      chai.expect(loggedArgs).to.not.include(GLOBAL_KEY);
+      const warnCall = warnStub
+        .getCalls()
+        .map((call) => call.args as any[])
+        .find((args) => args[0] === "Error while getting creation transaction");
+      chai.expect(warnCall).to.not.equal(undefined);
+      chai
+        .expect(warnCall?.[1]?.error)
+        .to.equal(
+          `Contract creator tx could not be fetched from https://api.etherscan.io/v2/api?chainid=1&module=contract&action=getcontractcreation&contractaddresses=${ADDRESS}&apikey= because of status code 429`,
+        );
     });
 
     it("should send the global ETHERSCAN_API_KEY to a canonical Etherscan chain (no url)", async function () {
