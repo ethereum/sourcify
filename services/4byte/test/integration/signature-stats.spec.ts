@@ -37,7 +37,8 @@ describe("SignatureStats with a base file", function () {
   const createStats = () =>
     new SignatureStats(serverFixture.server.database, logger, {
       baseUrl,
-      cacheTtlMs: 0,
+      commitMarginMs: 0,
+      countStepMs: 1,
     });
 
   before(async () => {
@@ -114,7 +115,8 @@ describe("SignatureStats with a base file", function () {
       baseUrl: "gs://stats-bucket/production-000000000000.json",
       gcsApiUrl: origin,
       metadataTokenUrl: `${origin}/token`,
-      cacheTtlMs: 0,
+      commitMarginMs: 0,
+      countStepMs: 1,
     });
     await stats.start();
 
@@ -129,27 +131,70 @@ describe("SignatureStats with a base file", function () {
     chai.expect(result.count.function).to.equal(1000 + 2);
   });
 
-  it("should count an imported signature with its type after a contract uses it", async function () {
+  it("should add the new rows at each refresh", async function () {
     baseBody = baseFile(new Date(Date.now() - HOUR_MS), BASE_COUNTS);
     const stats = createStats();
     await stats.start();
+    chai.expect((await stats.getStats()).count.total).to.equal(1500 + 5);
 
-    await serverFixture.insertVerifiedContract({
-      name: "Uses",
-      chainId: 1,
-      address: "0x00000000000000000000000000000000000000bb",
-      signatures: [{ signature: "imported()", type: SignatureType.Function }],
-    });
+    await serverFixture.insertTestSignatures([
+      { signature: "later()", type: SignatureType.Event },
+      { signature: "laterImport()" },
+    ]);
+    // From memory: no new count yet
+    chai.expect((await stats.getStats()).count.total).to.equal(1500 + 5);
+
+    await stats.refresh();
     const result = await stats.getStats();
     stats.stop();
-
-    chai.expect(result.count.function).to.equal(1000 + 3);
-    chai.expect(result.count.unknown).to.equal(400);
-    chai.expect(result.count.total).to.equal(1500 + 5);
+    chai.expect(result.count).to.deep.equal({
+      function: 1000 + 2,
+      event: 200 + 3,
+      error: 30 + 1,
+      unknown: 400 + 2,
+      total: 1500 + 7,
+    });
   });
 
-  it("should give a null breakdown if t0 is 6 hours old", async function () {
-    baseBody = baseFile(new Date(Date.now() - 6 * HOUR_MS), BASE_COUNTS);
+  it("should end the count windows at a whole step", async function () {
+    const now = new Date("2026-10-20T10:06:42.500Z");
+    const until: Date[] = [];
+    const database = {
+      countSignaturesBetween: async (_after: Date, end: Date) => {
+        until.push(end);
+        return { function: 0, event: 0, error: 0, unknown: 0, total: 0 };
+      },
+    } as unknown as typeof serverFixture.server.database;
+    const stats = new SignatureStats(database, logger, {
+      baseUrl,
+      now: () => now,
+    });
+    baseBody = baseFile(new Date("2026-10-20T09:00:00Z"), BASE_COUNTS);
+    await stats.loadBase();
+    await stats.refresh();
+
+    // 60 s of margin, then down to the whole minute
+    chai
+      .expect(until.map((d) => d.toISOString()))
+      .to.deep.equal(["2026-10-20T10:05:00.000Z"]);
+  });
+
+  it("should count the total only and add the new rows without a base", async function () {
+    baseStatus = 404;
+    const stats = createStats();
+    await stats.start();
+    chai.expect((await stats.getStats()).count.total).to.equal(6);
+
+    await serverFixture.insertTestSignatures([{ signature: "later()" }]);
+    await stats.refresh();
+    const result = await stats.getStats();
+    stats.stop();
+    chai.expect(result.count.total).to.equal(7);
+    chai.expect(result.count.unknown).to.equal(null);
+  });
+
+  it("should give a null breakdown if t0 is 2 days old", async function () {
+    baseBody = baseFile(new Date(Date.now() - 48 * HOUR_MS), BASE_COUNTS);
     const stats = createStats();
     await stats.start();
 
@@ -158,7 +203,7 @@ describe("SignatureStats with a base file", function () {
 
     chai.expect(result.count.function).to.equal(null);
     chai.expect(result.count.unknown).to.equal(null);
-    // From Postgres: a full count before now - 1 hour, plus the delta
+    // A full count in Postgres
     chai.expect(result.count.total).to.equal(6);
   });
 
@@ -182,11 +227,13 @@ describe("SignatureStats with a base file", function () {
 
     baseStatus = 500;
     await stats.loadBase();
+    await stats.refresh();
     chai.expect((await stats.getStats()).count.function).to.equal(1002);
 
     baseStatus = 200;
     baseBody = '{"t0":"2026-10-20T00:00:00Z","function":"many"}';
     await stats.loadBase();
+    await stats.refresh();
     chai.expect((await stats.getStats()).count.function).to.equal(1002);
 
     // A file with an older t0 than the current one
@@ -195,6 +242,7 @@ describe("SignatureStats with a base file", function () {
       function: 1,
     });
     await stats.loadBase();
+    await stats.refresh();
     chai.expect((await stats.getStats()).count.function).to.equal(1002);
     stats.stop();
   });
@@ -211,6 +259,7 @@ describe("SignatureStats with a base file", function () {
       total: 2000,
     });
     await stats.loadBase();
+    await stats.refresh();
     chai.expect((await stats.getStats()).count.total).to.equal(2000 + 5);
     stats.stop();
   });

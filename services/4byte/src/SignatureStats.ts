@@ -18,7 +18,7 @@ export interface SignatureStatsResult {
 }
 
 // The counts that a BigQuery scheduled query writes for all signatures with
-// created_at <= t0 (see bigquery/signature-stats-base.sql). The query runs every hour.
+// created_at <= t0 (see bigquery/signature-stats-base.sql). The query runs once a day.
 export interface SignatureStatsBase {
   t0: Date;
   function: number;
@@ -33,18 +33,36 @@ export interface SignatureStatsOptions {
   // breakdown is always null.
   baseUrl?: string;
   baseRefreshIntervalMs?: number;
+  // A base with an older t0 is not used, because the first delta count gets slow
   baseMaxAgeMs?: number;
-  cacheTtlMs?: number;
-  // How often the Postgres-only total gets a new full count
-  totalBaseMaxAgeMs?: number;
+  // How often the service checks for a new count window
+  refreshIntervalMs?: number;
+  // Count windows end at a multiple of this, so that all instances count the
+  // same rows and give the same numbers
+  countStepMs?: number;
+  // The service counts only rows older than this. A row gets its created_at when
+  // the insert starts, but other connections see it only after the commit.
+  commitMarginMs?: number;
   now?: () => Date;
   // For tests: replace the Google endpoints that read a gs:// file
   gcsApiUrl?: string;
   metadataTokenUrl?: string;
 }
 
-const HOUR_MS = 60 * 60 * 1000;
-const DAY_MS = 24 * HOUR_MS;
+// The counts in memory: all signatures with created_at <= asOf
+interface Counts {
+  asOf: Date;
+  // t0 of the base that the counts started from. Undefined for a total-only count.
+  baseT0?: Date;
+  function: number | null;
+  event: number | null;
+  error: number | null;
+  unknown: number | null;
+  total: number;
+  refreshedAt: Date;
+}
+
+const DAY_MS = 24 * 60 * 60 * 1000;
 
 const GCS_API_URL = "https://storage.googleapis.com";
 const METADATA_TOKEN_URL =
@@ -98,22 +116,18 @@ export class SignatureStats {
   private readonly baseUrl?: string;
   private readonly baseRefreshIntervalMs: number;
   private readonly baseMaxAgeMs: number;
-  private readonly cacheTtlMs: number;
-  private readonly totalBaseMaxAgeMs: number;
+  private readonly refreshIntervalMs: number;
+  private readonly countStepMs: number;
+  private readonly commitMarginMs: number;
   private readonly now: () => Date;
   private readonly gcsApiUrl: string;
   private readonly metadataTokenUrl: string;
 
   private base?: SignatureStatsBase;
-  private baseRefreshTimer?: NodeJS.Timeout;
   private baseLoad?: Promise<void>;
-
-  // Fallback without a base file: a full count of the total only
-  private totalBase?: { t0: Date; total: number };
-  private totalBaseLoad?: Promise<{ t0: Date; total: number }>;
-
-  private cached?: { at: number; result: SignatureStatsResult };
-  private inFlight?: Promise<SignatureStatsResult>;
+  private counts?: Counts;
+  private refreshing?: Promise<void>;
+  private timers: NodeJS.Timeout[] = [];
 
   constructor(
     private readonly database: SignatureDatabase,
@@ -123,35 +137,46 @@ export class SignatureStats {
     this.baseUrl = options.baseUrl;
     this.baseRefreshIntervalMs =
       options.baseRefreshIntervalMs ?? 10 * 60 * 1000;
-    // The delta query gets slow for long windows (see countSignaturesSince)
-    this.baseMaxAgeMs = options.baseMaxAgeMs ?? 6 * HOUR_MS;
-    this.cacheTtlMs = options.cacheTtlMs ?? 5000;
-    this.totalBaseMaxAgeMs = options.totalBaseMaxAgeMs ?? DAY_MS;
+    this.baseMaxAgeMs = options.baseMaxAgeMs ?? 2 * DAY_MS;
+    this.refreshIntervalMs = options.refreshIntervalMs ?? 10 * 1000;
+    this.countStepMs = options.countStepMs ?? 60 * 1000;
+    this.commitMarginMs = options.commitMarginMs ?? 60 * 1000;
     this.now = options.now ?? (() => new Date());
     this.gcsApiUrl = options.gcsApiUrl ?? GCS_API_URL;
     this.metadataTokenUrl = options.metadataTokenUrl ?? METADATA_TOKEN_URL;
   }
 
-  // Reads the base file now and then on each interval
-  start(): Promise<void> {
-    if (!this.baseUrl) {
+  // Reads the base file, then starts the first count in the background. Then it
+  // reads the file and adds the new rows on each interval.
+  async start(): Promise<void> {
+    if (this.baseUrl) {
+      await this.loadBase();
+      this.timers.push(
+        setInterval(() => void this.loadBase(), this.baseRefreshIntervalMs),
+      );
+    } else {
       this.logger.info(
         "SIGNATURE_STATS_BASE_URL is not set: /stats gives no breakdown by type",
       );
-      return Promise.resolve();
     }
-    this.baseRefreshTimer = setInterval(() => {
-      void this.loadBase();
-    }, this.baseRefreshIntervalMs);
-    this.baseRefreshTimer.unref();
-    return this.loadBase();
+    void this.refresh().catch(() => undefined);
+    this.timers.push(
+      setInterval(
+        () => void this.refresh().catch(() => undefined),
+        this.refreshIntervalMs,
+      ),
+    );
+    this.timers.forEach((timer) => timer.unref());
   }
 
   stop(): void {
-    if (this.baseRefreshTimer) {
-      clearInterval(this.baseRefreshTimer);
-      this.baseRefreshTimer = undefined;
-    }
+    this.timers.forEach((timer) => clearInterval(timer));
+    this.timers = [];
+  }
+
+  // Removes the counts, so that the next request counts again. For tests.
+  reset(): void {
+    this.counts = undefined;
   }
 
   // Reads the base file. If the read fails, the service keeps the file that it has.
@@ -223,89 +248,113 @@ export class SignatureStats {
     });
   }
 
-  private usableBase(): SignatureStatsBase | undefined {
-    if (!this.base) {
-      return undefined;
-    }
-    const age = this.now().getTime() - this.base.t0.getTime();
-    return age < this.baseMaxAgeMs ? this.base : undefined;
-  }
-
+  // Gives the counts from memory. Only the first request after a start waits
+  // for the first count.
   async getStats(): Promise<SignatureStatsResult> {
-    if (
-      this.cached &&
-      this.now().getTime() - this.cached.at < this.cacheTtlMs
-    ) {
-      return this.cached.result;
+    if (!this.counts) {
+      await this.refresh();
     }
-    if (!this.inFlight) {
-      this.inFlight = this.computeStats()
-        .then((result) => {
-          this.cached = { at: this.now().getTime(), result };
-          return result;
-        })
-        .finally(() => {
-          this.inFlight = undefined;
-        });
-    }
-    return this.inFlight;
-  }
-
-  private async computeStats(): Promise<SignatureStatsResult> {
-    const refreshedAt = this.now().toISOString();
-    const base = this.usableBase();
-
-    if (base) {
-      const delta = await this.database.countSignaturesSince(base.t0);
-      return {
-        count: {
-          function: base.function + delta.function,
-          event: base.event + delta.event,
-          error: base.error + delta.error,
-          unknown: base.unknown + delta.unknown,
-          total: base.total + delta.total,
-        },
-        metadata: { refreshed_at: refreshedAt },
-      };
-    }
-
-    const totalBase = await this.getTotalBase();
-    const delta = await this.database.countAllSignaturesSince(totalBase.t0);
+    const counts = this.counts!;
     return {
       count: {
+        function: counts.function,
+        event: counts.event,
+        error: counts.error,
+        unknown: counts.unknown,
+        total: counts.total,
+      },
+      metadata: { refreshed_at: counts.refreshedAt.toISOString() },
+    };
+  }
+
+  // Adds the new Postgres rows to the counts. One refresh runs at a time.
+  refresh(): Promise<void> {
+    if (!this.refreshing) {
+      this.refreshing = this.updateCounts()
+        .catch((error) => {
+          this.logger.error("Could not count signatures", {
+            error: error instanceof Error ? error.message : String(error),
+          });
+          throw error;
+        })
+        .finally(() => {
+          this.refreshing = undefined;
+        });
+    }
+    return this.refreshing;
+  }
+
+  private async updateCounts(): Promise<void> {
+    const now = this.now();
+    const latest = now.getTime() - this.commitMarginMs;
+    const until = new Date(latest - (latest % this.countStepMs));
+    const base = this.newerUsableBase(now);
+
+    if (base) {
+      // Start again from the new base
+      const delta =
+        until > base.t0
+          ? await this.database.countSignaturesBetween(base.t0, until)
+          : { function: 0, event: 0, error: 0, unknown: 0, total: 0 };
+      this.counts = {
+        asOf: until > base.t0 ? until : base.t0,
+        baseT0: base.t0,
+        function: base.function + delta.function,
+        event: base.event + delta.event,
+        error: base.error + delta.error,
+        unknown: base.unknown + delta.unknown,
+        total: base.total + delta.total,
+        refreshedAt: now,
+      };
+      return;
+    }
+
+    if (!this.counts) {
+      // No usable base: count the total only
+      const total = await this.database.countSignaturesUntil(until);
+      this.counts = {
+        asOf: until,
         function: null,
         event: null,
         error: null,
         unknown: null,
-        total: totalBase.total + delta,
-      },
-      metadata: { refreshed_at: refreshedAt },
-    };
+        total,
+        refreshedAt: now,
+      };
+      return;
+    }
+
+    const counts = this.counts;
+    if (until <= counts.asOf) {
+      return;
+    }
+    if (counts.baseT0) {
+      const delta = await this.database.countSignaturesBetween(
+        counts.asOf,
+        until,
+      );
+      counts.function! += delta.function;
+      counts.event! += delta.event;
+      counts.error! += delta.error;
+      counts.unknown! += delta.unknown;
+      counts.total += delta.total;
+    } else {
+      counts.total += await this.database.countAllSignaturesBetween(
+        counts.asOf,
+        until,
+      );
+    }
+    counts.asOf = until;
+    counts.refreshedAt = now;
   }
 
-  // A full count of the total, with the same one-hour margin as the BigQuery base.
-  // It is computed again after totalBaseMaxAgeMs, so that the delta stays small.
-  private async getTotalBase(): Promise<{ t0: Date; total: number }> {
-    const now = this.now();
-    const isFresh =
-      this.totalBase &&
-      now.getTime() - this.totalBase.t0.getTime() < this.totalBaseMaxAgeMs;
-    if (!isFresh && !this.totalBaseLoad) {
-      const t0 = new Date(now.getTime() - HOUR_MS);
-      this.totalBaseLoad = this.database
-        .countSignaturesUntil(t0)
-        .then((total) => {
-          this.totalBase = { t0, total };
-          return this.totalBase;
-        })
-        .finally(() => {
-          this.totalBaseLoad = undefined;
-        });
-      // An old count is still correct with its delta, so do not wait for the new one
-      this.totalBaseLoad.catch((error) => {
-        this.logger.error("Could not count signatures", { error });
-      });
+  // The base, if it is newer than the base of the counts and not too old
+  private newerUsableBase(now: Date): SignatureStatsBase | undefined {
+    const base = this.base;
+    if (!base || now.getTime() - base.t0.getTime() >= this.baseMaxAgeMs) {
+      return undefined;
     }
-    return this.totalBase ?? this.totalBaseLoad!;
+    const currentT0 = this.counts?.baseT0;
+    return currentT0 && currentT0 >= base.t0 ? undefined : base;
   }
 }

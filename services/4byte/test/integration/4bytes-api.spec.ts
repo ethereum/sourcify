@@ -745,6 +745,7 @@ describe("4byte API End-to-End Tests", function () {
 
   describe("GET /signature-database/v1/stats", function () {
     it("should return the total and a null breakdown without a base file", async function () {
+      serverFixture.server.stats.reset();
       const res = await chai
         .request(`http://localhost:${serverFixture.port}`)
         .get("/signature-database/v1/stats");
@@ -766,6 +767,7 @@ describe("4byte API End-to-End Tests", function () {
 
     it("should return a zero total for empty database", async function () {
       await serverFixture.resetDatabase();
+      serverFixture.server.stats.reset();
 
       const res = await chai
         .request(`http://localhost:${serverFixture.port}`)

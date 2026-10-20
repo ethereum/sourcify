@@ -1,12 +1,14 @@
+Signature stats from a daily BigQuery base (issue #3022, live 4byte signature stats).
+
+Already done on 2026-10-20: the private bucket `gs://sourcify-signature-stats`, the service account `signature-stats-base@` with its access rights, read access to the bucket for `sourcify-production-4byte@` and `sourcify-staging-4byte@`, and the daily scheduled query `signature-stats-base-production`. On staging, the nightly job `refresh-signature-stats` was unscheduled by hand, and the stream `sourcify-staging-pg-bq-stream` was created again.
+
 ## before
 
-- Create the private bucket `gs://sourcify-signature-stats` (europe-west1, uniform access, public access prevention on), for issue #3022 (live 4byte signature stats).
-- Let the service account `signature-stats-base@` run BigQuery jobs, read the datasets `sourcify` and `sourcify_staging`, and write to the bucket. Let `sourcify-production-4byte@` and `sourcify-staging-4byte@` read the bucket.
-- Create the BigQuery scheduled query `signature-stats-base-production` from `services/4byte/bigquery/signature-stats-base.sql`: dataset `sourcify-project.sourcify`, ENV `production`, every hour, as `signature-stats-base@`. Turn on the failure notifications. Run it once, and check that `gs://sourcify-signature-stats/production-000000000000.json` has the counts.
-- Let the database user `sourcify-4byte` read the tables that `/recent` uses. On 2026-10-20 it could not read them. On the production database, as an admin user:
+- Let the database user `sourcify-4byte` read the tables that `/recent` uses, on production and on staging. As an admin user:
   ```sql
   GRANT SELECT ON verified_contracts, contract_deployments, compiled_contracts TO "sourcify-4byte";
   ```
+- Check that a Cloud Monitoring alert exists for failed runs of `signature-stats-base-production`. The failure emails of BigQuery go to the service account, so nobody reads them.
 
 ## after
 

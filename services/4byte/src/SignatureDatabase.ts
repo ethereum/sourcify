@@ -147,12 +147,15 @@ export class SignatureDatabase {
     return result.rows;
   }
 
-  // Counts the signatures with created_at > since, by type. The types come from all
+  // Counts the signatures with after < created_at <= until, by type. The types come from all
   // current usages, so a signature that is first imported and then found in a verified
   // contract counts with its type. This does one index lookup in
   // compiled_contracts_signatures for each new signature. On production it takes about
-  // 0.2 s for 2 hours of signatures and 8 s for 1 day, so keep the window short.
-  async countSignaturesSince(since: Date): Promise<SignatureCountsSince> {
+  // 0.2 s for 2 hours of signatures and 8 s for 1 day.
+  async countSignaturesBetween(
+    after: Date,
+    until: Date,
+  ): Promise<SignatureCountsSince> {
     const query = `
       SELECT
         COUNT(*)::text AS total,
@@ -166,10 +169,11 @@ export class SignatureDatabase {
         FROM ${this.qualify("compiled_contracts_signatures")} ccs
         WHERE ccs.signature_hash_32 = s.signature_hash_32
       ) u ON true
-      WHERE s.created_at > $1
+      WHERE s.created_at > $1 AND s.created_at <= $2
     `;
     const result = await this.pool.query<Record<string, string>>(query, [
-      since,
+      after,
+      until,
     ]);
     const row = result.rows[0];
     return {
@@ -181,12 +185,12 @@ export class SignatureDatabase {
     };
   }
 
-  // Counts the signatures with created_at > since. Reads only the
+  // Counts the signatures with after < created_at <= until. Reads only the
   // signatures_created_at index.
-  async countAllSignaturesSince(since: Date): Promise<number> {
+  async countAllSignaturesBetween(after: Date, until: Date): Promise<number> {
     const result = await this.pool.query<{ total: string }>(
-      `SELECT COUNT(*)::text AS total FROM ${this.qualify("signatures")} WHERE created_at > $1`,
-      [since],
+      `SELECT COUNT(*)::text AS total FROM ${this.qualify("signatures")} WHERE created_at > $1 AND created_at <= $2`,
+      [after, until],
     );
     return parseInt(result.rows[0].total, 10);
   }

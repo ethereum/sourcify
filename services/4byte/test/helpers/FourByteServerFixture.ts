@@ -61,8 +61,8 @@ export class FourByteServerFixture {
           max: 20,
           schema: process.env.FOURBYTES_POSTGRES_SCHEMA || "public",
         },
-        // Tests change the database between requests
-        statsOptions: { cacheTtlMs: 0 },
+        // Count up to now. Tests call server.stats.reset() after they change the database.
+        statsOptions: { commitMarginMs: 0, countStepMs: 1 },
       });
 
       // Start the server

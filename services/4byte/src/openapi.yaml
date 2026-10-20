@@ -260,7 +260,7 @@ paths:
       description: |
         function, event and error show the number of signatures that are associated with a verified contract and the respective type. A signature can have more than one type. unknown shows the number of signatures that are not associated with a verified contract, hence no type can be assigned. total shows the total number of signatures in the database.
 
-        The numbers are approximate. They are an hourly count plus the signatures that were added after it, and they are at most 5 seconds old. If the hourly count is not available, function, event, error and unknown are null, and only total is given.
+        The numbers are approximate. They are a daily count plus the signatures that were added after it, and they are updated once a minute. They do not include the signatures of the last 1 to 2 minutes. If the daily count is not available, function, event, error and unknown are null, and only total is given.
       tags:
         - Signature Database
       responses:
@@ -298,7 +298,7 @@ paths:
                             description: The time when the counts were computed
               examples:
                 withBreakdown:
-                  summary: The hourly count is available
+                  summary: The daily count is available
                   value:
                     ok: true
                     result:
@@ -311,7 +311,7 @@ paths:
                       metadata:
                         refreshed_at: "2026-10-20T10:00:00.000Z"
                 withoutBreakdown:
-                  summary: The hourly count is not available
+                  summary: The daily count is not available
                   value:
                     ok: true
                     result:

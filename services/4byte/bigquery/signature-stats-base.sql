@@ -1,6 +1,6 @@
 -- "Base" counts for GET /signature-database/v1/stats.
 --
--- Run as a BigQuery scheduled query every hour, one for each environment.
+-- Run as a BigQuery scheduled query once a day, one for each environment.
 -- Before you create the scheduled query, replace:
 --   DATASET  the Datastream mirror of the database: `sourcify-project.sourcify`
 --            (production) or `sourcify-project.sourcify_staging` (staging)
@@ -10,11 +10,9 @@
 -- gs://sourcify-signature-stats/ENV-000000000000.json. The bucket is private
 -- because Cloud Storage caches public files for up to 1 hour.
 --
--- The 4byte service accepts a base with a t0 of at most 6 hours ago, because
--- the Postgres delta query gets slow for long windows.
---
--- The 4byte service reads the file (SIGNATURE_STATS_BASE_URL) and adds the
--- Postgres rows with created_at > t0. The counts use the same rules as the old
+-- The 4byte service reads the file (SIGNATURE_STATS_BASE_URL). It adds the
+-- Postgres rows with created_at > t0, and then the new rows once a minute. It
+-- does not use a base with a t0 of 2 days ago or more. The counts use the same rules as the old
 -- signature_stats materialized view.
 --
 -- t0 comes from the newest mirrored row, not from the clock. So if the
