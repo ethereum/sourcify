@@ -247,7 +247,9 @@ A full example of a chain entry is as follows:
       "etherscanApi": true, // if supported by the new etherscan api. Need to provide the etherscanApi config
       "blockscoutApi": {
         // blockscout v2 instances have an api endpoint for this
-        "url": "https://gnosis.blockscout.com/"
+        "url": "https://gnosis.blockscout.com/",
+        // optional. If true, the Blockscout PRO API gateway (api.blockscout.com) is used with the BLOCKSCOUT_PRO_API_KEY env var instead of the instance url, for fetching the creation tx and for the BlockscoutVerify storage service
+        "proApi": true
       },
       "avalancheApi": true // avalanche subnets at glacier-api.avax.network have an api endpoint for this
     },

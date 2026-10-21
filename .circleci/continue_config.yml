@@ -3,7 +3,7 @@
 version: 2.1
 
 orbs:
-  codecov: codecov/codecov@6.0.0
+  codecov: codecov/codecov@6.1.0
   gcp-cli: circleci/gcp-cli@4.0.1
 
 ## Commands via the gcp-cli orb to authenticate with GCP

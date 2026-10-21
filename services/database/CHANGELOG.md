@@ -1,5 +1,9 @@
 # Changelog for `sourcify-database`
 
+## sourcify-database@2.15.3 - 2026-10-21
+
+- feat(4byte): live signature stats from a daily BigQuery base, and /recent (#3033)
+
 ## sourcify-database@2.15.2 - 2026-10-05
 
 - Update dependencies

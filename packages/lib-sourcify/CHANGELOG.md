@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## @ethereum-sourcify/lib-sourcify@3.7.4 - 2026-10-21
+
+- fix(monitor): send each new contract to the server only once (#3027)
+- refactor(lib-sourcify): replace @fairdatasociety/bmt-js with in-house bzzr1 hash (#3019)
+
 ## @ethereum-sourcify/lib-sourcify@3.7.3 - 2026-10-05
 
 - fix: replace retired ipfs.io gateway defaults (#2985)

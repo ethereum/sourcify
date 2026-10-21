@@ -45,6 +45,13 @@ import { getVerificationErrorMessage } from "../../apiv2/errors";
 import type { VerifyErrorExport } from "../workers/workerTypes";
 import type { PoolClient } from "pg";
 
+// A sourcify_matches row that a verification inserted (not updated), plus
+// the contract name for the log line in storeVerification
+type NewSourcifyMatch = VerifiedContractMinimal &
+  Required<Pick<VerifiedContractMinimal, "matchId" | "verifiedAt">> & {
+    name: string;
+  };
+
 export class SourcifyDatabaseService
   extends AbstractDatabaseService
   implements RWStorageService
@@ -524,7 +531,7 @@ export class SourcifyDatabaseService
     }
   }
 
-  // Override this method to include the SourcifyMatch
+  // For an insert, it returns newMatch; the caller logs it after COMMIT.
   async storeVerificationWithPoolClient(
     poolClient: PoolClient,
     verification: VerificationExport,
@@ -532,8 +539,12 @@ export class SourcifyDatabaseService
       verificationId: VerificationJobId;
       finishTime: Date;
     },
-  ): Promise<{ verifiedContractId: Tables.VerifiedContract["id"] }> {
+  ): Promise<{
+    verifiedContractId: Tables.VerifiedContract["id"];
+    newMatch?: NewSourcifyMatch;
+  }> {
     try {
+      let newMatch: NewSourcifyMatch | undefined;
       const {
         type,
         verifiedContractId,
@@ -548,7 +559,7 @@ export class SourcifyDatabaseService
             "VerifiedContractId undefined before inserting sourcify match",
           );
         }
-        await this.database.insertSourcifyMatch(
+        const insertResult = await this.database.insertSourcifyMatch(
           {
             verified_contract_id: verifiedContractId,
             creation_match: verification.status.creationMatch,
@@ -557,12 +568,20 @@ export class SourcifyDatabaseService
           },
           poolClient,
         );
-        logger.info("Stored to SourcifyDatabase", {
+        // Logged by storeVerification after the transaction commits
+        newMatch = {
+          match: getTotalMatchLevel(
+            verification.status.creationMatch,
+            verification.status.runtimeMatch,
+          ),
+          creationMatch: toMatchLevel(verification.status.creationMatch),
+          runtimeMatch: toMatchLevel(verification.status.runtimeMatch),
+          chainId: verification.chainId.toString(),
           address: verification.address,
-          chainId: verification.chainId,
-          runtimeMatch: verification.status.runtimeMatch,
-          creationMatch: verification.status.creationMatch,
-        });
+          verifiedAt: insertResult.rows[0].verified_at,
+          matchId: insertResult.rows[0].id,
+          name: verification.compilation.compilationTarget.name,
+        };
       } else if (type === "update") {
         if (!oldVerifiedContractId) {
           throw new Error(
@@ -618,7 +637,7 @@ export class SourcifyDatabaseService
         );
       }
 
-      return { verifiedContractId: verifiedContractId };
+      return { verifiedContractId: verifiedContractId, newMatch };
     } catch (error: any) {
       if (error instanceof ConflictError) {
         logger.warn("Contract already exists in SourcifyDatabase", {
@@ -641,7 +660,7 @@ export class SourcifyDatabaseService
       finishTime: Date;
     },
   ): Promise<void> {
-    const { verifiedContractId } = await this.withTransaction(
+    const { verifiedContractId, newMatch } = await this.withTransaction(
       async (transactionPoolClient) => {
         return await this.storeVerificationWithPoolClient(
           transactionPoolClient,
@@ -650,6 +669,19 @@ export class SourcifyDatabaseService
         );
       },
     );
+
+    // Log only after COMMIT, so every entry is a match that really exists.
+    // Log before the signatures transaction, so a failure there cannot drop it.
+    if (newMatch) {
+      // DO NOT CHANGE this log message or remove or rename its fields. A Cloud
+      // Logging sink ("sourcify-<env>-new-match") filters on the exact message
+      // text and sends each entry to Pub/Sub. The live counter and the "just
+      // verified" feed on sourcify.dev read it through
+      // https://github.com/sourcifyeth/sourcify-live-stats.
+      // Adding a field is safe, because the parser ignores unknown fields.
+      // If you must change it, update the sink filter and the parser there too.
+      logger.info("Stored to SourcifyDatabase", newMatch);
+    }
 
     // Separate transaction because storing the verification should not fail
     // if signatures cannot be stored

@@ -372,14 +372,19 @@ ${
       chain_id,
     }: Omit<Tables.SourcifyMatch, "created_at" | "id">,
     poolClient?: PoolClient,
-  ) {
-    await (poolClient || this.pool).query(
+  ): Promise<
+    QueryResult<Pick<Tables.SourcifyMatch, "id"> & { verified_at: string }>
+  > {
+    return await (poolClient || this.pool).query(
       `INSERT INTO ${this.schema}.sourcify_matches (
         verified_contract_id,
         creation_match,
         runtime_match,
         chain_id
-      ) VALUES ($1, $2, $3, $4)`,
+      ) VALUES ($1, $2, $3, $4)
+      RETURNING
+        id,
+        to_char(created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as verified_at`,
       [verified_contract_id, creation_match, runtime_match, chain_id],
     );
   }
@@ -912,7 +917,7 @@ ${
       verified_contracts.runtime_metadata_match,
       verified_contracts.creation_metadata_match,
       sourcify_matches.id as match_id,
-      to_char(sourcify_matches.created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as verified_at
+      to_char(verified_contracts.created_at, 'YYYY-MM-DD"T"HH24:MI:SS"Z"') as verified_at
     FROM ${this.schema}.verification_jobs
     LEFT JOIN ${this.schema}.verification_jobs_ephemeral ON verification_jobs.id = verification_jobs_ephemeral.id
     LEFT JOIN ${this.schema}.verified_contracts ON verification_jobs.verified_contract_id = verified_contracts.id

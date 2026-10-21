@@ -1,3 +1,7 @@
+## sourcify-4byte@1.3.0 - 2026-10-21
+
+- feat(4byte): live signature stats from a daily BigQuery base, and /recent (#3033)
+
 ## sourcify-4byte@1.2.0 - 2026-10-05
 
 - feat(4byte): set Cache-Control on signature lookup responses (#2995)
