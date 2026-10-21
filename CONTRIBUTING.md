@@ -44,7 +44,7 @@ If you open a pull request, please link an issue first. Please don't be offended
 
 - Target the `staging` branch. Only `staging` merges into `master`.
 - Keep one change per pull request.
-- Run the linter and the tests (see the [README](./README.md) and the README of each service and package).
+- Run the linter and the tests: `npm run lerna-lint` and `npm run lerna-test` from the repository root. See [Common Commands in AGENTS.md](./AGENTS.md#common-commands) for the commands of each service and package.
 - If you add a database migration, also commit the updated schema dump and add a file in [`.release-todos/`](./.release-todos/README.md).
 - If you change the API, update the OpenAPI spec in `services/server/src/apiv2.yaml`.
 
