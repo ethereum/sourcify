@@ -901,6 +901,20 @@ describe("4byte API End-to-End Tests", function () {
         .to.deep.equal(["old()", "new()"]);
     });
 
+    it("should accept a since that JS reads but Postgres does not", async function () {
+      await serverFixture.resetDatabase();
+      await serverFixture.insertTestSignatures([{ signature: "new()" }]);
+
+      // The format of Date.prototype.toString(), with a GMT+hhmm zone
+      const since = new Date(Date.now() - 60 * 60 * 1000).toString();
+      const res = await request().query({ since });
+
+      chai.expect(res, res.text).to.have.status(200);
+      chai
+        .expect(res.body.result.signatures.map((s: any) => s.signature))
+        .to.deep.equal(["new()"]);
+    });
+
     it("should reject invalid parameters", async function () {
       const cases = [
         { since: "yesterday" },
@@ -910,6 +924,9 @@ describe("4byte API End-to-End Tests", function () {
         { limit: "ten" },
         { cursor: "2026-10-20T10:00:00.000000Z" },
         { cursor: "nope_0x1234" },
+        // Valid for JS, but the cursor must keep the microseconds in UTC
+        { cursor: `2026-10-20T10:00:00.000Z_0x${"ab".repeat(32)}` },
+        { cursor: `Oct 20 2026 10:00 GMT+0200_0x${"ab".repeat(32)}` },
       ];
       for (const query of cases) {
         const res = await request().query(query);

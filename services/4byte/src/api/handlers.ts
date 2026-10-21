@@ -130,12 +130,16 @@ export const RECENT_MAX_LIMIT = 500;
 export const RECENT_MAX_SINCE_AGE_MS = 24 * 60 * 60 * 1000;
 const RECENT_DEFAULT_SINCE_AGE_MS = 60 * 60 * 1000;
 
+// The format of createdAt in the response. Postgres reads it as UTC, with
+// microseconds, so the cursor keeps the exact position.
+const CURSOR_TIME = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{6}Z$/;
+
 // The cursor is "<createdAt>_<signatureHash32>" of the last item of a page
 function parseRecentCursor(raw: string): RecentSignaturesCursor | undefined {
   const [createdAt, hash, ...rest] = raw.split("_");
   if (
     rest.length > 0 ||
-    !createdAt ||
+    !CURSOR_TIME.test(createdAt ?? "") ||
     isNaN(new Date(createdAt).getTime()) ||
     !/^0x[0-9a-fA-F]{64}$/.test(hash ?? "")
   ) {
@@ -422,7 +426,12 @@ export function createSignatureHandlers(
       }
 
       try {
-        const rows = await database.getRecentSignatures(since, cursor, limit);
+        // The time that JS checked, so Postgres reads the same time
+        const rows = await database.getRecentSignatures(
+          new Date(sinceTime).toISOString(),
+          cursor,
+          limit,
+        );
         const signatures = rows.map((row) => ({
           signature: row.signature,
           signatureHash4: row.signature_hash_4,

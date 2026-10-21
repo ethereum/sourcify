@@ -140,6 +140,7 @@ export class SignatureStats {
 
   private base?: SignatureStatsBase;
   private baseLoad?: Promise<void>;
+  private lastBaseLoadAt?: number;
   private counts?: Counts;
   private refreshing?: Promise<void>;
   private timers: NodeJS.Timeout[] = [];
@@ -200,6 +201,7 @@ export class SignatureStats {
       return Promise.resolve();
     }
     if (!this.baseLoad) {
+      this.lastBaseLoadAt = this.now().getTime();
       this.baseLoad = this.fetchBase(this.baseUrl).finally(() => {
         this.baseLoad = undefined;
       });
@@ -263,19 +265,34 @@ export class SignatureStats {
     });
   }
 
-  // Gives the counts from memory. Only the first request after a start waits
-  // for the first count.
+  // Gives the counts from memory. A request waits only if the timers did not
+  // run: after a start, or when Cloud Run throttles the CPU between requests.
   async getStats(): Promise<SignatureStatsResult> {
+    const now = this.now();
+    if (
+      this.baseUrl &&
+      (this.lastBaseLoadAt === undefined ||
+        now.getTime() - this.lastBaseLoadAt >= this.baseRefreshIntervalMs)
+    ) {
+      await this.loadBase();
+    }
     if (!this.counts) {
       await this.refresh();
+    } else if (this.counts.asOf < this.countUntil(now)) {
+      // If the count fails, give the counts that the service has
+      await this.refresh().catch(() => undefined);
     }
     const counts = this.counts!;
+    // A running instance gives null like a new instance when the base gets old
+    const baseTooOld =
+      counts.baseT0 !== undefined &&
+      now.getTime() - counts.baseT0.getTime() >= this.baseMaxAgeMs;
     return {
       count: {
-        function: counts.function,
-        event: counts.event,
-        error: counts.error,
-        unknown: counts.unknown,
+        function: baseTooOld ? null : counts.function,
+        event: baseTooOld ? null : counts.event,
+        error: baseTooOld ? null : counts.error,
+        unknown: baseTooOld ? null : counts.unknown,
         total: counts.total,
       },
       metadata: { refreshed_at: counts.refreshedAt.toISOString() },
@@ -301,8 +318,7 @@ export class SignatureStats {
 
   private async updateCounts(): Promise<void> {
     const now = this.now();
-    const latest = now.getTime() - this.commitMarginMs;
-    const until = new Date(latest - (latest % this.countStepMs));
+    const until = this.countUntil(now);
     const base = this.newerUsableBase(now);
 
     if (base) {
@@ -361,6 +377,12 @@ export class SignatureStats {
     }
     counts.asOf = until;
     counts.refreshedAt = now;
+  }
+
+  // The end of the newest count window: a whole step, before the commit margin
+  private countUntil(now: Date): Date {
+    const latest = now.getTime() - this.commitMarginMs;
+    return new Date(latest - (latest % this.countStepMs));
   }
 
   // The base, if it is newer than the base of the counts and not too old

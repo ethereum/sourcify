@@ -146,9 +146,6 @@ describe("SignatureStats with a base file", function () {
       { signature: "later()", type: SignatureType.Event },
       { signature: "laterImport()" },
     ]);
-    // From memory: no new count yet
-    chai.expect((await stats.getStats()).count.total).to.equal(1500 + 5);
-
     await nextMillisecond();
     await stats.refresh();
     const result = await stats.getStats();
@@ -183,6 +180,80 @@ describe("SignatureStats with a base file", function () {
     chai
       .expect(until.map((d) => d.toISOString()))
       .to.deep.equal(["2026-10-20T10:05:00.000Z"]);
+  });
+
+  describe("with a fake clock", function () {
+    const ZERO = { function: 0, event: 0, error: 0, unknown: 0, total: 0 };
+    let now: Date;
+    let windows: string[];
+    let baseReads: number;
+
+    const fakeDatabase = {
+      countSignaturesBetween: async (_after: Date, end: Date) => {
+        windows.push(end.toISOString());
+        return { ...ZERO, function: 1, total: 1 };
+      },
+    } as unknown as typeof serverFixture.server.database;
+
+    // No start(): the timers do not run, as on an idle instance with a throttled CPU
+    const createFakeStats = () =>
+      new SignatureStats(fakeDatabase, logger, {
+        baseUrl,
+        now: () => now,
+      });
+
+    beforeEach(() => {
+      now = new Date("2026-10-20T10:06:42.500Z");
+      windows = [];
+      baseReads = 0;
+      baseBody = baseFile(new Date("2026-10-20T09:00:00Z"), BASE_COUNTS);
+    });
+
+    const countBaseReads = () => {
+      const listener = () => baseReads++;
+      baseServer.on("request", listener);
+      return () => baseServer.off("request", listener);
+    };
+
+    it("should count in the request only if the counts are behind", async function () {
+      const stats = createFakeStats();
+      const stopCounting = countBaseReads();
+
+      await stats.getStats();
+      // Same minute: from memory
+      now = new Date("2026-10-20T10:06:59.000Z");
+      await stats.getStats();
+      // The next minute, and no timer ran: the request counts
+      now = new Date("2026-10-20T10:07:01.000Z");
+      const result = await stats.getStats();
+      // 10 minutes later: the request reads the base file again
+      now = new Date("2026-10-20T10:17:01.000Z");
+      await stats.getStats();
+      stopCounting();
+
+      chai
+        .expect(windows)
+        .to.deep.equal([
+          "2026-10-20T10:05:00.000Z",
+          "2026-10-20T10:06:00.000Z",
+          "2026-10-20T10:16:00.000Z",
+        ]);
+      chai.expect(result.count.function).to.equal(1000 + 2);
+      chai.expect(baseReads).to.equal(2);
+    });
+
+    it("should give a null breakdown when the base of the counts gets old", async function () {
+      const stats = createFakeStats();
+      chai.expect((await stats.getStats()).count.function).to.equal(1000 + 1);
+
+      // The daily query stopped: the file stays the same
+      now = new Date("2026-10-22T09:00:00.000Z");
+      const result = await stats.getStats();
+
+      chai.expect(result.count.function).to.equal(null);
+      chai.expect(result.count.unknown).to.equal(null);
+      chai.expect(result.count.total).to.equal(1500 + 2);
+    });
   });
 
   it("should count the total only and add the new rows without a base", async function () {
