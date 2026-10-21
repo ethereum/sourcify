@@ -41,7 +41,11 @@ For more details refer to [docs.sourcify.dev](https://docs.sourcify.dev/docs/int
 
 ## How we work
 
-Sourcify aims to be fully open and transparent. You can see what we are working day-to-day on on our [Public Issue Board](https://github.com/orgs/ethereum/projects/46) as well our [Quarterly Milestones](https://github.com/orgs/ethereum/projects/46/views/3) for our longer term plans.
+Sourcify aims to be fully open and transparent. You can see what we are working day-to-day on on our [Public Issue Board](https://github.com/orgs/argotorg/projects/33) as well our [Quarterly Milestones](https://github.com/orgs/argotorg/projects/33/views/3) for our longer term plans.
+
+## Contributing
+
+We prefer issues over pull requests. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before you open an issue or a pull request, and follow our [Code of Conduct](./CODE_OF_CONDUCT.md). To report a security problem, see [SECURITY.md](./SECURITY.md).
 
 ## Adding a new chain
 
