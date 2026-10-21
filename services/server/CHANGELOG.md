@@ -2,6 +2,30 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-server@4.2.0 - 2026-10-21
+
+- fix(server): truncate explorer error response bodies (#3008)
+- fix(server): return the current match's time as verifiedAt (#3009)
+- Log each new verified match with its id after commit (#3024)
+- Add the contract name to the new match log line (#3026)
+- fix(server): report aragonOS app proxies in proxyResolution (#2986)
+- feat(server): use the Blockscout PRO API for creation tx fetching and verification (#3029)
+
+### Change to `verifiedAt` (#3009)
+
+`verifiedAt` now shows when the current match was verified. Before this release, it showed when the contract got its first match on Sourcify.
+
+This changes the value for approximately 665k contracts that got a better match after their first verification (for example, from `match` to `exact_match`). For these contracts, `verifiedAt` now shows the date of the upgrade.
+
+Affected endpoints:
+
+- `GET /v2/contract/{chainId}/{address}`
+- `GET /v2/contracts/{chainId}`
+- `GET /v2/contract/all-chains/{address}`
+- `GET /v2/verify/{verificationId}`
+
+If you use `verifiedAt` as "first verified on Sourcify", you get a later date for these contracts.
+
 ## sourcify-server@4.1.2 - 2026-10-05
 
 - fix: replace retired ipfs.io gateway defaults (#2985)

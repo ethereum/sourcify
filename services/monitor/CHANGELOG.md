@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file.
 
+## sourcify-monitor@1.6.5 - 2026-10-21
+
+- fix(monitor): send each new contract to the server only once (#3027)
+
 ## sourcify-monitor@1.6.4 - 2026-10-05
 
 - fix: replace retired ipfs.io gateway defaults (#2985)
