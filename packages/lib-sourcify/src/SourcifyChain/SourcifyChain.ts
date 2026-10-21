@@ -428,7 +428,8 @@ export class SourcifyChain {
   };
 
   /**
-   * Tries to fetch all created contracts for a block with the available methods.
+   * Tries to fetch the addresses that contracts created (factory deploys) in a block with the available methods.
+   * Top-level deploys (a tx with no `to`) are not returned: callers find them in the block's transactions.
    */
   getCreatedAddressesFromBlockTraces = async (
     blockNumber: number,
@@ -732,7 +733,8 @@ export class SourcifyChain {
 
   /**
    * For Geth style traces `debug_traceBlockByNumber`
-   * Extracts the all created addresses from the traces of a block
+   * Extracts the addresses that contracts created (factory deploys) from the traces of a block.
+   * Top-level deploys (a tx with no `to`) are not returned: callers find them in the block's transactions.
    */
   extractCreatedAddressesFromGethTraceProvider = async (
     rpc: SourcifyRpcWithProvider,

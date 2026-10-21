@@ -251,9 +251,10 @@ describe("Monitor", function () {
   it("should process a contract only once when it is found twice", async () => {
     monitor = new Monitor([localChain]);
     const chainMonitor = monitor["chainMonitors"][0];
+    // Bytecode without metadata: processing stops after the fetch
     const getBytecodeStub = sandbox
       .stub(chainMonitor as any, "getBytecodeWithRetries")
-      .resolves(null);
+      .resolves("0x60806040");
     const address = "0x8b297200E9A000c47b31D645254b3935e6457340";
 
     // Same contract from the tx check and the trace check, address case differs
@@ -265,6 +266,19 @@ describe("Monitor", function () {
       "0xhash2",
       "0x22457c9d0171CE51A4C4258a292a419d3596113f",
     );
+    expect(getBytecodeStub.callCount).to.equal(2);
+  });
+
+  it("should try a contract again when the bytecode fetch failed", async () => {
+    monitor = new Monitor([localChain]);
+    const chainMonitor = monitor["chainMonitors"][0];
+    const getBytecodeStub = sandbox
+      .stub(chainMonitor as any, "getBytecodeWithRetries")
+      .resolves(null);
+    const address = "0x8b297200E9A000c47b31D645254b3935e6457340";
+
+    await chainMonitor["processNewContract"]("0xhash", address);
+    await chainMonitor["processNewContract"]("0xhash", address);
     expect(getBytecodeStub.callCount).to.equal(2);
   });
 

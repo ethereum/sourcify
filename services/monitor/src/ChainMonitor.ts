@@ -348,6 +348,8 @@ export default class ChainMonitor extends EventEmitter {
         this.chainLogger.warn("Could not fetch bytecode for contract", {
           address,
         });
+        // Forget the address so that a later find can try again
+        this.recentContracts.delete(address.toLowerCase());
         return;
       }
       try {
